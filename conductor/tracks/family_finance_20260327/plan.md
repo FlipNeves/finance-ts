@@ -6,11 +6,11 @@
     - [x] Create basic React frontend structure
     - [x] Configure MongoDB connection and schemas
     - [x] Set up basic Internationalization (i18n) framework
-- [ ] Task: User Authentication & Profile Management
-    - [ ] Write tests for User Registration & Login (JWT)
-    - [ ] Implement User Registration & Login (JWT)
-    - [ ] Write tests for User Profile management
-    - [ ] Implement User Profile management
+- [~] Task: User Authentication & Profile Management
+    - [~] Write tests for User Registration & Login (JWT)
+    - [~] Implement User Registration & Login (JWT)
+    - [~] Write tests for User Profile management
+    - [~] Implement User Profile management
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Authentication' (Protocol in workflow.md)
 
 ## Phase 2: Family Management & Collaboration
