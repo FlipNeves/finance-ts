@@ -1,11 +1,11 @@
 # Implementation Plan: Build core family finance tracking functionality
 
 ## Phase 1: Foundation & Authentication
-- [~] Task: Project Scaffolding (NestJS & React)
-    - [~] Create basic NestJS backend structure
-    - [~] Create basic React frontend structure
-    - [~] Configure MongoDB connection and schemas
-    - [~] Set up basic Internationalization (i18n) framework
+- [x] Task: Project Scaffolding (NestJS & React) e8cad0d
+    - [x] Create basic NestJS backend structure
+    - [x] Create basic React frontend structure
+    - [x] Configure MongoDB connection and schemas
+    - [x] Set up basic Internationalization (i18n) framework
 - [ ] Task: User Authentication & Profile Management
     - [ ] Write tests for User Registration & Login (JWT)
     - [ ] Implement User Registration & Login (JWT)
