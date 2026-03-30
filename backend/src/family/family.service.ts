@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Family } from '../schemas/family.schema';
@@ -12,11 +12,35 @@ export class FamilyService {
   ) {}
 
   async create(createFamilyDto: any, userId: string): Promise<Family> {
-    throw new Error('Not implemented');
+    const user = await this.userModel.findById(userId).exec();
+    if (user.familyId) {
+      throw new ConflictException('User already belongs to a family');
+    }
+
+    const familyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const family = await this.familyModel.create({
+      ...createFamilyDto,
+      familyCode,
+    });
+
+    user.familyId = family._id as string;
+    await user.save();
+
+    return family;
   }
 
   async join(familyCode: string, userId: string): Promise<Family> {
-    throw new Error('Not implemented');
+    const user = await this.userModel.findById(userId).exec();
+    
+    const family = await this.familyModel.findOne({ familyCode }).exec();
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+
+    user.familyId = family._id as string;
+    await user.save();
+
+    return family;
   }
 
   async leave(userId: string): Promise<void> {
@@ -24,7 +48,7 @@ export class FamilyService {
   }
 
   async getMembers(familyId: string): Promise<User[]> {
-    throw new Error('Not implemented');
+    return this.userModel.find({ familyId }).select('-passwordHash').exec();
   }
 
   async removeMember(familyId: string, memberId: string): Promise<void> {
@@ -32,6 +56,11 @@ export class FamilyService {
   }
 
   async addCustomCategory(familyId: string, category: string): Promise<void> {
-    throw new Error('Not implemented');
+    const family = await this.familyModel.findById(familyId).exec();
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+    family.customCategories.push(category);
+    await family.save();
   }
 }
