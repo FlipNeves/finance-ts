@@ -130,6 +130,20 @@ describe('FamilyService', () => {
     });
   });
 
+  describe('leave', () => {
+    it('should remove user from their family', async () => {
+      const userWithFamily = { ...mockUser, familyId: 'familyId', save: jest.fn() };
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(userWithFamily),
+      } as any);
+
+      await service.leave('userId');
+      
+      expect(userWithFamily.familyId).toBeNull();
+      expect(userWithFamily.save).toHaveBeenCalled();
+    });
+  });
+
   describe('getMembers', () => {
     it('should return all members of a family', async () => {
       const mockMembers = [{ _id: 'userId', name: 'Test User' }];
@@ -144,6 +158,29 @@ describe('FamilyService', () => {
       
       expect(result).toEqual(mockMembers);
       expect(userModel.find).toHaveBeenCalledWith({ familyId: 'familyId' });
+    });
+  });
+
+  describe('removeMember', () => {
+    it('should remove a member from the family', async () => {
+      const member = { _id: 'memberId', familyId: 'familyId', save: jest.fn() };
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(member),
+      } as any);
+
+      await service.removeMember('familyId', 'memberId');
+      
+      expect(member.familyId).toBeNull();
+      expect(member.save).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if member is not in the specified family', async () => {
+      const memberInOtherFamily = { _id: 'memberId', familyId: 'otherFamilyId', save: jest.fn() };
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(memberInOtherFamily),
+      } as any);
+
+      await expect(service.removeMember('familyId', 'memberId')).rejects.toThrow(NotFoundException);
     });
   });
 

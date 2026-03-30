@@ -44,7 +44,12 @@ export class FamilyService {
   }
 
   async leave(userId: string): Promise<void> {
-    throw new Error('Not implemented');
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.familyId = null;
+    await user.save();
   }
 
   async getMembers(familyId: string): Promise<User[]> {
@@ -52,7 +57,12 @@ export class FamilyService {
   }
 
   async removeMember(familyId: string, memberId: string): Promise<void> {
-    throw new Error('Not implemented');
+    const user = await this.userModel.findById(memberId).exec();
+    if (!user || user.familyId !== familyId) {
+      throw new NotFoundException('Member not found in this family');
+    }
+    user.familyId = null;
+    await user.save();
   }
 
   async addCustomCategory(familyId: string, category: string): Promise<void> {
