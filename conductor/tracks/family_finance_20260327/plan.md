@@ -29,16 +29,16 @@
 - [ ] Task: User Manual Verification 'Phase 2: Family Management & Collaboration' 7caef74
 
 ## Phase 3: Transaction Management & Multi-language 2f327ad [checkpoint: c00abb4]
-- [~] Task: Custom Transaction Categories e659818
+- [x] Task: Custom Transaction Categories e659818
     - [x] Write tests for creating and managing custom categories per family
     - [x] Implement creating and managing custom categories per family e659818
-    - [ ] Implement Frontend: Custom Category Management UI
-- [~] Task: Income & Expense Management e659818
+    - [x] Implement Frontend: Custom Category Management UI f03c460
+- [x] Task: Income & Expense Management e659818
     - [x] Write tests for CRUD operations on income and expenses
     - [x] Implement CRUD operations on income and expenses e659818
     - [x] Write tests for associating transactions with family groups and categories
     - [x] Implement associating transactions with family groups and categories e659818
-    - [ ] Implement Frontend: Transaction List & Add Form UI
+    - [x] Implement Frontend: Transaction List & Add Form UI f03c460
 - [x] Task: Implement Portuguese & English Translations 7458652
     - [x] Extract all UI strings into translation files 7458652
     - [x] Provide translations for core interface elements (PT-BR & EN-US) 7458652
