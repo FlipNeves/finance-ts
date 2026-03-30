@@ -16,16 +16,16 @@
 - [ ] Task: User Manual Verification 'Phase 1: Foundation & Authentication' 6a8746f
 
 ## Phase 2: Family Management & Collaboration 2f327ad [checkpoint: 7caef74]
-- [~] Task: Family Group Creation & Joining 4b26c76
+- [x] Task: Family Group Creation & Joining 4b26c76
     - [x] Write tests for Family Group creation (unique family code)
     - [x] Implement Family Group creation (unique family code) 4b26c76
     - [x] Write tests for Joining a Family Group using a code
     - [x] Implement Joining a Family Group using a code 4b26c76
-    - [ ] Implement Frontend: Create/Join Family UI
-- [~] Task: Family Group Settings & Membership 0a4c773
+    - [x] Implement Frontend: Create/Join Family UI 0e56a99
+- [x] Task: Family Group Settings & Membership 0a4c773
     - [x] Write tests for managing family group members
     - [x] Implement managing family group members 0a4c773
-    - [ ] Implement Frontend: Family Settings & Member List UI
+    - [x] Implement Frontend: Family Settings & Member List UI 0e56a99
 - [ ] Task: User Manual Verification 'Phase 2: Family Management & Collaboration' 7caef74
 
 ## Phase 3: Transaction Management & Multi-language 2f327ad [checkpoint: c00abb4]
