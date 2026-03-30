@@ -14,12 +14,12 @@
 - [x] Task: User Manual Verification 'Phase 1: Foundation & Authentication' 6a8746f
 
 ## Phase 2: Family Management & Collaboration 2f327ad
-- [x] Task: Family Group Creation & Joining
+- [x] Task: Family Group Creation & Joining 4b26c76
     - [x] Write tests for Family Group creation (unique family code)
-    - [ ] Implement Family Group creation (unique family code)
+    - [x] Implement Family Group creation (unique family code) 4b26c76
     - [x] Write tests for Joining a Family Group using a code
-    - [ ] Implement Joining a Family Group using a code
-- [x] Task: Family Group Settings & Membership
+    - [x] Implement Joining a Family Group using a code 4b26c76
+- [~] Task: Family Group Settings & Membership
     - [x] Write tests for managing family group members
     - [ ] Implement managing family group members
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Family Management & Collaboration' (Protocol in workflow.md)
