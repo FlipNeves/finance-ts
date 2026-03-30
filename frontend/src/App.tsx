@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import FamilyPage from './pages/FamilyPage';
 import './App.css';
 
 const Navigation: React.FC = () => {
@@ -62,7 +63,7 @@ function App() {
             } />
             <Route path="/family" element={
               <PrivateRoute>
-                <h1>Family Management (Work in Progress)</h1>
+                <FamilyPage />
               </PrivateRoute>
             } />
             <Route path="/transactions" element={

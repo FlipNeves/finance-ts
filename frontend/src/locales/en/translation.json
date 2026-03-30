@@ -30,7 +30,9 @@
     "code": "Family Code",
     "leave": "Leave Family",
     "categories": "Categories",
-    "addCategory": "Add Custom Category"
+    "addCategory": "Add Custom Category",
+    "createError": "Error creating family.",
+    "joinError": "Invalid family code."
   },
   "transactions": {
     "title": "Transactions",

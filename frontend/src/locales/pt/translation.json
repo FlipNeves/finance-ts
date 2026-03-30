@@ -30,7 +30,9 @@
     "code": "Código da Família",
     "leave": "Sair da Família",
     "categories": "Categorias",
-    "addCategory": "Adicionar Categoria Personalizada"
+    "addCategory": "Adicionar Categoria Personalizada",
+    "createError": "Erro ao criar família.",
+    "joinError": "Código de família inválido."
   },
   "transactions": {
     "title": "Transações",
