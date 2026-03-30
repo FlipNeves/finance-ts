@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FamilyPage from './pages/FamilyPage';
 import TransactionsPage from './pages/TransactionsPage';
+import DashboardPage from './pages/DashboardPage';
 import './App.css';
 
 const Navigation: React.FC = () => {
@@ -59,7 +60,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/" element={
               <PrivateRoute>
-                <h1>Welcome to Dashboard (Work in Progress)</h1>
+                <DashboardPage />
               </PrivateRoute>
             } />
             <Route path="/family" element={
