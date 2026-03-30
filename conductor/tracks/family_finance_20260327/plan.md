@@ -33,10 +33,10 @@
     - [x] Implement CRUD operations on income and expenses e659818
     - [x] Write tests for associating transactions with family groups and categories
     - [x] Implement associating transactions with family groups and categories e659818
-- [~] Task: Implement Portuguese & English Translations
-    - [ ] Extract all UI strings into translation files
-    - [ ] Provide translations for core interface elements (PT-BR & EN-US)
-    - [ ] Implement language switcher in the UI
+- [x] Task: Implement Portuguese & English Translations 7458652
+    - [x] Extract all UI strings into translation files 7458652
+    - [x] Provide translations for core interface elements (PT-BR & EN-US) 7458652
+    - [x] Implement language switcher in the UI 7458652
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Transaction Management & Multi-language' (Protocol in workflow.md)
 
 ## Phase 4: Financial Reporting & Dashboard
