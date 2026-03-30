@@ -32,17 +32,52 @@ describe('ReportsService', () => {
 
   describe('getFamilySummary', () => {
     it('should return total income and expense', async () => {
+      const mockResult = [
+        { _id: 'income', total: 1000 },
+        { _id: 'expense', total: 400 },
+      ];
+      
+      jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockResult),
+      } as any);
+
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      await expect(service.getFamilySummary('familyId', startDate, endDate)).rejects.toThrow('Not implemented');
+      const result = await service.getFamilySummary('familyId', startDate, endDate);
+      
+      expect(result.totalIncome).toBe(1000);
+      expect(result.totalExpense).toBe(400);
+      expect(result.balance).toBe(600);
+    });
+
+    it('should return zeros if no transactions found', async () => {
+      jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      } as any);
+
+      const result = await service.getFamilySummary('familyId', new Date(), new Date());
+      expect(result).toEqual({ totalIncome: 0, totalExpense: 0, balance: 0 });
     });
   });
 
   describe('getSpendingByCategory', () => {
     it('should return spending grouped by category', async () => {
+      const mockResult = [
+        { _id: 'Food', amount: 200 },
+        { _id: 'Health', amount: 100 },
+      ];
+      
+      jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockResult),
+      } as any);
+
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      await expect(service.getSpendingByCategory('familyId', startDate, endDate)).rejects.toThrow('Not implemented');
+      const result = await service.getSpendingByCategory('familyId', startDate, endDate);
+      
+      expect(result).toHaveLength(2);
+      expect(result[0].category).toBe('Food');
+      expect(result[0].amount).toBe(200);
     });
   });
 });

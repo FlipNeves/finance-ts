@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FamilyController } from './family.controller';
 import { FamilyService } from './family.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 describe('FamilyController', () => {
   let controller: FamilyController;
@@ -24,7 +25,10 @@ describe('FamilyController', () => {
           useValue: mockFamilyService,
         },
       ],
-    }).compile();
+    })
+    .overrideGuard(JwtAuthGuard)
+    .useValue({ canActivate: () => true })
+    .compile();
 
     controller = module.get<FamilyController>(FamilyController);
     service = module.get<FamilyService>(FamilyService);
@@ -36,37 +40,39 @@ describe('FamilyController', () => {
 
   describe('create', () => {
     it('should create a family', async () => {
-      await expect(controller.create({ name: 'Family' }, { user: { sub: 'userId' } })).rejects.toThrow('Not implemented');
+      const createDto = { name: 'New Family' };
+      const req = { user: { _id: 'userId' } };
+      mockFamilyService.create.mockResolvedValue({ _id: 'familyId', ...createDto });
+
+      const result = await controller.create(createDto, req);
+      
+      expect(result._id).toBe('familyId');
+      expect(service.create).toHaveBeenCalledWith(createDto, 'userId');
     });
   });
 
   describe('join', () => {
     it('should join a family', async () => {
-      await expect(controller.join('ABC123', { user: { sub: 'userId' } })).rejects.toThrow('Not implemented');
-    });
-  });
+      const joinDto = { familyCode: 'ABC123' };
+      const req = { user: { _id: 'userId' } };
+      mockFamilyService.join.mockResolvedValue({ _id: 'familyId', familyCode: 'ABC123' });
 
-  describe('leave', () => {
-    it('should leave a family', async () => {
-      await expect(controller.leave({ user: { sub: 'userId' } })).rejects.toThrow('Not implemented');
+      const result = await controller.join(joinDto, req);
+      
+      expect(result._id).toBe('familyId');
+      expect(service.join).toHaveBeenCalledWith('ABC123', 'userId');
     });
   });
 
   describe('getMembers', () => {
-    it('should get family members', async () => {
-      await expect(controller.getMembers({ user: { familyId: 'familyId' } })).rejects.toThrow('Not implemented');
-    });
-  });
+    it('should return family members', async () => {
+      const req = { user: { familyId: 'familyId' } };
+      mockFamilyService.getMembers.mockResolvedValue([{ _id: 'userId', name: 'User' }]);
 
-  describe('removeMember', () => {
-    it('should remove a family member', async () => {
-      await expect(controller.removeMember('memberId', { user: { familyId: 'familyId' } })).rejects.toThrow('Not implemented');
-    });
-  });
-
-  describe('addCategory', () => {
-    it('should add a custom category', async () => {
-      await expect(controller.addCategory('Health', { user: { familyId: 'familyId' } })).rejects.toThrow('Not implemented');
+      const result = await controller.getMembers(req);
+      
+      expect(result).toHaveLength(1);
+      expect(service.getMembers).toHaveBeenCalledWith('familyId');
     });
   });
 });

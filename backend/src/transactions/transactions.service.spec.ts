@@ -4,11 +4,29 @@ import { TransactionsService } from './transactions.service';
 import { Transaction } from '../schemas/transaction.schema';
 import { Family } from '../schemas/family.schema';
 import { Model } from 'mongoose';
+import { NotFoundException } from '@nestjs/common';
 
 describe('TransactionsService', () => {
   let service: TransactionsService;
   let transactionModel: Model<Transaction>;
   let familyModel: Model<Family>;
+
+  const mockTransaction = {
+    _id: 'transId',
+    description: 'Grocery',
+    amount: 50,
+    type: 'expense',
+    category: 'Food',
+    date: new Date(),
+    familyId: 'familyId',
+    userId: 'userId',
+  };
+
+  const mockFamily = {
+    _id: 'familyId',
+    name: 'Test Family',
+    customCategories: ['Health'],
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,7 +37,7 @@ describe('TransactionsService', () => {
           useValue: {
             create: jest.fn(),
             find: jest.fn(),
-            findOne: jest.fn(),
+            findById: jest.fn(),
             findByIdAndUpdate: jest.fn(),
             findByIdAndDelete: jest.fn(),
             exec: jest.fn(),
@@ -46,37 +64,98 @@ describe('TransactionsService', () => {
 
   describe('create', () => {
     it('should create a transaction', async () => {
-      await expect(service.create({}, 'userId', 'familyId')).rejects.toThrow('Not implemented');
+      const createDto = {
+        description: 'Grocery',
+        amount: 50,
+        type: 'expense',
+        category: 'Food',
+        date: new Date(),
+      };
+
+      jest.spyOn(transactionModel, 'create').mockResolvedValue(mockTransaction as any);
+
+      const result = await service.create(createDto, 'userId', 'familyId');
+      
+      expect(result).toEqual(mockTransaction);
+      expect(transactionModel.create).toHaveBeenCalledWith({
+        ...createDto,
+        userId: 'userId',
+        familyId: 'familyId',
+      });
     });
   });
 
   describe('findAll', () => {
     it('should return all transactions for a family', async () => {
-      await expect(service.findAll('familyId')).rejects.toThrow('Not implemented');
+      jest.spyOn(transactionModel, 'find').mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([mockTransaction]),
+        }),
+      } as any);
+
+      const result = await service.findAll('familyId');
+      
+      expect(result).toEqual([mockTransaction]);
+      expect(transactionModel.find).toHaveBeenCalledWith({ familyId: 'familyId' });
     });
   });
 
   describe('findOne', () => {
     it('should return a single transaction', async () => {
-      await expect(service.findOne('id')).rejects.toThrow('Not implemented');
+      jest.spyOn(transactionModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockTransaction),
+      } as any);
+
+      const result = await service.findOne('transId');
+      
+      expect(result).toEqual(mockTransaction);
+    });
+
+    it('should throw NotFoundException if transaction not found', async () => {
+      jest.spyOn(transactionModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      } as any);
+
+      await expect(service.findOne('invalidId')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
     it('should update a transaction', async () => {
-      await expect(service.update('id', {})).rejects.toThrow('Not implemented');
+      const updateDto = { amount: 60 };
+      jest.spyOn(transactionModel, 'findByIdAndUpdate').mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...mockTransaction, ...updateDto }),
+      } as any);
+
+      const result = await service.update('transId', updateDto);
+      
+      expect(result.amount).toBe(60);
     });
   });
 
   describe('remove', () => {
     it('should remove a transaction', async () => {
-      await expect(service.remove('id')).rejects.toThrow('Not implemented');
+      jest.spyOn(transactionModel, 'findByIdAndDelete').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockTransaction),
+      } as any);
+
+      await service.remove('transId');
+      
+      expect(transactionModel.findByIdAndDelete).toHaveBeenCalledWith('transId');
     });
   });
 
   describe('getCategories', () => {
-    it('should return categories for a family', async () => {
-      await expect(service.getCategories('familyId')).rejects.toThrow('Not implemented');
+    it('should return default and custom categories for a family', async () => {
+      jest.spyOn(familyModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockFamily),
+      } as any);
+
+      const result = await service.getCategories('familyId');
+      
+      // Assuming some default categories exist
+      expect(result).toContain('Health');
+      expect(result).toContain('Food');
     });
   });
 });
