@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 describe('TransactionsController', () => {
   let controller: TransactionsController;
@@ -24,7 +25,10 @@ describe('TransactionsController', () => {
           useValue: mockTransactionsService,
         },
       ],
-    }).compile();
+    })
+    .overrideGuard(JwtAuthGuard)
+    .useValue({ canActivate: () => true })
+    .compile();
 
     controller = module.get<TransactionsController>(TransactionsController);
     service = module.get<TransactionsService>(TransactionsService);
@@ -36,37 +40,38 @@ describe('TransactionsController', () => {
 
   describe('create', () => {
     it('should create a transaction', async () => {
-      await expect(controller.create({}, { user: { sub: 'userId', familyId: 'familyId' } })).rejects.toThrow('Not implemented');
+      const createDto = { description: 'Test', amount: 10, type: 'expense', category: 'Food', date: new Date() };
+      const req = { user: { _id: 'userId', familyId: 'familyId' } };
+      mockTransactionsService.create.mockResolvedValue({ _id: 'id', ...createDto });
+
+      const result = await controller.create(createDto, req);
+      
+      expect(result._id).toBe('id');
+      expect(service.create).toHaveBeenCalledWith(createDto, 'userId', 'familyId');
     });
   });
 
   describe('findAll', () => {
     it('should return all transactions', async () => {
-      await expect(controller.findAll({ user: { familyId: 'familyId' } }, {})).rejects.toThrow('Not implemented');
-    });
-  });
+      const req = { user: { familyId: 'familyId' } };
+      mockTransactionsService.findAll.mockResolvedValue([]);
 
-  describe('findOne', () => {
-    it('should return a transaction', async () => {
-      await expect(controller.findOne('id')).rejects.toThrow('Not implemented');
-    });
-  });
-
-  describe('update', () => {
-    it('should update a transaction', async () => {
-      await expect(controller.update('id', {})).rejects.toThrow('Not implemented');
-    });
-  });
-
-  describe('remove', () => {
-    it('should remove a transaction', async () => {
-      await expect(controller.remove('id')).rejects.toThrow('Not implemented');
+      const result = await controller.findAll(req, {});
+      
+      expect(result).toEqual([]);
+      expect(service.findAll).toHaveBeenCalledWith('familyId', {});
     });
   });
 
   describe('getCategories', () => {
-    it('should get categories', async () => {
-      await expect(controller.getCategories({ user: { familyId: 'familyId' } })).rejects.toThrow('Not implemented');
+    it('should return categories', async () => {
+      const req = { user: { familyId: 'familyId' } };
+      mockTransactionsService.getCategories.mockResolvedValue(['Food']);
+
+      const result = await controller.getCategories(req);
+      
+      expect(result).toEqual(['Food']);
+      expect(service.getCategories).toHaveBeenCalledWith('familyId');
     });
   });
 });
