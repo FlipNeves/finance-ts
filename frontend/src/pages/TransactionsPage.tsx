@@ -2,9 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
+interface Transaction {
+  _id: string;
+  description: string;
+  amount: number;
+  type: string;
+  category: string;
+  date: string;
+}
+
 const TransactionsPage: React.FC = () => {
   const { t } = useTranslation();
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,8 +37,8 @@ const TransactionsPage: React.FC = () => {
       setTransactions(transRes.data);
       setCategories(catRes.data);
       if (catRes.data.length > 0) setCategory(catRes.data[0]);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -48,7 +57,7 @@ const TransactionsPage: React.FC = () => {
       setDescription('');
       setAmount('');
       loadData();
-    } catch (err) {
+    } catch {
       alert(t('transactions.addError'));
     }
   };
@@ -58,7 +67,7 @@ const TransactionsPage: React.FC = () => {
       try {
         await api.delete(`/transactions/${id}`);
         loadData();
-      } catch (err) {
+      } catch {
         alert(t('transactions.deleteError'));
       }
     }

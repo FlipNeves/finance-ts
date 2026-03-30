@@ -5,10 +5,21 @@ import api from '../services/api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
+interface Summary {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+}
+
+interface SpendingByCategory {
+  category: string;
+  amount: number;
+}
+
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
-  const [summary, setSummary] = useState<any>(null);
-  const [spending, setSpending] = useState<any[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [spending, setSpending] = useState<SpendingByCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,8 +34,8 @@ const DashboardPage: React.FC = () => {
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setLoading(false);
     } finally {
       setLoading(false);
     }

@@ -3,12 +3,18 @@ import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
+interface Member {
+  _id: string;
+  name: string;
+  email: string;
+}
+
 const FamilyPage: React.FC = () => {
   const { t } = useTranslation();
   const { user, login } = useAuth();
   const [familyName, setFamilyName] = useState('');
   const [familyCode, setFamilyCode] = useState('');
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,8 +29,8 @@ const FamilyPage: React.FC = () => {
     try {
       const response = await api.get('/family/members');
       setMembers(response.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -33,10 +39,10 @@ const FamilyPage: React.FC = () => {
   const handleCreateFamily = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post('/family/create', { name: familyName });
+      await api.post('/family/create', { name: familyName });
       const token = localStorage.getItem('token');
       if (token) await login(token); // Refresh user data
-    } catch (err) {
+    } catch {
       alert(t('family.createError'));
     }
   };
@@ -47,7 +53,7 @@ const FamilyPage: React.FC = () => {
       await api.post('/family/join', { familyCode });
       const token = localStorage.getItem('token');
       if (token) await login(token); // Refresh user data
-    } catch (err) {
+    } catch {
       alert(t('family.joinError'));
     }
   };

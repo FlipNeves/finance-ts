@@ -3,7 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { FamilyService } from './family.service';
 import { Family } from '../schemas/family.schema';
 import { User } from '../schemas/user.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 
 describe('FamilyService', () => {
@@ -11,23 +11,29 @@ describe('FamilyService', () => {
   let familyModel: Model<Family>;
   let userModel: Model<User>;
 
+  const mockFamilyId = '507f1f77bcf86cd799439011';
+  const mockUserId = '507f1f77bcf86cd799439012';
+
   const mockFamily = {
-    _id: 'familyId',
+    _id: mockFamilyId,
     name: 'Test Family',
     familyCode: 'ABC123',
-    members: ['userId'],
+    members: [mockUserId],
     customCategories: [],
     save: jest.fn(),
   };
 
   const mockUser = {
-    _id: 'userId',
+    _id: mockUserId,
     name: 'Test User',
     familyId: null,
     save: jest.fn(),
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+    mockUser.familyId = null;
+    mockFamily.customCategories = [];
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FamilyService,
@@ -79,23 +85,23 @@ describe('FamilyService', () => {
         familyCode: 'RANDOM',
       } as any);
 
-      const result = await service.create(createFamilyDto, 'userId');
+      const result = await service.create(createFamilyDto, mockUserId);
       
       expect(result.name).toBe(createFamilyDto.name);
       expect(result.familyCode).toBeDefined();
-      expect(userModel.findById).toHaveBeenCalledWith('userId');
+      expect(userModel.findById).toHaveBeenCalledWith(mockUserId);
       expect(mockUser.save).toHaveBeenCalled();
     });
 
     it('should throw ConflictException if user already belongs to a family', async () => {
       const createFamilyDto = { name: 'New Family' };
-      const userWithFamily = { ...mockUser, familyId: 'existingFamilyId' };
+      const userWithFamily = { ...mockUser, familyId: mockFamilyId };
       
       jest.spyOn(userModel, 'findById').mockReturnValue({
         exec: jest.fn().mockResolvedValue(userWithFamily),
       } as any);
 
-      await expect(service.create(createFamilyDto, 'userId')).rejects.toThrow(ConflictException);
+      await expect(service.create(createFamilyDto, mockUserId)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -110,7 +116,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(mockFamily),
       } as any);
 
-      const result = await service.join('ABC123', 'userId');
+      const result = await service.join('ABC123', mockUserId);
       
       expect(result._id).toBe(mockFamily._id);
       expect(mockUser.familyId).toBe(mockFamily._id);
@@ -126,18 +132,18 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(null),
       } as any);
 
-      await expect(service.join('INVALID', 'userId')).rejects.toThrow(NotFoundException);
+      await expect(service.join('INVALID', mockUserId)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('leave', () => {
     it('should remove user from their family', async () => {
-      const userWithFamily = { ...mockUser, familyId: 'familyId', save: jest.fn() };
+      const userWithFamily = { ...mockUser, familyId: mockFamilyId, save: jest.fn() };
       jest.spyOn(userModel, 'findById').mockReturnValue({
         exec: jest.fn().mockResolvedValue(userWithFamily),
       } as any);
 
-      await service.leave('userId');
+      await service.leave(mockUserId);
       
       expect(userWithFamily.familyId).toBeNull();
       expect(userWithFamily.save).toHaveBeenCalled();
@@ -146,7 +152,7 @@ describe('FamilyService', () => {
 
   describe('getMembers', () => {
     it('should return all members of a family', async () => {
-      const mockMembers = [{ _id: 'userId', name: 'Test User' }];
+      const mockMembers = [{ _id: mockUserId, name: 'Test User' }];
       
       jest.spyOn(userModel, 'find').mockReturnValue({
         select: jest.fn().mockReturnValue({
@@ -154,21 +160,21 @@ describe('FamilyService', () => {
         }),
       } as any);
 
-      const result = await service.getMembers('familyId');
+      const result = await service.getMembers(mockFamilyId);
       
       expect(result).toEqual(mockMembers);
-      expect(userModel.find).toHaveBeenCalledWith({ familyId: 'familyId' });
+      expect(userModel.find).toHaveBeenCalledWith({ familyId: new Types.ObjectId(mockFamilyId) });
     });
   });
 
   describe('removeMember', () => {
     it('should remove a member from the family', async () => {
-      const member = { _id: 'memberId', familyId: 'familyId', save: jest.fn() };
+      const member = { _id: 'memberId', familyId: mockFamilyId, save: jest.fn() };
       jest.spyOn(userModel, 'findById').mockReturnValue({
         exec: jest.fn().mockResolvedValue(member),
       } as any);
 
-      await service.removeMember('familyId', 'memberId');
+      await service.removeMember(mockFamilyId, 'memberId');
       
       expect(member.familyId).toBeNull();
       expect(member.save).toHaveBeenCalled();
@@ -180,7 +186,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(memberInOtherFamily),
       } as any);
 
-      await expect(service.removeMember('familyId', 'memberId')).rejects.toThrow(NotFoundException);
+      await expect(service.removeMember(mockFamilyId, 'memberId')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -192,7 +198,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(familyWithCategories),
       } as any);
 
-      await service.addCustomCategory('familyId', 'Health');
+      await service.addCustomCategory(mockFamilyId, 'Health');
       
       expect(familyWithCategories.customCategories).toContain('Health');
       expect(familyWithCategories.save).toHaveBeenCalled();

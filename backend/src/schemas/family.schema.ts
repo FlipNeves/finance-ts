@@ -11,6 +11,9 @@ export class Family extends Document {
 
   @Prop({ type: [String], default: [] })
   customCategories: string[];
+
+  @Prop({ type: [String], default: [] })
+  bankAccounts: string[];
 }
 
 export const FamilySchema = SchemaFactory.createForClass(Family);

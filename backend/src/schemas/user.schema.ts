@@ -12,8 +12,8 @@ export class User extends Document {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Family' })
-  familyId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Family', default: null })
+  familyId: Types.ObjectId | null;
 
   @Prop({ default: 'en-US' })
   preferredLanguage: string;

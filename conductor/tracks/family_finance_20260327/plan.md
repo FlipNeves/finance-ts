@@ -56,3 +56,22 @@
     - [x] Implement the primary financial dashboard 7371c58
     - [x] Implement Frontend: Dashboard with Summary & Charts UI 92b6af8
 - [ ] Task: User Manual Verification 'Phase 4: Financial Reporting & Dashboard' bb8e5bc
+
+## Phase 5: UI/UX Overhaul & Functional Refinement
+- [ ] Task: Backend Adjustments for Bank Accounts
+    - [ ] Update `Family` schema with `bankAccounts: string[]`
+    - [ ] Update `Transaction` schema to use `bankAccount: string` instead of ObjectId ref
+    - [ ] Update `family.service` and `family.controller` to manage bank accounts
+- [ ] Task: Visual Redesign & Theming (Money Green)
+    - [ ] Implement robust Light/Dark mode theming using "Money Green" as base
+    - [ ] Redesign layout to be modern and fully responsive
+- [ ] Task: Income & Expense Separation
+    - [ ] Refactor transaction forms to explicitly separate Income and Expense creation
+    - [ ] Implement clear, distinct UI for adding each type
+- [ ] Task: Dynamic Categories & Bank Accounts UI
+    - [ ] Ensure Dynamic Categories for families are fully functional and visible in the UI
+    - [ ] Implement UI for registering and managing Bank Accounts as named categories
+- [ ] Task: Dashboard Expansion by Member
+    - [ ] Update dashboard logic to aggregate total accumulated family value
+    - [ ] Implement expandable rows/cards to view individual member contributions and balances
+- [ ] Task: User Manual Verification 'Phase 5: UI/UX Overhaul & Functional Refinement'

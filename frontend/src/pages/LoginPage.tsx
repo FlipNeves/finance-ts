@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
       const response = await api.post('/auth/login', { email, password });
       await login(response.data.accessToken);
       navigate('/');
-    } catch (err) {
+    } catch {
       setError(t('auth.invalidCredentials'));
     }
   };
