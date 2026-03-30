@@ -11,41 +11,48 @@
     - [x] Implement User Registration & Login (JWT) 3ac29b6
     - [x] Write tests for User Profile management
     - [x] Implement User Profile management 1ad98da
-- [x] Task: User Manual Verification 'Phase 1: Foundation & Authentication' 6a8746f
+    - [x] Implement Frontend: Login & Register Pages ed637af
+    - [x] Implement Frontend: Auth Context (JWT management) ed637af
+- [ ] Task: User Manual Verification 'Phase 1: Foundation & Authentication' 6a8746f
 
 ## Phase 2: Family Management & Collaboration 2f327ad [checkpoint: 7caef74]
-- [x] Task: Family Group Creation & Joining 4b26c76
+- [~] Task: Family Group Creation & Joining 4b26c76
     - [x] Write tests for Family Group creation (unique family code)
     - [x] Implement Family Group creation (unique family code) 4b26c76
     - [x] Write tests for Joining a Family Group using a code
     - [x] Implement Joining a Family Group using a code 4b26c76
-- [x] Task: Family Group Settings & Membership 0a4c773
+    - [ ] Implement Frontend: Create/Join Family UI
+- [~] Task: Family Group Settings & Membership 0a4c773
     - [x] Write tests for managing family group members
     - [x] Implement managing family group members 0a4c773
-- [x] Task: User Manual Verification 'Phase 2: Family Management & Collaboration' 7caef74
+    - [ ] Implement Frontend: Family Settings & Member List UI
+- [ ] Task: User Manual Verification 'Phase 2: Family Management & Collaboration' 7caef74
 
 ## Phase 3: Transaction Management & Multi-language 2f327ad [checkpoint: c00abb4]
-- [x] Task: Custom Transaction Categories e659818
+- [~] Task: Custom Transaction Categories e659818
     - [x] Write tests for creating and managing custom categories per family
     - [x] Implement creating and managing custom categories per family e659818
-- [x] Task: Income & Expense Management e659818
+    - [ ] Implement Frontend: Custom Category Management UI
+- [~] Task: Income & Expense Management e659818
     - [x] Write tests for CRUD operations on income and expenses
     - [x] Implement CRUD operations on income and expenses e659818
     - [x] Write tests for associating transactions with family groups and categories
     - [x] Implement associating transactions with family groups and categories e659818
+    - [ ] Implement Frontend: Transaction List & Add Form UI
 - [x] Task: Implement Portuguese & English Translations 7458652
     - [x] Extract all UI strings into translation files 7458652
     - [x] Provide translations for core interface elements (PT-BR & EN-US) 7458652
     - [x] Implement language switcher in the UI 7458652
-- [x] Task: User Manual Verification 'Phase 3: Transaction Management & Multi-language' c00abb4
+- [ ] Task: User Manual Verification 'Phase 3: Transaction Management & Multi-language' c00abb4
 
 ## Phase 4: Financial Reporting & Dashboard [checkpoint: bb8e5bc]
-- [x] Task: Financial Summary Calculations 7371c58
+- [~] Task: Financial Summary Calculations 7371c58
     - [x] Write tests for calculating total income and expenses for a family group
     - [x] Implement calculating total income and expenses for a family group 7371c58
-- [x] Task: Dashboard & Visual Reports 7371c58
+- [~] Task: Dashboard & Visual Reports 7371c58
     - [x] Write tests for visual charts showing spending by category
     - [x] Implement visual charts showing spending by category 7371c58
     - [x] Write tests for the primary financial dashboard
     - [x] Implement the primary financial dashboard 7371c58
-- [x] Task: User Manual Verification 'Phase 4: Financial Reporting & Dashboard' bb8e5bc
+    - [ ] Implement Frontend: Dashboard with Summary & Charts UI
+- [ ] Task: User Manual Verification 'Phase 4: Financial Reporting & Dashboard' bb8e5bc
