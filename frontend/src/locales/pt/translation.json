@@ -1,5 +1,51 @@
 {
-  "welcome": "Bem-vindo ao Rastreador de Finanças Familiar",
-  "login": "Entrar",
-  "register": "Cadastrar"
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "add": "Adicionar",
+    "loading": "Carregando...",
+    "actions": "Ações",
+    "count": "Contagem é"
+  },
+  "auth": {
+    "welcome": "Bem-vindo ao Rastreador de Finanças Familiar",
+    "login": "Entrar",
+    "register": "Cadastrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "name": "Nome",
+    "logout": "Sair"
+  },
+  "family": {
+    "title": "Gestão da Família",
+    "create": "Criar Família",
+    "join": "Entrar na Família",
+    "members": "Membros",
+    "code": "Código da Família",
+    "leave": "Sair da Família",
+    "categories": "Categorias",
+    "addCategory": "Adicionar Categoria Personalizada"
+  },
+  "transactions": {
+    "title": "Transações",
+    "add": "Adicionar Transação",
+    "description": "Descrição",
+    "amount": "Valor",
+    "type": "Tipo",
+    "income": "Receita",
+    "expense": "Despesa",
+    "category": "Categoria",
+    "date": "Data",
+    "recent": "Transações Recentes"
+  },
+  "dashboard": {
+    "title": "Painel Financeiro",
+    "summary": "Resumo",
+    "balance": "Saldo Total",
+    "totalIncome": "Receita Total",
+    "totalExpense": "Despesa Total",
+    "spendingByCategory": "Gastos por Categoria"
+  }
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
@@ -6,9 +7,19 @@ import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const { t, i18n } = useTranslation()
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng)
+  }
 
   return (
     <>
+      <header style={{ padding: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+        <button onClick={() => changeLanguage('en')}>EN</button>
+        <button onClick={() => changeLanguage('pt')}>PT</button>
+      </header>
+
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
@@ -16,18 +27,21 @@ function App() {
           <img src={viteLogo} className="vite" alt="Vite logo" />
         </div>
         <div>
-          <h1>Get started</h1>
+          <h1>{t('auth.welcome')}</h1>
           <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+            {t('common.edit')} <code>src/App.tsx</code>
           </p>
         </div>
         <button
           className="counter"
           onClick={() => setCount((count) => count + 1)}
         >
-          Count is {count}
+          {t('common.count', { count })}: {count}
         </button>
       </section>
+      
+      {/* Rest of the component remains similar, but using translations where applicable */}
+
 
       <div className="ticks"></div>
 

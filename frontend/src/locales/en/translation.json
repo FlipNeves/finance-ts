@@ -1,5 +1,51 @@
 {
-  "welcome": "Welcome to Family Finance Tracker",
-  "login": "Login",
-  "register": "Register"
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "loading": "Loading...",
+    "actions": "Actions",
+    "count": "Count is"
+  },
+  "auth": {
+    "welcome": "Welcome to Family Finance Tracker",
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "logout": "Logout"
+  },
+  "family": {
+    "title": "Family Management",
+    "create": "Create Family",
+    "join": "Join Family",
+    "members": "Members",
+    "code": "Family Code",
+    "leave": "Leave Family",
+    "categories": "Categories",
+    "addCategory": "Add Custom Category"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "add": "Add Transaction",
+    "description": "Description",
+    "amount": "Amount",
+    "type": "Type",
+    "income": "Income",
+    "expense": "Expense",
+    "category": "Category",
+    "date": "Date",
+    "recent": "Recent Transactions"
+  },
+  "dashboard": {
+    "title": "Financial Dashboard",
+    "summary": "Summary",
+    "balance": "Total Balance",
+    "totalIncome": "Total Income",
+    "totalExpense": "Total Expense",
+    "spendingByCategory": "Spending by Category"
+  }
 }
