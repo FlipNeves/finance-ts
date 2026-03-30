@@ -16,7 +16,11 @@
     "email": "Email",
     "password": "Password",
     "name": "Name",
-    "logout": "Logout"
+    "logout": "Logout",
+    "invalidCredentials": "Invalid email or password",
+    "noAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "registrationError": "Error during registration. Email might be in use."
   },
   "family": {
     "title": "Family Management",

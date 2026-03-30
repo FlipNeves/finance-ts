@@ -16,7 +16,11 @@
     "email": "E-mail",
     "password": "Senha",
     "name": "Nome",
-    "logout": "Sair"
+    "logout": "Sair",
+    "invalidCredentials": "E-mail ou senha inválidos",
+    "noAccount": "Não tem uma conta?",
+    "alreadyHaveAccount": "Já tem uma conta?",
+    "registrationError": "Erro ao cadastrar. O e-mail pode estar em uso."
   },
   "family": {
     "title": "Gestão da Família",
