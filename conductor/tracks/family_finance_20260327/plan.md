@@ -19,9 +19,9 @@
     - [x] Implement Family Group creation (unique family code) 4b26c76
     - [x] Write tests for Joining a Family Group using a code
     - [x] Implement Joining a Family Group using a code 4b26c76
-- [~] Task: Family Group Settings & Membership
+- [x] Task: Family Group Settings & Membership 0a4c773
     - [x] Write tests for managing family group members
-    - [ ] Implement managing family group members
+    - [x] Implement managing family group members 0a4c773
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Family Management & Collaboration' (Protocol in workflow.md)
 
 ## Phase 3: Transaction Management & Multi-language 2f327ad
