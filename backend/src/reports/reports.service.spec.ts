@@ -43,7 +43,7 @@ describe('ReportsService', () => {
 
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      const result = await service.getFamilySummary('familyId', startDate, endDate);
+      const result = await service.getFamilySummary('507f1f77bcf86cd799439011', startDate, endDate);
       
       expect(result.totalIncome).toBe(1000);
       expect(result.totalExpense).toBe(400);
@@ -55,7 +55,7 @@ describe('ReportsService', () => {
         exec: jest.fn().mockResolvedValue([]),
       } as any);
 
-      const result = await service.getFamilySummary('familyId', new Date(), new Date());
+      const result = await service.getFamilySummary('507f1f77bcf86cd799439011', new Date(), new Date());
       expect(result).toEqual({ totalIncome: 0, totalExpense: 0, balance: 0 });
     });
   });
@@ -63,8 +63,8 @@ describe('ReportsService', () => {
   describe('getSpendingByCategory', () => {
     it('should return spending grouped by category', async () => {
       const mockResult = [
-        { _id: 'Food', amount: 200 },
-        { _id: 'Health', amount: 100 },
+        { category: 'Food', amount: 200 },
+        { category: 'Health', amount: 100 },
       ];
       
       jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
@@ -73,7 +73,7 @@ describe('ReportsService', () => {
 
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      const result = await service.getSpendingByCategory('familyId', startDate, endDate);
+      const result = await service.getSpendingByCategory('507f1f77bcf86cd799439011', startDate, endDate);
       
       expect(result).toHaveLength(2);
       expect(result[0].category).toBe('Food');

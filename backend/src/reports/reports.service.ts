@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
 
 @Injectable()
@@ -10,10 +10,61 @@ export class ReportsService {
   ) {}
 
   async getFamilySummary(familyId: string, startDate: Date, endDate: Date): Promise<any> {
-    throw new Error('Not implemented');
+    const results = await this.transactionModel.aggregate([
+      {
+        $match: {
+          familyId: new Types.ObjectId(familyId),
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: '$type',
+          total: { $sum: '$amount' },
+        },
+      },
+    ]).exec();
+
+    const summary = {
+      totalIncome: 0,
+      totalExpense: 0,
+      balance: 0,
+    };
+
+    results.forEach((res) => {
+      if (res._id === 'income') summary.totalIncome = res.total;
+      if (res._id === 'expense') summary.totalExpense = res.total;
+    });
+
+    summary.balance = summary.totalIncome - summary.totalExpense;
+    return summary;
   }
 
   async getSpendingByCategory(familyId: string, startDate: Date, endDate: Date): Promise<any> {
-    throw new Error('Not implemented');
+    const results = await this.transactionModel.aggregate([
+      {
+        $match: {
+          familyId: new Types.ObjectId(familyId),
+          type: 'expense',
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: '$category',
+          amount: { $sum: '$amount' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: '$_id',
+          amount: 1,
+        },
+      },
+      { $sort: { amount: -1 } },
+    ]).exec();
+
+    return results;
   }
 }
