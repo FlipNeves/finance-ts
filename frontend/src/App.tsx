@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FamilyPage from './pages/FamilyPage';
+import TransactionsPage from './pages/TransactionsPage';
 import './App.css';
 
 const Navigation: React.FC = () => {
@@ -68,7 +69,7 @@ function App() {
             } />
             <Route path="/transactions" element={
               <PrivateRoute>
-                <h1>Transactions (Work in Progress)</h1>
+                <TransactionsPage />
               </PrivateRoute>
             } />
           </Routes>

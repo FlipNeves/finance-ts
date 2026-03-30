@@ -7,7 +7,8 @@
     "add": "Add",
     "loading": "Loading...",
     "actions": "Actions",
-    "count": "Count is"
+    "count": "Count is",
+    "confirmDelete": "Are you sure you want to delete this?"
   },
   "auth": {
     "welcome": "Welcome to Family Finance Tracker",
@@ -44,7 +45,9 @@
     "expense": "Expense",
     "category": "Category",
     "date": "Date",
-    "recent": "Recent Transactions"
+    "recent": "Recent Transactions",
+    "addError": "Error adding transaction.",
+    "deleteError": "Error deleting transaction."
   },
   "dashboard": {
     "title": "Financial Dashboard",

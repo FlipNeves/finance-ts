@@ -7,7 +7,8 @@
     "add": "Adicionar",
     "loading": "Carregando...",
     "actions": "Ações",
-    "count": "Contagem é"
+    "count": "Contagem é",
+    "confirmDelete": "Tem certeza que deseja excluir?"
   },
   "auth": {
     "welcome": "Bem-vindo ao Rastreador de Finanças Familiar",
@@ -44,7 +45,9 @@
     "expense": "Despesa",
     "category": "Categoria",
     "date": "Data",
-    "recent": "Transações Recentes"
+    "recent": "Transações Recentes",
+    "addError": "Erro ao adicionar transação.",
+    "deleteError": "Erro ao excluir transação."
   },
   "dashboard": {
     "title": "Painel Financeiro",
