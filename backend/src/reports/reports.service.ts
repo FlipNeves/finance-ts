@@ -9,21 +9,27 @@ export class ReportsService {
     @InjectModel(Transaction.name) private transactionModel: Model<Transaction>,
   ) {}
 
-  async getFamilySummary(familyId: string, startDate: Date, endDate: Date): Promise<any> {
-    const results = await this.transactionModel.aggregate([
-      {
-        $match: {
-          familyId: new Types.ObjectId(familyId),
-          date: { $gte: startDate, $lte: endDate },
+  async getFamilySummary(
+    familyId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    const results = await this.transactionModel
+      .aggregate([
+        {
+          $match: {
+            familyId: new Types.ObjectId(familyId),
+            date: { $gte: startDate, $lte: endDate },
+          },
         },
-      },
-      {
-        $group: {
-          _id: '$type',
-          total: { $sum: '$amount' },
+        {
+          $group: {
+            _id: '$type',
+            total: { $sum: '$amount' },
+          },
         },
-      },
-    ]).exec();
+      ])
+      .exec();
 
     const summary = {
       totalIncome: 0,
@@ -40,30 +46,36 @@ export class ReportsService {
     return summary;
   }
 
-  async getSpendingByCategory(familyId: string, startDate: Date, endDate: Date): Promise<any> {
-    const results = await this.transactionModel.aggregate([
-      {
-        $match: {
-          familyId: new Types.ObjectId(familyId),
-          type: 'expense',
-          date: { $gte: startDate, $lte: endDate },
+  async getSpendingByCategory(
+    familyId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    const results = await this.transactionModel
+      .aggregate([
+        {
+          $match: {
+            familyId: new Types.ObjectId(familyId),
+            type: 'expense',
+            date: { $gte: startDate, $lte: endDate },
+          },
         },
-      },
-      {
-        $group: {
-          _id: '$category',
-          amount: { $sum: '$amount' },
+        {
+          $group: {
+            _id: '$category',
+            amount: { $sum: '$amount' },
+          },
         },
-      },
-      {
-        $project: {
-          _id: 0,
-          category: '$_id',
-          amount: 1,
+        {
+          $project: {
+            _id: 0,
+            category: '$_id',
+            amount: 1,
+          },
         },
-      },
-      { $sort: { amount: -1 } },
-    ]).exec();
+        { $sort: { amount: -1 } },
+      ])
+      .exec();
 
     return results;
   }

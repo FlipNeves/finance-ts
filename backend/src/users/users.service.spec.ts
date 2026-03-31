@@ -62,7 +62,9 @@ describe('UsersService', () => {
         }),
       });
 
-      await expect(service.getProfile('invalidId')).rejects.toThrow('User not found');
+      await expect(service.getProfile('invalidId')).rejects.toThrow(
+        'User not found',
+      );
     });
   });
 });

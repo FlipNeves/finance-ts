@@ -8,7 +8,19 @@
     "loading": "Carregando...",
     "actions": "Ações",
     "count": "Contagem é",
-    "confirmDelete": "Tem certeza que deseja excluir?"
+    "confirmDelete": "Tem certeza que deseja excluir?",
+    "next": "Próximo",
+    "back": "Voltar",
+    "confirm": "Confirmar",
+    "copy": "Copiar Código",
+    "copied": "Copiado!",
+    "optional": "Opcional",
+    "select": "Selecionar",
+    "selectCategory": "Selecione uma categoria",
+    "selectAccount": "Selecione uma conta",
+    "approve": "Aprovar",
+    "reject": "Recusar",
+    "refresh": "Atualizar"
   },
   "auth": {
     "welcome": "Bem-vindo ao Rastreador de Finanças Familiar",
@@ -33,7 +45,16 @@
     "categories": "Categorias",
     "addCategory": "Adicionar Categoria Personalizada",
     "createError": "Erro ao criar família.",
-    "joinError": "Código de família inválido."
+    "joinError": "Código inválido. Verifique e tente novamente.",
+    "name": "Nome da Família",
+    "createDesc": "Crie um grupo familiar para acompanhar suas finanças juntos.",
+    "joinDesc": "Insira um código de família ou código de convite para solicitar entrada.",
+    "codeOrInvite": "Código da Família ou Código de Convite",
+    "joinRequestSent": "Solicitação enviada! Aguarde a aprovação do proprietário.",
+    "pendingRequests": "Solicitações Pendentes",
+    "yourInviteCode": "Seu Código de Convite Pessoal",
+    "inviteCode": "Convite",
+    "inviteCodeDesc": "Compartilhe este código para que outras pessoas possam solicitar entrar na sua família após você criá-la."
   },
   "transactions": {
     "title": "Transações",
@@ -47,7 +68,20 @@
     "date": "Data",
     "recent": "Transações Recentes",
     "addError": "Erro ao adicionar transação.",
-    "deleteError": "Erro ao excluir transação."
+    "deleteError": "Erro ao excluir transação.",
+    "addIncome": "Adicionar Receita",
+    "addExpense": "Adicionar Despesa",
+    "bankAccount": "Conta Bancária",
+    "step1": "Etapa 1: Descrição e Categoria",
+    "step2": "Etapa 2: Valor",
+    "step3": "Etapa 3: Conta e Data",
+    "noTransactions": "Nenhuma transação encontrada.",
+    "noCategoriesYet": "Nenhuma categoria ainda — crie uma →",
+    "noAccountsYet": "Nenhuma conta ainda — crie uma →",
+    "categoryError": "Erro ao criar categoria.",
+    "accountError": "Erro ao criar conta bancária.",
+    "noFamily": "Você precisa de um grupo familiar",
+    "noFamilyDesc": "Crie ou entre em um grupo familiar para começar a acompanhar suas transações juntos."
   },
   "dashboard": {
     "title": "Painel Financeiro",
@@ -55,6 +89,9 @@
     "balance": "Saldo Total",
     "totalIncome": "Receita Total",
     "totalExpense": "Despesa Total",
-    "spendingByCategory": "Gastos por Categoria"
+    "spendingByCategory": "Gastos por Categoria",
+    "noFamily": "Bem-vindo!",
+    "noFamilyDesc": "Para ver seu painel financeiro, primeiro crie ou entre em um grupo familiar.",
+    "noData": "Nenhum dado de gastos para este período"
   }
 }

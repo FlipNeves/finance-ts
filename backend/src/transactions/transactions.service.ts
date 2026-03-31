@@ -25,12 +25,18 @@ export class TransactionsService {
     @InjectModel(Family.name) private familyModel: Model<Family>,
   ) {}
 
-  async create(createTransactionDto: any, userId: string, familyId: string): Promise<Transaction> {
-    const transaction = await this.transactionModel.create({
+  async create(
+    createTransactionDto: any,
+    userId: string,
+    familyId: string,
+  ): Promise<Transaction> {
+    const data = {
       ...createTransactionDto,
       userId,
       familyId,
-    });
+      category: createTransactionDto.category || 'General',
+    };
+    const transaction = await this.transactionModel.create(data);
     return transaction;
   }
 

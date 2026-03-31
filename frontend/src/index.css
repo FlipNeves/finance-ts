@@ -98,7 +98,21 @@ button {
   border-radius: 8px;
   border: none;
   font-weight: 600;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-primary {
@@ -106,8 +120,9 @@ button {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
 }
 
 .btn-outline {
@@ -116,7 +131,12 @@ button {
   color: var(--text);
 }
 
-.btn-outline:hover {
+.btn-outline:hover:not(:disabled) {
   background: var(--primary-light);
   border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-icon:active {
+  transform: scale(0.9);
 }

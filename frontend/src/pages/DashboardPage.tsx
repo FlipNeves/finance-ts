@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const [summary, setSummary] = useState<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
   const [spending, setSpending] = useState<{ category: string; amount: number }[]>([]);
@@ -16,8 +19,12 @@ const DashboardPage: React.FC = () => {
     : ['#27ae60', '#2980b9', '#f39c12', '#d35400', '#c0392b', '#8e44ad'];
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user?.familyId) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const loadData = async () => {
     try {
@@ -35,6 +42,23 @@ const DashboardPage: React.FC = () => {
   };
 
   if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
+
+  if (!user?.familyId) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 mt-3" style={{ minHeight: '50vh' }}>
+        <div className="card" style={{ maxWidth: '500px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏠</div>
+          <h2>{t('dashboard.noFamily') || 'Welcome!'}</h2>
+          <p style={{ color: 'var(--text-muted)', margin: '12px 0' }}>
+            {t('dashboard.noFamilyDesc') || 'To see your financial dashboard, first create or join a family group.'}
+          </p>
+          <Link to="/family" className="btn btn-primary" style={{ display: 'inline-block', marginTop: '8px' }}>
+            {t('family.title') || 'Go to Family'} →
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
@@ -73,55 +97,67 @@ const DashboardPage: React.FC = () => {
         <div className="card chart-container">
           <h3>{t('dashboard.spendingByCategory')} (Pie)</h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={spending}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={(props: any) => {
-                    const { category, percent } = props;
-                    return `${category} ${(percent * 100).toFixed(0)}%`;
-                  }}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="amount"
-                  nameKey="category"
-                >
-                  {spending.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                  itemStyle={{ color: 'var(--text)' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {spending.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={spending}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(props: any) => {
+                      const { category, percent } = props;
+                      return `${category} ${(percent * 100).toFixed(0)}%`;
+                    }}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="amount"
+                    nameKey="category"
+                  >
+                    {spending.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    itemStyle={{ color: 'var(--text)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center" style={{ height: '100%', color: 'var(--text-muted)' }}>
+                {t('dashboard.noData') || 'No spending data for this period'}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="card chart-container">
           <h3>{t('dashboard.spendingByCategory')} (Bar)</h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={spending}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="category" stroke="var(--text-muted)" />
-                <YAxis stroke="var(--text-muted)" />
-                <Tooltip 
-                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                   itemStyle={{ color: 'var(--text)' }}
-                />
-                <Legend />
-                <Bar dataKey="amount">
-                  {spending.map((_, index) => (
-                    <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {spending.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={spending}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="category" stroke="var(--text-muted)" />
+                  <YAxis stroke="var(--text-muted)" />
+                  <Tooltip 
+                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                     itemStyle={{ color: 'var(--text)' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="amount">
+                    {spending.map((_, index) => (
+                      <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center" style={{ height: '100%', color: 'var(--text-muted)' }}>
+                {t('dashboard.noData') || 'No spending data for this period'}
+              </div>
+            )}
           </div>
         </div>
       </div>

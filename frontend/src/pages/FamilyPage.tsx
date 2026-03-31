@@ -13,11 +13,12 @@ const FamilyPage: React.FC = () => {
   const { t } = useTranslation();
   const { user, login } = useAuth();
   const [familyName, setFamilyName] = useState('');
-  const [familyCode, setFamilyCode] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   const [familyDetails, setFamilyDetails] = useState<any>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const isOwner = familyDetails?.owner === user?._id;
 
@@ -62,12 +63,18 @@ const FamilyPage: React.FC = () => {
 
   const handleJoinFamily = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!joinCode.trim()) return;
+    
     try {
-      await api.post('/family/join', { familyCode });
+      // Try both familyCode and inviteCode
+      await api.post('/family/join', { 
+        familyCode: joinCode.trim(),
+        inviteCode: joinCode.trim(),
+      });
       alert(t('family.joinRequestSent') || 'Join request sent! Wait for owner approval.');
-      setFamilyCode('');
+      setJoinCode('');
     } catch {
-      alert(t('family.joinError'));
+      alert(t('family.joinError') || 'Error joining family. Check the code and try again.');
     }
   };
 
@@ -100,11 +107,48 @@ const FamilyPage: React.FC = () => {
     }
   };
 
+  const copyInviteCode = () => {
+    if (user?.inviteCode) {
+      navigator.clipboard.writeText(user.inviteCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
 
   if (!user?.familyId) {
     return (
       <div className="flex flex-col items-center gap-3 mt-3">
+        {/* Show personal invite code */}
+        {user?.inviteCode && (
+          <div className="card w-full" style={{ maxWidth: '500px', textAlign: 'center', borderColor: 'var(--primary)', borderWidth: '2px' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+              {t('family.yourInviteCode') || 'Your Personal Invite Code'}
+            </div>
+            <div style={{ 
+              fontSize: '28px', 
+              fontWeight: 800, 
+              letterSpacing: '4px',
+              color: 'var(--primary)',
+              fontFamily: 'monospace',
+              padding: '8px 0',
+            }}>
+              {user.inviteCode}
+            </div>
+            <button 
+              className="btn btn-outline" 
+              onClick={copyInviteCode}
+              style={{ marginTop: '8px', fontSize: '14px' }}
+            >
+              {copied ? '✅ ' + (t('common.copied') || 'Copied!') : '📋 ' + (t('common.copy') || 'Copy Code')}
+            </button>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '12px' }}>
+              {t('family.inviteCodeDesc') || 'Share this code so others can request to join your family after you create one.'}
+            </p>
+          </div>
+        )}
+
         <div className="card w-full" style={{ maxWidth: '500px' }}>
           <h2>{t('family.create')}</h2>
           <p className="text-muted mb-2">{t('family.createDesc') || 'Create a family group to start tracking together.'}</p>
@@ -123,14 +167,14 @@ const FamilyPage: React.FC = () => {
 
         <div className="card w-full" style={{ maxWidth: '500px' }}>
           <h2>{t('family.join')}</h2>
-          <p className="text-muted mb-2">{t('family.joinDesc') || 'Enter a family code to request to join.'}</p>
+          <p className="text-muted mb-2">{t('family.joinDesc') || 'Enter a family code or invite code to request to join.'}</p>
           <form onSubmit={handleJoinFamily} className="flex flex-col gap-2">
             <input 
               type="text" 
               className="form-control"
-              placeholder={t('family.code')} 
-              value={familyCode} 
-              onChange={(e) => setFamilyCode(e.target.value)} 
+              placeholder={t('family.codeOrInvite') || 'Family Code or Invite Code'} 
+              value={joinCode} 
+              onChange={(e) => setJoinCode(e.target.value)} 
               required 
             />
             <button type="submit" className="btn btn-outline">{t('family.join')}</button>
@@ -157,7 +201,14 @@ const FamilyPage: React.FC = () => {
       <header className="flex justify-between items-center mb-3">
         <div className="flex flex-col">
           <h1>{familyDetails?.name}</h1>
-          <span className="badge" style={{ alignSelf: 'flex-start' }}>{t('family.code')}: {familyDetails?.familyCode}</span>
+          <div className="flex gap-1 items-center" style={{ marginTop: '4px' }}>
+            <span className="badge">{t('family.code')}: {familyDetails?.familyCode}</span>
+            {user?.inviteCode && (
+              <span className="badge invite-badge" onClick={copyInviteCode} style={{ cursor: 'pointer' }}>
+                {copied ? '✅' : '🔗'} {t('family.inviteCode') || 'Invite'}: {user.inviteCode}
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -265,6 +316,13 @@ const FamilyPage: React.FC = () => {
           border-radius: 20px;
           font-size: 14px;
           font-weight: 700;
+        }
+        .invite-badge {
+          background-color: transparent;
+          border: 1px solid var(--primary);
+        }
+        .invite-badge:hover {
+          background-color: var(--primary-light);
         }
       `}</style>
     </div>

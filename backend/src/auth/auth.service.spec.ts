@@ -40,8 +40,14 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should register a new user', async () => {
-      const registerDto = { email: 'test@test.com', password: 'password', name: 'Test User' };
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password',
+        name: 'Test User',
+      };
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
       mockUserModel.create.mockResolvedValue({
         email: registerDto.email,
         name: registerDto.name,
@@ -57,10 +63,18 @@ describe('AuthService', () => {
     });
 
     it('should throw error if user already exists', async () => {
-      const registerDto = { email: 'test@test.com', password: 'password', name: 'Test User' };
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue({ email: 'test@test.com' }) });
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password',
+        name: 'Test User',
+      };
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ email: 'test@test.com' }),
+      });
 
-      await expect(service.register(registerDto)).rejects.toThrow('User already exists');
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'User already exists',
+      );
     });
   });
 
@@ -72,8 +86,10 @@ describe('AuthService', () => {
         passwordHash: 'hashedPassword',
         _id: 'mockId',
       };
-      
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(mockUser) });
+
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUser),
+      });
       jest.spyOn(service as any, 'comparePassword').mockResolvedValue(true);
       mockJwtService.sign.mockReturnValue('mockToken');
 
@@ -83,9 +99,13 @@ describe('AuthService', () => {
 
     it('should throw error for invalid credentials', async () => {
       const loginDto = { email: 'test@test.com', password: 'password' };
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
-      await expect(service.login(loginDto)).rejects.toThrow('Invalid credentials');
+      await expect(service.login(loginDto)).rejects.toThrow(
+        'Invalid credentials',
+      );
     });
   });
 });

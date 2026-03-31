@@ -26,9 +26,9 @@ describe('TransactionsController', () => {
         },
       ],
     })
-    .overrideGuard(JwtAuthGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<TransactionsController>(TransactionsController);
     service = module.get<TransactionsService>(TransactionsService);
@@ -40,14 +40,27 @@ describe('TransactionsController', () => {
 
   describe('create', () => {
     it('should create a transaction', async () => {
-      const createDto = { description: 'Test', amount: 10, type: 'expense', category: 'Food', date: new Date() };
+      const createDto = {
+        description: 'Test',
+        amount: 10,
+        type: 'expense',
+        category: 'Food',
+        date: new Date(),
+      };
       const req = { user: { _id: 'userId', familyId: 'familyId' } };
-      mockTransactionsService.create.mockResolvedValue({ _id: 'id', ...createDto });
+      mockTransactionsService.create.mockResolvedValue({
+        _id: 'id',
+        ...createDto,
+      });
 
       const result = await controller.create(createDto, req);
-      
+
       expect(result._id).toBe('id');
-      expect(service.create).toHaveBeenCalledWith(createDto, 'userId', 'familyId');
+      expect(service.create).toHaveBeenCalledWith(
+        createDto,
+        'userId',
+        'familyId',
+      );
     });
   });
 
@@ -57,7 +70,7 @@ describe('TransactionsController', () => {
       mockTransactionsService.findAll.mockResolvedValue([]);
 
       const result = await controller.findAll(req, {});
-      
+
       expect(result).toEqual([]);
       expect(service.findAll).toHaveBeenCalledWith('familyId', {});
     });
@@ -69,7 +82,7 @@ describe('TransactionsController', () => {
       mockTransactionsService.getCategories.mockResolvedValue(['Food']);
 
       const result = await controller.getCategories(req);
-      
+
       expect(result).toEqual(['Food']);
       expect(service.getCategories).toHaveBeenCalledWith('familyId');
     });

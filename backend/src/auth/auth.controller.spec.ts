@@ -32,8 +32,15 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('should register a new user', async () => {
-      const registerDto = { email: 'test@test.com', password: 'password', name: 'Test User' };
-      mockAuthService.register.mockResolvedValue({ email: registerDto.email, _id: 'mockId' });
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password',
+        name: 'Test User',
+      };
+      mockAuthService.register.mockResolvedValue({
+        email: registerDto.email,
+        _id: 'mockId',
+      });
 
       const result = await controller.register(registerDto);
       expect(result).toEqual({ email: registerDto.email, _id: 'mockId' });

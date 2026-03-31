@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 import api from '../services/api';
@@ -41,67 +41,104 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
+  const resetForm = useCallback(() => {
+    setStep(1);
+    setDescription('');
+    setAmount('');
+    setCategories(initialCategories);
+    setBankAccounts(initialBankAccounts);
+    // Set category to the first available one, or empty string
+    setCategory(initialCategories.length > 0 ? initialCategories[0] : '');
+    setBankAccount(initialBankAccounts.length > 0 ? initialBankAccounts[0] : '');
+    setIsCreatingCategory(false);
+    setIsCreatingAccount(false);
+    setNewCategory('');
+    setNewBankAccount('');
+  }, [initialCategories, initialBankAccounts]);
+
   useEffect(() => {
     if (isOpen) {
-      setStep(1);
-      setDescription('');
-      setAmount('');
-      setCategories(initialCategories);
-      setBankAccounts(initialBankAccounts);
-      setCategory(initialCategories[0] || '');
-      setBankAccount(initialBankAccounts[0] || '');
+      resetForm();
     }
-  }, [isOpen, initialCategories, initialBankAccounts]);
+  }, [isOpen, resetForm]);
 
-  const handleCreateCategory = async () => {
+  const handleCreateCategory = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!newCategory.trim()) return;
     try {
-      await api.post('/family/categories', { category: newCategory });
-      setCategories([...categories, newCategory]);
-      setCategory(newCategory);
+      setLoading(true);
+      await api.post('/family/categories', { category: newCategory.trim() });
+      const updatedCategories = [...categories, newCategory.trim()];
+      setCategories(updatedCategories);
+      setCategory(newCategory.trim());
       setNewCategory('');
       setIsCreatingCategory(false);
     } catch (err) {
       console.error(err);
+      alert(t('transactions.categoryError') || 'Error creating category');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCreateAccount = async () => {
+  const handleCreateAccount = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!newBankAccount.trim()) return;
     try {
-      await api.post('/family/bank-accounts', { bankAccount: newBankAccount });
-      setBankAccounts([...bankAccounts, newBankAccount]);
-      setBankAccount(newBankAccount);
+      setLoading(true);
+      await api.post('/family/bank-accounts', { bankAccount: newBankAccount.trim() });
+      const updatedAccounts = [...bankAccounts, newBankAccount.trim()];
+      setBankAccounts(updatedAccounts);
+      setBankAccount(newBankAccount.trim());
       setNewBankAccount('');
       setIsCreatingAccount(false);
     } catch (err) {
       console.error(err);
+      alert(t('transactions.accountError') || 'Error creating bank account');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async () => {
+    if (!amount || parseFloat(amount) <= 0) return;
+    
     setLoading(true);
     try {
       await api.post('/transactions', {
-        description,
+        description: description || (type === 'income' ? 'Income' : 'Expense'),
         amount: parseFloat(amount),
         type,
-        category,
-        bankAccount,
+        category: category || 'General',
+        bankAccount: bankAccount || undefined,
         date: new Date(date),
       });
       onSuccess();
       onClose();
     } catch (err) {
       console.error(err);
-      alert(t('transactions.addError'));
+      alert(t('transactions.addError') || 'Error adding transaction');
     } finally {
       setLoading(false);
     }
   };
 
+  const formatAmount = (val: string) => {
+    // Basic currency mask: only numbers and one dot
+    const clean = val.replace(/[^0-9.]/g, '');
+    const parts = clean.split('.');
+    if (parts.length > 2) return amount; // ignore if more than one dot
+    if (parts[1] && parts[1].length > 2) return amount; // limit to 2 decimal places
+    return clean;
+  };
+
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
+
+  // Step 1 can proceed if description is filled AND (category is selected OR user is in the process of creating one)
+  const canProceedStep1 = description.trim().length > 0 && category.trim().length > 0;
 
   const renderExpenseSteps = () => {
     switch (step) {
@@ -130,20 +167,29 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     value={newCategory} 
                     onChange={(e) => setNewCategory(e.target.value)}
                     placeholder="New category name"
+                    autoFocus
                   />
-                  <button className="btn btn-primary" onClick={handleCreateCategory}>Add</button>
+                  <button className="btn btn-primary" onClick={handleCreateCategory} disabled={loading || !newCategory.trim()}>
+                    {loading ? '...' : (t('common.add') || 'Add')}
+                  </button>
                   <button className="btn btn-outline" onClick={() => setIsCreatingCategory(false)}>✕</button>
                 </div>
               ) : (
                 <div className="flex gap-1">
-                  <select className="form-control flex-1" value={category} onChange={(e) => setCategory(e.target.value)}>
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <button className="btn btn-outline" onClick={() => setIsCreatingCategory(true)}>+</button>
+                  {categories.length > 0 ? (
+                    <select className="form-control flex-1" value={category} onChange={(e) => setCategory(e.target.value)}>
+                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  ) : (
+                    <div className="form-control flex-1" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                      {t('transactions.noCategoriesYet') || 'No categories yet — create one →'}
+                    </div>
+                  )}
+                  <button className="btn btn-outline" onClick={() => setIsCreatingCategory(true)} style={{ minWidth: '42px' }}>+</button>
                 </div>
               )}
             </div>
-            <button className="btn btn-primary mt-2" onClick={nextStep} disabled={!description || !category}>
+            <button className="btn btn-primary mt-2 w-full" onClick={nextStep} disabled={!canProceedStep1}>
               {t('common.next') || 'Next'} →
             </button>
           </div>
@@ -155,14 +201,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             <div className="flex flex-col gap-1">
               <label>{t('transactions.amount')}</label>
               <div className="flex items-center gap-1">
-                <span style={{ fontSize: '24px', fontWeight: 700 }}>$</span>
+                <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)' }}>$</span>
                 <input 
-                  type="number" 
-                  step="0.01" 
+                  type="text" 
+                  inputMode="decimal"
                   className="form-control flex-1" 
-                  style={{ fontSize: '24px', fontWeight: 800 }}
+                  style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center' }}
                   value={amount} 
-                  onChange={(e) => setAmount(e.target.value)} 
+                  onChange={(e) => setAmount(formatAmount(e.target.value))} 
                   placeholder="0.00"
                   autoFocus
                 />
@@ -179,7 +225,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       case 3:
         return (
           <div className="flex flex-col gap-2">
-            <h3>{t('transactions.step3') || 'Step 3: Account'}</h3>
+            <h3>{t('transactions.step3') || 'Step 3: Account & Date'}</h3>
             <div className="flex flex-col gap-1">
               <label>{t('transactions.bankAccount') || 'Bank Account'}</label>
               {isCreatingAccount ? (
@@ -190,16 +236,25 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     value={newBankAccount} 
                     onChange={(e) => setNewBankAccount(e.target.value)}
                     placeholder="New account name"
+                    autoFocus
                   />
-                  <button className="btn btn-primary" onClick={handleCreateAccount}>Add</button>
+                  <button className="btn btn-primary" onClick={handleCreateAccount} disabled={loading || !newBankAccount.trim()}>
+                    {loading ? '...' : (t('common.add') || 'Add')}
+                  </button>
                   <button className="btn btn-outline" onClick={() => setIsCreatingAccount(false)}>✕</button>
                 </div>
               ) : (
                 <div className="flex gap-1">
-                  <select className="form-control flex-1" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
-                    {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
-                  <button className="btn btn-outline" onClick={() => setIsCreatingAccount(true)}>+</button>
+                  {bankAccounts.length > 0 ? (
+                    <select className="form-control flex-1" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
+                      {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  ) : (
+                    <div className="form-control flex-1" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                      {t('transactions.noAccountsYet') || 'No accounts yet — create one →'}
+                    </div>
+                  )}
+                  <button className="btn btn-outline" onClick={() => setIsCreatingAccount(true)} style={{ minWidth: '42px' }}>+</button>
                 </div>
               )}
             </div>
@@ -209,7 +264,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             </div>
             <div className="flex gap-2 mt-2">
               <button className="btn btn-outline flex-1" onClick={prevStep}>← {t('common.back') || 'Back'}</button>
-              <button className="btn btn-primary flex-1" onClick={handleSubmit} disabled={loading || !bankAccount}>
+              <button className="btn btn-primary flex-1" onClick={handleSubmit} disabled={loading}>
                 {loading ? '...' : (t('common.confirm') || 'Confirm')}
               </button>
             </div>
@@ -223,17 +278,20 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-1">
           <label>{t('transactions.amount')}</label>
-          <input 
-            type="number" 
-            step="0.01" 
-            className="form-control" 
-            style={{ fontSize: '20px', fontWeight: 700 }}
-            value={amount} 
-            onChange={(e) => setAmount(e.target.value)} 
-            placeholder="0.00"
-            required
-            autoFocus
-          />
+          <div className="flex items-center gap-1">
+            <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)' }}>$</span>
+            <input 
+              type="text" 
+              inputMode="decimal"
+              className="form-control" 
+              style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center' }}
+              value={amount} 
+              onChange={(e) => setAmount(formatAmount(e.target.value))} 
+              placeholder="0.00"
+              required
+              autoFocus
+            />
+          </div>
         </div>
         <div className="flex flex-col gap-1">
           <label>{t('transactions.description')} ({t('common.optional') || 'Optional'})</label>
@@ -248,7 +306,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             </select>
           </div>
         </div>
-        <button className="btn btn-primary mt-2" onClick={handleSubmit} disabled={loading || !amount}>
+        <div className="flex flex-col gap-1">
+          <label>{t('transactions.date')}</label>
+          <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
+        </div>
+        <button className="btn btn-primary mt-2 w-full" onClick={handleSubmit} disabled={loading || !amount || parseFloat(amount) <= 0}>
           {loading ? '...' : (t('common.add') || 'Add')}
         </button>
       </div>
@@ -289,13 +351,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
           margin-bottom: 16px;
         }
         .form-control {
-            padding: 10px 12px;
+            padding: 12px;
             border-radius: 8px;
             border: 1px solid var(--border);
             background-color: var(--bg);
             color: var(--text);
             font-size: 16px;
             width: 100%;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
         .flex-1 { flex: 1; }
       `}</style>

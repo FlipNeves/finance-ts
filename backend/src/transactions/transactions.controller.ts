@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -7,19 +19,34 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
+  private ensureFamilyId(req: any): string {
+    const familyId = req.user.familyId;
+    if (!familyId) {
+      throw new BadRequestException('User does not belong to a family');
+    }
+    return familyId.toString();
+  }
+
   @Post()
   async create(@Body() createTransactionDto: any, @Req() req: any) {
-    return this.transactionsService.create(createTransactionDto, req.user._id, req.user.familyId);
+    const familyId = this.ensureFamilyId(req);
+    return this.transactionsService.create(
+      createTransactionDto,
+      req.user._id,
+      familyId,
+    );
   }
 
   @Get()
   async findAll(@Req() req: any, @Query() filters: any) {
-    return this.transactionsService.findAll(req.user.familyId, filters);
+    const familyId = this.ensureFamilyId(req);
+    return this.transactionsService.findAll(familyId, filters);
   }
 
   @Get('categories')
   async getCategories(@Req() req: any) {
-    return this.transactionsService.getCategories(req.user.familyId);
+    const familyId = this.ensureFamilyId(req);
+    return this.transactionsService.getCategories(familyId);
   }
 
   @Get(':id')

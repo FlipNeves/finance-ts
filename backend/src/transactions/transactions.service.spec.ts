@@ -54,7 +54,9 @@ describe('TransactionsService', () => {
     }).compile();
 
     service = module.get<TransactionsService>(TransactionsService);
-    transactionModel = module.get<Model<Transaction>>(getModelToken(Transaction.name));
+    transactionModel = module.get<Model<Transaction>>(
+      getModelToken(Transaction.name),
+    );
     familyModel = module.get<Model<Family>>(getModelToken(Family.name));
   });
 
@@ -72,10 +74,12 @@ describe('TransactionsService', () => {
         date: new Date(),
       };
 
-      jest.spyOn(transactionModel, 'create').mockResolvedValue(mockTransaction as any);
+      jest
+        .spyOn(transactionModel, 'create')
+        .mockResolvedValue(mockTransaction as any);
 
       const result = await service.create(createDto, 'userId', 'familyId');
-      
+
       expect(result).toEqual(mockTransaction);
       expect(transactionModel.create).toHaveBeenCalledWith({
         ...createDto,
@@ -94,9 +98,11 @@ describe('TransactionsService', () => {
       } as any);
 
       const result = await service.findAll('familyId');
-      
+
       expect(result).toEqual([mockTransaction]);
-      expect(transactionModel.find).toHaveBeenCalledWith({ familyId: 'familyId' });
+      expect(transactionModel.find).toHaveBeenCalledWith({
+        familyId: 'familyId',
+      });
     });
   });
 
@@ -107,7 +113,7 @@ describe('TransactionsService', () => {
       } as any);
 
       const result = await service.findOne('transId');
-      
+
       expect(result).toEqual(mockTransaction);
     });
 
@@ -116,7 +122,9 @@ describe('TransactionsService', () => {
         exec: jest.fn().mockResolvedValue(null),
       } as any);
 
-      await expect(service.findOne('invalidId')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalidId')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -128,7 +136,7 @@ describe('TransactionsService', () => {
       } as any);
 
       const result = await service.update('transId', updateDto);
-      
+
       expect(result.amount).toBe(60);
     });
   });
@@ -140,8 +148,10 @@ describe('TransactionsService', () => {
       } as any);
 
       await service.remove('transId');
-      
-      expect(transactionModel.findByIdAndDelete).toHaveBeenCalledWith('transId');
+
+      expect(transactionModel.findByIdAndDelete).toHaveBeenCalledWith(
+        'transId',
+      );
     });
   });
 
@@ -152,7 +162,7 @@ describe('TransactionsService', () => {
       } as any);
 
       const result = await service.getCategories('familyId');
-      
+
       // Assuming some default categories exist
       expect(result).toContain('Health');
       expect(result).toContain('Food');

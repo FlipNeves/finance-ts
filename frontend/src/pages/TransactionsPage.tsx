@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import TransactionModal from '../components/TransactionModal';
 
 interface Transaction {
@@ -15,6 +17,7 @@ interface Transaction {
 
 const TransactionsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [bankAccounts, setBankAccounts] = useState<string[]>([]);
@@ -25,8 +28,12 @@ const TransactionsPage: React.FC = () => {
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user?.familyId) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const loadData = async () => {
     try {
@@ -63,6 +70,23 @@ const TransactionsPage: React.FC = () => {
   };
 
   if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
+
+  if (!user?.familyId) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 mt-3" style={{ minHeight: '50vh' }}>
+        <div className="card" style={{ maxWidth: '500px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>👨‍👩‍👧‍👦</div>
+          <h2>{t('transactions.noFamily') || 'You need a family group first'}</h2>
+          <p style={{ color: 'var(--text-muted)', margin: '12px 0' }}>
+            {t('transactions.noFamilyDesc') || 'Create or join a family group to start tracking your transactions together.'}
+          </p>
+          <Link to="/family" className="btn btn-primary" style={{ display: 'inline-block', marginTop: '8px' }}>
+            {t('family.title') || 'Go to Family'} →
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-3" style={{ maxWidth: '1000px' }}>

@@ -8,7 +8,10 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async getProfile(userId: string): Promise<User> {
-    const user = await this.userModel.findById(userId).select('-passwordHash').exec();
+    const user = await this.userModel
+      .findById(userId)
+      .select('-passwordHash')
+      .exec();
     if (!user) {
       throw new NotFoundException('User not found');
     }

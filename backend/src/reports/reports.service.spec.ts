@@ -23,7 +23,9 @@ describe('ReportsService', () => {
     }).compile();
 
     service = module.get<ReportsService>(ReportsService);
-    transactionModel = module.get<Model<Transaction>>(getModelToken(Transaction.name));
+    transactionModel = module.get<Model<Transaction>>(
+      getModelToken(Transaction.name),
+    );
   });
 
   it('should be defined', () => {
@@ -36,15 +38,19 @@ describe('ReportsService', () => {
         { _id: 'income', total: 1000 },
         { _id: 'expense', total: 400 },
       ];
-      
+
       jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockResult),
       } as any);
 
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      const result = await service.getFamilySummary('507f1f77bcf86cd799439011', startDate, endDate);
-      
+      const result = await service.getFamilySummary(
+        '507f1f77bcf86cd799439011',
+        startDate,
+        endDate,
+      );
+
       expect(result.totalIncome).toBe(1000);
       expect(result.totalExpense).toBe(400);
       expect(result.balance).toBe(600);
@@ -55,7 +61,11 @@ describe('ReportsService', () => {
         exec: jest.fn().mockResolvedValue([]),
       } as any);
 
-      const result = await service.getFamilySummary('507f1f77bcf86cd799439011', new Date(), new Date());
+      const result = await service.getFamilySummary(
+        '507f1f77bcf86cd799439011',
+        new Date(),
+        new Date(),
+      );
       expect(result).toEqual({ totalIncome: 0, totalExpense: 0, balance: 0 });
     });
   });
@@ -66,15 +76,19 @@ describe('ReportsService', () => {
         { category: 'Food', amount: 200 },
         { category: 'Health', amount: 100 },
       ];
-      
+
       jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockResult),
       } as any);
 
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      const result = await service.getSpendingByCategory('507f1f77bcf86cd799439011', startDate, endDate);
-      
+      const result = await service.getSpendingByCategory(
+        '507f1f77bcf86cd799439011',
+        startDate,
+        endDate,
+      );
+
       expect(result).toHaveLength(2);
       expect(result[0].category).toBe('Food');
       expect(result[0].amount).toBe(200);

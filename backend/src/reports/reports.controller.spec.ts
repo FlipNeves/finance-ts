@@ -22,9 +22,9 @@ describe('ReportsController', () => {
         },
       ],
     })
-    .overrideGuard(JwtAuthGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<ReportsController>(ReportsController);
     service = module.get<ReportsService>(ReportsService);
@@ -40,10 +40,18 @@ describe('ReportsController', () => {
       const req = { user: { familyId: 'familyId' } };
       mockReportsService.getFamilySummary.mockResolvedValue(mockSummary);
 
-      const result = await controller.getSummary(req, '2024-01-01', '2024-01-31');
-      
+      const result = await controller.getSummary(
+        req,
+        '2024-01-01',
+        '2024-01-31',
+      );
+
       expect(result).toEqual(mockSummary);
-      expect(service.getFamilySummary).toHaveBeenCalledWith('familyId', expect.any(Date), expect.any(Date));
+      expect(service.getFamilySummary).toHaveBeenCalledWith(
+        'familyId',
+        expect.any(Date),
+        expect.any(Date),
+      );
     });
   });
 
@@ -53,10 +61,18 @@ describe('ReportsController', () => {
       const req = { user: { familyId: 'familyId' } };
       mockReportsService.getSpendingByCategory.mockResolvedValue(mockSpending);
 
-      const result = await controller.getSpendingByCategory(req, '2024-01-01', '2024-01-31');
-      
+      const result = await controller.getSpendingByCategory(
+        req,
+        '2024-01-01',
+        '2024-01-31',
+      );
+
       expect(result).toEqual(mockSpending);
-      expect(service.getSpendingByCategory).toHaveBeenCalledWith('familyId', expect.any(Date), expect.any(Date));
+      expect(service.getSpendingByCategory).toHaveBeenCalledWith(
+        'familyId',
+        expect.any(Date),
+        expect.any(Date),
+      );
     });
   });
 });

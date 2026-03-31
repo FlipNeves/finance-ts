@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   familyId?: string;
+  inviteCode?: string;
 }
 
 interface AuthContextData {

@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { User } from '../schemas/user.schema';
 
 @Injectable()
@@ -22,16 +27,27 @@ export class AuthService {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Generate a unique invite code for the user
+    let inviteCode = '';
+    let isUnique = false;
+    while (!isUnique) {
+      inviteCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+      const existing = await this.userModel.findOne({ inviteCode }).exec();
+      if (!existing) isUnique = true;
+    }
+
     const newUser = await this.userModel.create({
       email,
       passwordHash,
       name,
+      inviteCode,
     });
 
     return {
       email: newUser.email,
       name: newUser.name,
       _id: newUser._id,
+      inviteCode: newUser.inviteCode,
     };
   }
 
@@ -49,7 +65,10 @@ export class AuthService {
     }
   }
 
-  private async comparePassword(password: string, hash: string): Promise<boolean> {
+  private async comparePassword(
+    password: string,
+    hash: string,
+  ): Promise<boolean> {
     return bcrypt.compare(password, hash);
   }
 }

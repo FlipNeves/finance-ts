@@ -21,9 +21,9 @@ describe('UsersController', () => {
         },
       ],
     })
-    .overrideGuard(JwtAuthGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<UsersController>(UsersController);
     service = module.get<UsersService>(UsersService);
@@ -37,11 +37,11 @@ describe('UsersController', () => {
     it('should return user profile from request', async () => {
       const mockUser = { _id: 'userId', email: 'test@test.com' };
       const req = { user: { _id: 'userId' } };
-      
+
       mockUsersService.getProfile.mockResolvedValue(mockUser);
 
       const result = await controller.getProfile(req);
-      
+
       expect(result).toEqual(mockUser);
       expect(service.getProfile).toHaveBeenCalledWith('userId');
     });
