@@ -131,4 +131,50 @@ export class FamilyService {
       await family.save();
     }
   }
+
+  /**
+   * Adds a bank account name to the family's list of accounts.
+   * @param familyId The ID of the family.
+   * @param bankAccount The name of the bank account.
+   */
+  async addBankAccount(familyId: string, bankAccount: string): Promise<void> {
+    const family = await this.familyModel.findById(familyId).exec();
+
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+
+    if (!bankAccount || !bankAccount.trim()) {
+      throw new BadRequestException('Invalid bank account name');
+    }
+
+    const normalized = bankAccount.trim();
+
+    if (!family.bankAccounts.includes(normalized)) {
+      family.bankAccounts.push(normalized);
+      await family.save();
+    }
+  }
+
+  /**
+   * Removes a bank account name from the family's list of accounts.
+   * @param familyId The ID of the family.
+   * @param bankAccount The name of the bank account.
+   */
+  async removeBankAccount(
+    familyId: string,
+    bankAccount: string,
+  ): Promise<void> {
+    const family = await this.familyModel.findById(familyId).exec();
+
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+
+    const index = family.bankAccounts.indexOf(bankAccount);
+    if (index > -1) {
+      family.bankAccounts.splice(index, 1);
+      await family.save();
+    }
+  }
 }

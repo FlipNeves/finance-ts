@@ -15,6 +15,9 @@ export class Transaction extends Document {
   @Prop({ required: true })
   category: string;
 
+  @Prop()
+  bankAccount: string;
+
   @Prop({ required: true })
   date: Date;
 
@@ -23,9 +26,6 @@ export class Transaction extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'Family', required: true })
   familyId: Types.ObjectId;
-
-  @Prop({ type: Types.ObjectId, ref: 'BankAccount' })
-  bankAccountId: Types.ObjectId;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
