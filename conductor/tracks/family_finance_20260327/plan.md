@@ -65,15 +65,15 @@
 - [x] Task: Visual Redesign & Theming (Money Green) 5f9fd78
     - [x] Implement robust Light/Dark mode theming using "Money Green" as base
     - [x] Redesign layout to be modern and fully responsive
-- [ ] Task: Family Join Approval System (Backend & UI)
-    - [ ] Update `Family` schema to track `owner` and `pendingMembers`
-    - [ ] Implement `approveMember` and `rejectMember` logic in `FamilyService`
-    - [ ] Update `FamilyController` with approval endpoints
-    - [ ] Implement UI for Family Owner to manage join requests
-- [ ] Task: Step-by-Step Transaction Modals (Frontend)
-    - [ ] Implement Expense Modal: Step 1 (Description & Category creation), Step 2 (Amount), Step 3 (Account creation)
-    - [ ] Implement Income Modal: Simple flow (Amount, Description, Account)
-    - [ ] Refactor `TransactionsPage` to use these modals instead of inline forms
+- [x] Task: Family Join Approval System (Backend & UI)
+    - [x] Update `Family` schema to track `owner` and `pendingMembers`
+    - [x] Implement `approveMember` and `rejectMember` logic in `FamilyService`
+    - [x] Update `FamilyController` with approval endpoints
+    - [x] Implement UI for Family Owner to manage join requests
+- [x] Task: Step-by-Step Transaction Modals (Frontend)
+    - [x] Implement Expense Modal: Step 1 (Description & Category creation), Step 2 (Amount), Step 3 (Account creation)
+    - [x] Implement Income Modal: Simple flow (Amount, Description, Account)
+    - [x] Refactor `TransactionsPage` to use these modals instead of inline forms
 - [ ] Task: Dynamic Categories & Bank Accounts UI Refinement
 - [ ] Task: Dashboard Expansion by Member
 - [ ] Task: User Manual Verification 'Phase 5: UI/UX Overhaul & Functional Refinement'

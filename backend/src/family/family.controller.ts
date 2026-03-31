@@ -7,10 +7,14 @@ import {
   Delete,
   Req,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { FamilyService } from './family.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Request } from 'express';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Family } from '../schemas/family.schema';
 
 interface RequestWithUser extends Request {
   user: {
@@ -22,7 +26,10 @@ interface RequestWithUser extends Request {
 @Controller('family')
 @UseGuards(JwtAuthGuard)
 export class FamilyController {
-  constructor(private readonly familyService: FamilyService) {}
+  constructor(
+    private readonly familyService: FamilyService,
+    @InjectModel(Family.name) private readonly familyModel: Model<Family>,
+  ) {}
 
   /**
    * Endpoint to create a new family group.
@@ -44,6 +51,30 @@ export class FamilyController {
   }
 
   /**
+   * Endpoint for family owner to approve a join request.
+   */
+  @Post('approve/:memberId')
+  async approveMember(@Param('memberId') memberId: string, @Req() req: RequestWithUser) {
+    return this.familyService.approveMember(req.user.familyId, req.user._id, memberId);
+  }
+
+  /**
+   * Endpoint for family owner to reject a join request.
+   */
+  @Post('reject/:memberId')
+  async rejectMember(@Param('memberId') memberId: string, @Req() req: RequestWithUser) {
+    return this.familyService.rejectMember(req.user.familyId, req.user._id, memberId);
+  }
+
+  /**
+   * Endpoint to list pending join requests.
+   */
+  @Get('pending')
+  async getPendingMembers(@Req() req: RequestWithUser) {
+    return this.familyService.getPendingMembers(req.user.familyId, req.user._id);
+  }
+
+  /**
    * Endpoint for the current user to leave their family group.
    */
   @Post('leave')
@@ -60,6 +91,16 @@ export class FamilyController {
   }
 
   /**
+   * Endpoint to get current family details (categories, bank accounts, owner, etc).
+   */
+  @Get('details')
+  async getDetails(@Req() req: RequestWithUser) {
+    const family = await this.familyModel.findById(req.user.familyId).exec();
+    if (!family) throw new NotFoundException('Family not found');
+    return family;
+  }
+
+  /**
    * Endpoint to remove a member from the family group.
    */
   @Delete('members/:id')
@@ -67,7 +108,7 @@ export class FamilyController {
     @Param('id') memberId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.familyService.removeMember(req.user.familyId, memberId);
+    return this.familyService.removeMember(req.user.familyId, req.user._id, memberId);
   }
 
   /**

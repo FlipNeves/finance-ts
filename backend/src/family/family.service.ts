@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -16,7 +17,8 @@ export class FamilyService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  private toObjectId(id: string): Types.ObjectId {
+  private toObjectId(id: string | Types.ObjectId): Types.ObjectId {
+    if (id instanceof Types.ObjectId) return id;
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid ObjectId');
     }
@@ -34,11 +36,19 @@ export class FamilyService {
       throw new ConflictException('User already belongs to a family');
     }
 
-    const familyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    let familyCode = '';
+    let isUnique = false;
+    while (!isUnique) {
+      familyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const existing = await this.familyModel.findOne({ familyCode }).exec();
+      if (!existing) isUnique = true;
+    }
 
     const family = await this.familyModel.create({
       ...createFamilyDto,
       familyCode,
+      owner: this.toObjectId(userId),
+      pendingMembers: [],
     });
 
     user.familyId = family._id;
@@ -47,7 +57,7 @@ export class FamilyService {
     return family;
   }
 
-  async join(familyCode: string, userId: string): Promise<Family> {
+  async join(familyCode: string, userId: string): Promise<void> {
     const user = await this.userModel.findById(userId).exec();
 
     if (!user) {
@@ -64,10 +74,73 @@ export class FamilyService {
       throw new NotFoundException('Family not found');
     }
 
+    const userObjId = this.toObjectId(userId);
+
+    if (family.pendingMembers.some(id => id.toString() === userObjId.toString())) {
+      throw new ConflictException('Join request already pending');
+    }
+
+    family.pendingMembers.push(userObjId);
+    await family.save();
+  }
+
+  async approveMember(familyId: string, ownerId: string, memberId: string): Promise<void> {
+    const family = await this.familyModel.findById(familyId).exec();
+    if (!family) throw new NotFoundException('Family not found');
+
+    if (family.owner.toString() !== ownerId) {
+      throw new ForbiddenException('Only family owner can approve members');
+    }
+
+    const memberObjId = this.toObjectId(memberId);
+    const index = family.pendingMembers.findIndex(id => id.toString() === memberObjId.toString());
+
+    if (index === -1) {
+      throw new NotFoundException('User not in pending list');
+    }
+
+    const user = await this.userModel.findById(memberId).exec();
+    if (!user) throw new NotFoundException('User not found');
+
+    // Remove from pending
+    family.pendingMembers.splice(index, 1);
+    await family.save();
+
+    // Assign family
     user.familyId = family._id;
     await user.save();
+  }
 
-    return family;
+  async rejectMember(familyId: string, ownerId: string, memberId: string): Promise<void> {
+    const family = await this.familyModel.findById(familyId).exec();
+    if (!family) throw new NotFoundException('Family not found');
+
+    if (family.owner.toString() !== ownerId) {
+      throw new ForbiddenException('Only family owner can reject members');
+    }
+
+    const memberObjId = this.toObjectId(memberId);
+    const index = family.pendingMembers.findIndex(id => id.toString() === memberObjId.toString());
+
+    if (index === -1) {
+      throw new NotFoundException('User not in pending list');
+    }
+
+    family.pendingMembers.splice(index, 1);
+    await family.save();
+  }
+
+  async getPendingMembers(familyId: string, ownerId: string): Promise<User[]> {
+    const family = await this.familyModel.findById(familyId).exec();
+    if (!family) throw new NotFoundException('Family not found');
+
+    if (family.owner.toString() !== ownerId) {
+      throw new ForbiddenException('Only family owner can view pending members');
+    }
+
+    return this.userModel.find({
+      _id: { $in: family.pendingMembers }
+    }).select('-passwordHash').exec();
   }
 
   async leave(userId: string): Promise<void> {
@@ -94,18 +167,18 @@ export class FamilyService {
       .exec();
   }
 
-  async removeMember(familyId: string, memberId: string): Promise<void> {
+  async removeMember(familyId: string, ownerId: string, memberId: string): Promise<void> {
+    const family = await this.familyModel.findById(familyId).exec();
+    if (!family) throw new NotFoundException('Family not found');
+
+    if (family.owner.toString() !== ownerId && ownerId !== memberId) {
+      throw new ForbiddenException('You do not have permission to remove this member');
+    }
+
     const user = await this.userModel.findById(memberId).exec();
+    if (!user) throw new NotFoundException('User not found');
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.familyId) {
-      throw new NotFoundException('User is not in a family');
-    }
-
-    if (user.familyId.toString() !== familyId) {
+    if (!user.familyId || user.familyId.toString() !== familyId) {
       throw new NotFoundException('User does not belong to this family');
     }
 
@@ -132,11 +205,6 @@ export class FamilyService {
     }
   }
 
-  /**
-   * Adds a bank account name to the family's list of accounts.
-   * @param familyId The ID of the family.
-   * @param bankAccount The name of the bank account.
-   */
   async addBankAccount(familyId: string, bankAccount: string): Promise<void> {
     const family = await this.familyModel.findById(familyId).exec();
 
@@ -156,15 +224,7 @@ export class FamilyService {
     }
   }
 
-  /**
-   * Removes a bank account name from the family's list of accounts.
-   * @param familyId The ID of the family.
-   * @param bankAccount The name of the bank account.
-   */
-  async removeBankAccount(
-    familyId: string,
-    bankAccount: string,
-  ): Promise<void> {
+  async removeBankAccount(familyId: string, bankAccount: string): Promise<void> {
     const family = await this.familyModel.findById(familyId).exec();
 
     if (!family) {
