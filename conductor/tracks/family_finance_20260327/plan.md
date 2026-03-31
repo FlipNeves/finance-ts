@@ -62,16 +62,18 @@
     - [x] Update `Family` schema with `bankAccounts: string[]`
     - [x] Update `Transaction` schema to use `bankAccount: string` instead of ObjectId ref
     - [x] Update `family.service` and `family.controller` to manage bank accounts
-- [ ] Task: Visual Redesign & Theming (Money Green)
-    - [ ] Implement robust Light/Dark mode theming using "Money Green" as base
-    - [ ] Redesign layout to be modern and fully responsive
-- [ ] Task: Income & Expense Separation
-    - [ ] Refactor transaction forms to explicitly separate Income and Expense creation
-    - [ ] Implement clear, distinct UI for adding each type
-- [ ] Task: Dynamic Categories & Bank Accounts UI
-    - [ ] Ensure Dynamic Categories for families are fully functional and visible in the UI
-    - [ ] Implement UI for registering and managing Bank Accounts as named categories
+- [x] Task: Visual Redesign & Theming (Money Green) 5f9fd78
+    - [x] Implement robust Light/Dark mode theming using "Money Green" as base
+    - [x] Redesign layout to be modern and fully responsive
+- [ ] Task: Family Join Approval System (Backend & UI)
+    - [ ] Update `Family` schema to track `owner` and `pendingMembers`
+    - [ ] Implement `approveMember` and `rejectMember` logic in `FamilyService`
+    - [ ] Update `FamilyController` with approval endpoints
+    - [ ] Implement UI for Family Owner to manage join requests
+- [ ] Task: Step-by-Step Transaction Modals (Frontend)
+    - [ ] Implement Expense Modal: Step 1 (Description & Category creation), Step 2 (Amount), Step 3 (Account creation)
+    - [ ] Implement Income Modal: Simple flow (Amount, Description, Account)
+    - [ ] Refactor `TransactionsPage` to use these modals instead of inline forms
+- [ ] Task: Dynamic Categories & Bank Accounts UI Refinement
 - [ ] Task: Dashboard Expansion by Member
-    - [ ] Update dashboard logic to aggregate total accumulated family value
-    - [ ] Implement expandable rows/cards to view individual member contributions and balances
 - [ ] Task: User Manual Verification 'Phase 5: UI/UX Overhaul & Functional Refinement'

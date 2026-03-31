@@ -2,25 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import api from '../services/api';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-interface Summary {
-  totalIncome: number;
-  totalExpense: number;
-  balance: number;
-}
-
-interface SpendingByCategory {
-  category: string;
-  amount: number;
-}
+import { useTheme } from '../contexts/ThemeContext';
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [spending, setSpending] = useState<SpendingByCategory[]>([]);
+  const { theme } = useTheme();
+  const [summary, setSummary] = useState<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
+  const [spending, setSpending] = useState<{ category: string; amount: number }[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const COLORS = theme === 'light' 
+    ? ['#2ecc71', '#3498db', '#f1c40f', '#e67e22', '#e74c3c', '#9b59b6']
+    : ['#27ae60', '#2980b9', '#f39c12', '#d35400', '#c0392b', '#8e44ad'];
 
   useEffect(() => {
     loadData();
@@ -34,75 +27,161 @@ const DashboardPage: React.FC = () => {
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
-    } catch {
-      setLoading(false);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div>{t('common.loading')}</div>;
+  if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '50px auto' }}>
-      <h1>{t('dashboard.title')}</h1>
+    <div className="dashboard-container">
+      <header className="flex justify-between items-center mb-3">
+        <h1>{t('dashboard.title')}</h1>
+        <button className="btn btn-outline" onClick={loadData}>🔄 {t('common.refresh') || 'Refresh'}</button>
+      </header>
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '40px' }}>
-        <div style={{ flex: 1, padding: '20px', background: '#e3f2fd', borderRadius: '8px' }}>
-          <h3>{t('dashboard.totalIncome')}</h3>
-          <p style={{ fontSize: '24px', color: 'green', fontWeight: 'bold' }}>+${summary?.totalIncome.toFixed(2)}</p>
+      <div className="grid-summary">
+        <div className="card summary-card income">
+          <div className="flex flex-col">
+            <span className="label">{t('dashboard.totalIncome')}</span>
+            <span className="value">+{summary?.totalIncome.toFixed(2)}</span>
+          </div>
+          <div className="icon">📈</div>
         </div>
-        <div style={{ flex: 1, padding: '20px', background: '#ffebee', borderRadius: '8px' }}>
-          <h3>{t('dashboard.totalExpense')}</h3>
-          <p style={{ fontSize: '24px', color: 'red', fontWeight: 'bold' }}>-${summary?.totalExpense.toFixed(2)}</p>
+        <div className="card summary-card expense">
+          <div className="flex flex-col">
+            <span className="label">{t('dashboard.totalExpense')}</span>
+            <span className="value">-{summary?.totalExpense.toFixed(2)}</span>
+          </div>
+          <div className="icon">📉</div>
         </div>
-        <div style={{ flex: 1, padding: '20px', background: '#f5f5f5', borderRadius: '8px' }}>
-          <h3>{t('dashboard.balance')}</h3>
-          <p style={{ fontSize: '24px', color: summary?.balance >= 0 ? 'blue' : 'orange', fontWeight: 'bold' }}>
-            ${summary?.balance.toFixed(2)}
-          </p>
+        <div className="card summary-card balance">
+          <div className="flex flex-col">
+            <span className="label">{t('dashboard.balance')}</span>
+            <span className={`value ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
+              {summary?.balance.toFixed(2)}
+            </span>
+          </div>
+          <div className="icon">💰</div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '400px', height: '400px' }}>
+      <div className="grid-charts mt-3">
+        <div className="card chart-container">
           <h3>{t('dashboard.spendingByCategory')} (Pie)</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={spending}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={120}
-                fill="#8884d8"
-                dataKey="amount"
-                nameKey="category"
-              >
-                {spending.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={spending}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(props: any) => {
+                    const { category, percent } = props;
+                    return `${category} ${(percent * 100).toFixed(0)}%`;
+                  }}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="amount"
+                  nameKey="category"
+                >
+                  {spending.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                  itemStyle={{ color: 'var(--text)' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div style={{ flex: 1, minWidth: '400px', height: '400px' }}>
+        <div className="card chart-container">
           <h3>{t('dashboard.spendingByCategory')} (Bar)</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={spending}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="category" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="amount" fill="#82ca9d" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={spending}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="category" stroke="var(--text-muted)" />
+                <YAxis stroke="var(--text-muted)" />
+                <Tooltip 
+                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                   itemStyle={{ color: 'var(--text)' }}
+                />
+                <Legend />
+                <Bar dataKey="amount">
+                  {spending.map((_, index) => (
+                    <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        .grid-summary {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 24px;
+        }
+        .summary-card {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .summary-card .label {
+          font-size: 14px;
+          color: var(--text-muted);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .summary-card .value {
+          font-size: 28px;
+          font-weight: 800;
+          margin-top: 4px;
+        }
+        .summary-card .icon {
+          font-size: 32px;
+          opacity: 0.8;
+        }
+        .summary-card.income .value { color: var(--success); }
+        .summary-card.expense .value { color: var(--danger); }
+        .summary-card.balance .value.positive { color: var(--primary); }
+        .summary-card.balance .value.negative { color: var(--danger); }
+
+        .grid-charts {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+          gap: 24px;
+        }
+        .chart-container h3 {
+          margin-bottom: 24px;
+          font-size: 18px;
+          font-weight: 700;
+        }
+        .chart-wrapper {
+          height: 350px;
+          width: 100%;
+        }
+
+        @media (max-width: 600px) {
+          .grid-charts {
+            grid-template-columns: 1fr;
+          }
+          .chart-wrapper {
+            height: 300px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

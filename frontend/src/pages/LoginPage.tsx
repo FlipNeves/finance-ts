@@ -24,23 +24,53 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px', border: '1px solid #ccc' }}>
-      <h1>{t('auth.login')}</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '10px' }}>
-          <label>{t('auth.email')}:</label><br />
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%' }} />
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label>{t('auth.password')}:</label><br />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%' }} />
-        </div>
-        <button type="submit" style={{ width: '100%', padding: '10px' }}>{t('auth.login')}</button>
-      </form>
-      <p style={{ marginTop: '20px' }}>
-        {t('auth.noAccount')} <Link to="/register">{t('auth.register')}</Link>
-      </p>
+    <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - var(--header-height) - 100px)' }}>
+      <div className="card w-full" style={{ maxWidth: '400px' }}>
+        <h1 className="text-center">{t('auth.login')}</h1>
+        {error && <p className="text-center" style={{ color: 'var(--danger)', fontWeight: 600 }}>{error}</p>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <label style={{ fontWeight: 600 }}>{t('auth.email')}</label>
+            <input 
+              type="email" 
+              className="form-control"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label style={{ fontWeight: 600 }}>{t('auth.password')}</label>
+            <input 
+              type="password" 
+              className="form-control"
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+          </div>
+          <button type="submit" className="btn btn-primary mt-1">{t('auth.login')}</button>
+        </form>
+        <p className="text-center mt-2">
+          {t('auth.noAccount')} <Link to="/register" style={{ fontWeight: 600 }}>{t('auth.register')}</Link>
+        </p>
+      </div>
+      
+      <style>{`
+        .form-control {
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          background-color: var(--bg);
+          color: var(--text);
+          font-size: 16px;
+          transition: border-color 0.2s;
+        }
+        .form-control:focus {
+          outline: none;
+          border-color: var(--primary);
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
+import TransactionModal from '../components/TransactionModal';
 
 interface Transaction {
   _id: string;
@@ -8,6 +9,7 @@ interface Transaction {
   amount: number;
   type: string;
   category: string;
+  bankAccount?: string;
   date: string;
 }
 
@@ -15,14 +17,12 @@ const TransactionsPage: React.FC = () => {
   const { t } = useTranslation();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Form state
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [type, setType] = useState('expense');
-  const [category, setCategory] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
 
   useEffect(() => {
     loadData();
@@ -30,36 +30,25 @@ const TransactionsPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [transRes, catRes] = await Promise.all([
+      const [transRes, catRes, familyRes] = await Promise.all([
         api.get('/transactions'),
         api.get('/transactions/categories'),
+        api.get('/family/details'),
       ]);
+      
       setTransactions(transRes.data);
       setCategories(catRes.data);
-      if (catRes.data.length > 0) setCategory(catRes.data[0]);
-    } catch {
-      setLoading(false);
+      setBankAccounts(familyRes.data.bankAccounts || []);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.post('/transactions', {
-        description,
-        amount: parseFloat(amount),
-        type,
-        category,
-        date: new Date(date),
-      });
-      setDescription('');
-      setAmount('');
-      loadData();
-    } catch {
-      alert(t('transactions.addError'));
-    }
+  const openModal = (type: 'income' | 'expense') => {
+    setModalType(type);
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -73,75 +62,127 @@ const TransactionsPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div>{t('common.loading')}</div>;
+  if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '50px auto' }}>
-      <h1>{t('transactions.title')}</h1>
+    <div className="container mt-3" style={{ maxWidth: '1000px' }}>
+      <header className="flex justify-between items-center mb-3">
+        <h1>{t('transactions.title')}</h1>
+        <div className="flex gap-2">
+          <button className="btn btn-outline" style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }} onClick={() => openModal('income')}>
+            + {t('transactions.addIncome') || 'Add Income'}
+          </button>
+          <button className="btn btn-primary" onClick={() => openModal('expense')}>
+            + {t('transactions.addExpense') || 'Add Expense'}
+          </button>
+        </div>
+      </header>
 
-      <section style={{ marginBottom: '40px', padding: '20px', border: '1px solid #ccc' }}>
-        <h2>{t('transactions.add')}</h2>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '10px' }}>
-            <label>{t('transactions.description')}:</label><br />
-            <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} required />
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>{t('transactions.amount')}:</label><br />
-            <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>{t('transactions.type')}:</label><br />
-            <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="income">{t('transactions.income')}</option>
-              <option value="expense">{t('transactions.expense')}</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>{t('transactions.category')}:</label><br />
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>{t('transactions.date')}:</label><br />
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-          </div>
-          <button type="submit">{t('common.add')}</button>
-        </form>
-      </section>
-
-      <section>
+      <section className="card transaction-list-container">
         <h2>{t('transactions.recent')}</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #ccc' }}>
-              <th style={{ textAlign: 'left', padding: '10px' }}>{t('transactions.date')}</th>
-              <th style={{ textAlign: 'left', padding: '10px' }}>{t('transactions.description')}</th>
-              <th style={{ textAlign: 'left', padding: '10px' }}>{t('transactions.category')}</th>
-              <th style={{ textAlign: 'right', padding: '10px' }}>{t('transactions.amount')}</th>
-              <th style={{ textAlign: 'center', padding: '10px' }}>{t('common.actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((tr) => (
-              <tr key={tr._id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '10px' }}>{new Date(tr.date).toLocaleDateString()}</td>
-                <td style={{ padding: '10px' }}>{tr.description}</td>
-                <td style={{ padding: '10px' }}>{tr.category}</td>
-                <td style={{ padding: '10px', textAlign: 'right', color: tr.type === 'income' ? 'green' : 'red' }}>
-                  {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
-                </td>
-                <td style={{ padding: '10px', textAlign: 'center' }}>
-                  <button onClick={() => handleDelete(tr._id)}>{t('common.delete')}</button>
-                </td>
+        <div className="table-responsive">
+          <table className="transaction-table">
+            <thead>
+              <tr>
+                <th>{t('transactions.date')}</th>
+                <th>{t('transactions.description')}</th>
+                <th>{t('transactions.category')}</th>
+                <th>{t('transactions.amount')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center" style={{ padding: '40px', color: 'var(--text-muted)' }}>
+                    {t('transactions.noTransactions') || 'No transactions found.'}
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((tr) => (
+                  <tr key={tr._id} className={tr.type}>
+                    <td>{new Date(tr.date).toLocaleDateString()}</td>
+                    <td>
+                      <div className="flex flex-col">
+                        <span className="desc">{tr.description || '-'}</span>
+                        <span className="bank">{tr.bankAccount}</span>
+                      </div>
+                    </td>
+                    <td><span className="badge">{tr.category}</span></td>
+                    <td className="amount">
+                      {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
+                    </td>
+                    <td>
+                      <button className="btn-icon delete" onClick={() => handleDelete(tr._id)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
+
+      <TransactionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadData}
+        type={modalType}
+        initialCategories={categories}
+        initialBankAccounts={bankAccounts}
+      />
+
+      <style>{`
+        .transaction-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .transaction-table th {
+          text-align: left;
+          padding: 12px;
+          border-bottom: 2px solid var(--border);
+          color: var(--text-muted);
+          font-size: 14px;
+          text-transform: uppercase;
+        }
+        .transaction-table td {
+          padding: 12px;
+          border-bottom: 1px solid var(--border);
+          font-size: 15px;
+        }
+        .transaction-table tr:hover {
+          background-color: var(--bg);
+        }
+        .transaction-table .amount {
+          font-weight: 700;
+          text-align: right;
+        }
+        .transaction-table tr.income .amount { color: var(--success); }
+        .transaction-table tr.expense .amount { color: var(--danger); }
+        
+        .badge {
+          background-color: var(--primary-light);
+          color: var(--primary);
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .bank {
+          font-size: 11px;
+          color: var(--text-muted);
+        }
+        .desc {
+          font-weight: 600;
+        }
+        .btn-icon.delete:hover {
+          background-color: #fee2e2;
+          color: var(--danger);
+        }
+        .table-responsive {
+          overflow-x: auto;
+        }
+      `}</style>
     </div>
   );
 };
