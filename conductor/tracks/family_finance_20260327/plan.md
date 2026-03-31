@@ -58,10 +58,10 @@
 - [ ] Task: User Manual Verification 'Phase 4: Financial Reporting & Dashboard' bb8e5bc
 
 ## Phase 5: UI/UX Overhaul & Functional Refinement
-- [ ] Task: Backend Adjustments for Bank Accounts
-    - [ ] Update `Family` schema with `bankAccounts: string[]`
-    - [ ] Update `Transaction` schema to use `bankAccount: string` instead of ObjectId ref
-    - [ ] Update `family.service` and `family.controller` to manage bank accounts
+- [x] Task: Backend Adjustments for Bank Accounts ded21fb
+    - [x] Update `Family` schema with `bankAccounts: string[]`
+    - [x] Update `Transaction` schema to use `bankAccount: string` instead of ObjectId ref
+    - [x] Update `family.service` and `family.controller` to manage bank accounts
 - [ ] Task: Visual Redesign & Theming (Money Green)
     - [ ] Implement robust Light/Dark mode theming using "Money Green" as base
     - [ ] Redesign layout to be modern and fully responsive
