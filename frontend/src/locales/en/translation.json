@@ -20,7 +20,8 @@
     "selectAccount": "Select account",
     "approve": "Approve",
     "reject": "Reject",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "user": "User"
   },
   "auth": {
     "welcome": "Welcome to Family Finance Tracker",
@@ -92,6 +93,10 @@
     "spendingByCategory": "Spending by Category",
     "noFamily": "Welcome!",
     "noFamilyDesc": "To see your financial dashboard, first create or join a family group.",
-    "noData": "No spending data for this period"
+    "noData": "No spending data for this period",
+    "all": "All Types",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "viewAll": "View All"
   }
 }

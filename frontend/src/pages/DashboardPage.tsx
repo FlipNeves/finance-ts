@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import api from '../services/api';
+import TransactionModal from '../components/TransactionModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -10,8 +11,19 @@ const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { theme } = useTheme();
+  
   const [summary, setSummary] = useState<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
   const [spending, setSpending] = useState<{ category: string; amount: number }[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<string[]>([]);
+  
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+
   const [loading, setLoading] = useState(true);
 
   const COLORS = theme === 'light' 
@@ -24,22 +36,47 @@ const DashboardPage: React.FC = () => {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, currentMonth, typeFilter]);
 
   const loadData = async () => {
     try {
-      const [summaryRes, spendingRes] = await Promise.all([
-        api.get('/reports/summary'),
-        api.get('/reports/spending-by-category'),
+      setLoading(true);
+      const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
+      const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+      const [summaryRes, spendingRes, transRes, catRes, familyRes] = await Promise.all([
+        api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
+        api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
+        api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
+        api.get('/transactions/categories'),
+        api.get('/family/details'),
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
+      setTransactions(transRes.data.slice(0, 5)); 
+      setCategories(catRes.data);
+      setBankAccounts(familyRes.data.bankAccounts || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const openModal = (type: 'income' | 'expense') => {
+    setModalType(type);
+    setIsModalOpen(true);
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+  
+  const monthLabel = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
 
@@ -62,9 +99,33 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      <header className="flex justify-between items-center mb-3">
-        <h1>{t('dashboard.title')}</h1>
-        <button className="btn btn-outline" onClick={loadData}>🔄 {t('common.refresh') || 'Refresh'}</button>
+      <header className="dashboard-header mb-3">
+        <div className="header-left flex items-center gap-2">
+          <h1>{t('dashboard.title')}</h1>
+          <div className="month-selector flex items-center gap-1">
+            <button className="btn btn-outline btn-sm" onClick={handlePrevMonth}>&lt;</button>
+            <span style={{ fontWeight: 600, minWidth: '130px', textAlign: 'center', textTransform: 'capitalize' }}>{monthLabel}</span>
+            <button className="btn btn-outline btn-sm" onClick={handleNextMonth}>&gt;</button>
+          </div>
+        </div>
+        <div className="header-actions flex gap-2">
+          <select 
+            className="form-control" 
+            style={{ width: 'auto', padding: '6px 12px' }} 
+            value={typeFilter} 
+            onChange={(e) => setTypeFilter(e.target.value as any)}
+          >
+            <option value="all">{t('dashboard.all') || 'All Types'}</option>
+            <option value="income">{t('transactions.income')}</option>
+            <option value="expense">{t('transactions.expense')}</option>
+          </select>
+          <button className="btn btn-outline" style={{ color: 'var(--primary)', borderColor: 'var(--primary)', padding: '6px 12px' }} onClick={() => openModal('income')}>
+            + {t('transactions.addIncome') || 'Income'}
+          </button>
+          <button className="btn btn-primary" style={{ padding: '6px 12px' }} onClick={() => openModal('expense')}>
+            + {t('transactions.addExpense') || 'Expense'}
+          </button>
+        </div>
       </header>
 
       <div className="grid-summary">
@@ -162,7 +223,73 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      <div className="card mt-3">
+        <div className="flex justify-between items-center mb-2">
+           <h2>{t('transactions.recent')}</h2>
+           <Link to="/transactions" className="btn btn-outline btn-sm">{t('dashboard.viewAll') || 'View All'} →</Link>
+        </div>
+        <div className="table-responsive">
+          <table className="transaction-table">
+            <thead>
+              <tr>
+                <th>{t('transactions.date')}</th>
+                <th>{t('transactions.description')}</th>
+                <th>{t('common.user') || 'User'}</th>
+                <th>{t('transactions.category')}</th>
+                <th>{t('transactions.amount')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center" style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                    {t('transactions.noTransactions') || 'No transactions found.'}
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((tr) => (
+                  <tr key={tr._id} className={tr.type}>
+                    <td>{new Date(tr.date).toLocaleDateString()}</td>
+                    <td>
+                      <div className="flex flex-col">
+                        <span className="desc">{tr.description || '-'}</span>
+                        <span className="bank">{tr.bankAccount}</span>
+                      </div>
+                    </td>
+                    <td><span style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tr.userId?.name || '?'}</span></td>
+                    <td><span className="badge">{tr.category}</span></td>
+                    <td className="amount">
+                      {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <TransactionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadData}
+        type={modalType}
+        initialCategories={categories}
+        initialBankAccounts={bankAccounts}
+      />
+
       <style>{`
+        .dashboard-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           flex-wrap: wrap;
+           gap: 16px;
+        }
+        .btn-sm {
+           padding: 4px 10px;
+           font-size: 14px;
+        }
         .grid-summary {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -216,7 +343,54 @@ const DashboardPage: React.FC = () => {
           .chart-wrapper {
             height: 300px;
           }
+          .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
         }
+        
+        /* Table Styles from Transactions */
+        .transaction-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .transaction-table th {
+          text-align: left;
+          padding: 12px;
+          border-bottom: 2px solid var(--border);
+          color: var(--text-muted);
+          font-size: 14px;
+          text-transform: uppercase;
+        }
+        .transaction-table td {
+          padding: 12px;
+          border-bottom: 1px solid var(--border);
+          font-size: 15px;
+        }
+        .transaction-table tr:hover {
+          background-color: var(--bg);
+        }
+        .transaction-table .amount {
+          font-weight: 700;
+          text-align: right;
+        }
+        .transaction-table tr.income .amount { color: var(--success); }
+        .transaction-table tr.expense .amount { color: var(--danger); }
+        .badge {
+          background-color: var(--primary-light);
+          color: var(--primary);
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .bank { font-size: 11px; color: var(--text-muted); }
+        .desc { font-weight: 600; }
+        .table-responsive { overflow-x: auto; }
       `}</style>
     </div>
   );

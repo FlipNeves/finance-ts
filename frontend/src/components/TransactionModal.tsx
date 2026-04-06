@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { NumericFormat } from 'react-number-format';
 import Modal from './Modal';
 import api from '../services/api';
 
@@ -24,18 +25,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Form State
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState<string | number>('');
   const [bankAccount, setBankAccount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Dynamic lists
   const [categories, setCategories] = useState<string[]>(initialCategories);
   const [bankAccounts, setBankAccounts] = useState<string[]>(initialBankAccounts);
   
-  // Create new state
   const [newCategory, setNewCategory] = useState('');
   const [newBankAccount, setNewBankAccount] = useState('');
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
@@ -47,7 +45,6 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     setAmount('');
     setCategories(initialCategories);
     setBankAccounts(initialBankAccounts);
-    // Set category to the first available one, or empty string
     setCategory(initialCategories.length > 0 ? initialCategories[0] : '');
     setBankAccount(initialBankAccounts.length > 0 ? initialBankAccounts[0] : '');
     setIsCreatingCategory(false);
@@ -103,13 +100,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!amount || parseFloat(amount) <= 0) return;
+    const numAmount = typeof amount === 'string' ? parseFloat(amount.replace(/,/g, '')) : amount;
+    if (!numAmount || numAmount <= 0) return;
     
     setLoading(true);
     try {
       await api.post('/transactions', {
         description: description || (type === 'income' ? 'Income' : 'Expense'),
-        amount: parseFloat(amount),
+        amount: numAmount,
         type,
         category: category || 'General',
         bankAccount: bankAccount || undefined,
@@ -125,19 +123,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     }
   };
 
-  const formatAmount = (val: string) => {
-    // Basic currency mask: only numbers and one dot
-    const clean = val.replace(/[^0-9.]/g, '');
-    const parts = clean.split('.');
-    if (parts.length > 2) return amount; // ignore if more than one dot
-    if (parts[1] && parts[1].length > 2) return amount; // limit to 2 decimal places
-    return clean;
-  };
-
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
 
-  // Step 1 can proceed if description is filled AND (category is selected OR user is in the process of creating one)
   const canProceedStep1 = description.trim().length > 0 && category.trim().length > 0;
 
   const renderExpenseSteps = () => {
@@ -202,21 +190,24 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
               <label>{t('transactions.amount')}</label>
               <div className="flex items-center gap-1">
                 <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)' }}>$</span>
-                <input 
-                  type="text" 
-                  inputMode="decimal"
+                <NumericFormat 
                   className="form-control flex-1" 
                   style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center' }}
                   value={amount} 
-                  onChange={(e) => setAmount(formatAmount(e.target.value))} 
-                  placeholder="0.00"
+                  onValueChange={(values) => setAmount(values.floatValue || '')}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  decimalScale={2}
+                  fixedDecimalScale
+                  allowNegative={false}
+                  placeholder="0,00"
                   autoFocus
                 />
               </div>
             </div>
             <div className="flex gap-2 mt-2">
               <button className="btn btn-outline flex-1" onClick={prevStep}>← {t('common.back') || 'Back'}</button>
-              <button className="btn btn-primary flex-1" onClick={nextStep} disabled={!amount || parseFloat(amount) <= 0}>
+              <button className="btn btn-primary flex-1" onClick={nextStep} disabled={!amount || Number(amount) <= 0}>
                 {t('common.next') || 'Next'} →
               </button>
             </div>
@@ -280,15 +271,17 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
           <label>{t('transactions.amount')}</label>
           <div className="flex items-center gap-1">
             <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)' }}>$</span>
-            <input 
-              type="text" 
-              inputMode="decimal"
+            <NumericFormat 
               className="form-control" 
               style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center' }}
               value={amount} 
-              onChange={(e) => setAmount(formatAmount(e.target.value))} 
-              placeholder="0.00"
-              required
+              onValueChange={(values) => setAmount(values.floatValue || '')}
+              thousandSeparator="."
+              decimalSeparator=","
+              decimalScale={2}
+              fixedDecimalScale
+              allowNegative={false}
+              placeholder="0,00"
               autoFocus
             />
           </div>
@@ -310,7 +303,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
           <label>{t('transactions.date')}</label>
           <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
-        <button className="btn btn-primary mt-2 w-full" onClick={handleSubmit} disabled={loading || !amount || parseFloat(amount) <= 0}>
+        <button className="btn btn-primary mt-2 w-full" onClick={handleSubmit} disabled={loading || !amount || Number(amount) <= 0}>
           {loading ? '...' : (t('common.add') || 'Add')}
         </button>
       </div>

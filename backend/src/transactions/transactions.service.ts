@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
 import { Family } from '../schemas/family.schema';
 
@@ -41,8 +41,26 @@ export class TransactionsService {
   }
 
   async findAll(familyId: string, filters?: any): Promise<Transaction[]> {
-    const query = { familyId, ...filters };
-    return this.transactionModel.find(query).sort({ date: -1 }).exec();
+    const query: any = { familyId: familyId };
+    
+    if (filters?.type && filters.type !== 'all') {
+      query.type = filters.type;
+    }
+
+    if (filters?.startDate || filters?.endDate) {
+      query.date = {};
+      if (filters.startDate) {
+        query.date.$gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        query.date.$lte = new Date(filters.endDate);
+      }
+    }
+    
+    return this.transactionModel
+      .find(query)
+      .sort({ date: -1 })
+      .exec();
   }
 
   async findOne(id: string): Promise<Transaction> {

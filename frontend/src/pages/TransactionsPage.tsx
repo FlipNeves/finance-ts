@@ -13,6 +13,7 @@ interface Transaction {
   category: string;
   bankAccount?: string;
   date: string;
+  userId?: { name: string };
 }
 
 const TransactionsPage: React.FC = () => {
@@ -23,9 +24,16 @@ const TransactionsPage: React.FC = () => {
   const [bankAccounts, setBankAccounts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+
+  const currentDate = new Date();
+  const rawMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const rawMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+  const [startDate, setStartDate] = useState(rawMonthStart.toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(rawMonthEnd.toISOString().split('T')[0]);
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
 
   useEffect(() => {
     if (user?.familyId) {
@@ -33,15 +41,25 @@ const TransactionsPage: React.FC = () => {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, startDate, endDate, typeFilter]);
 
   const loadData = async () => {
     try {
+      const params: any = {};
+      if (startDate) params.startDate = new Date(startDate).toISOString();
+      if (endDate) {
+        const endDay = new Date(endDate);
+        endDay.setHours(23, 59, 59, 999);
+        params.endDate = endDay.toISOString();
+      }
+      if (typeFilter !== 'all') params.type = typeFilter;
+
       const [transRes, catRes, familyRes] = await Promise.all([
-        api.get('/transactions'),
+        api.get('/transactions', { params }),
         api.get('/transactions/categories'),
         api.get('/family/details'),
       ]);
+      console.log(transRes);
       
       setTransactions(transRes.data);
       setCategories(catRes.data);
@@ -101,6 +119,25 @@ const TransactionsPage: React.FC = () => {
           </button>
         </div>
       </header>
+      
+      <div className="card mb-3 filters-card">
+        <div className="filter-group">
+           <label>{t('dashboard.startDate') || 'Start Date'}</label>
+           <input type="date" className="form-control" value={startDate} onChange={e => setStartDate(e.target.value)} />
+        </div>
+        <div className="filter-group">
+           <label>{t('dashboard.endDate') || 'End Date'}</label>
+           <input type="date" className="form-control" value={endDate} onChange={e => setEndDate(e.target.value)} />
+        </div>
+        <div className="filter-group">
+           <label>{t('transactions.type')}</label>
+           <select className="form-control" value={typeFilter} onChange={e => setTypeFilter(e.target.value as any)}>
+             <option value="all">{t('dashboard.all') || 'All Types'}</option>
+             <option value="income">{t('transactions.income')}</option>
+             <option value="expense">{t('transactions.expense')}</option>
+           </select>
+        </div>
+      </div>
 
       <section className="card transaction-list-container">
         <h2>{t('transactions.recent')}</h2>
@@ -110,6 +147,7 @@ const TransactionsPage: React.FC = () => {
               <tr>
                 <th>{t('transactions.date')}</th>
                 <th>{t('transactions.description')}</th>
+                <th>{t('common.user') || 'User'}</th>
                 <th>{t('transactions.category')}</th>
                 <th>{t('transactions.amount')}</th>
                 <th>{t('common.actions')}</th>
@@ -118,7 +156,7 @@ const TransactionsPage: React.FC = () => {
             <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center" style={{ padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan={6} className="text-center" style={{ padding: '40px', color: 'var(--text-muted)' }}>
                     {t('transactions.noTransactions') || 'No transactions found.'}
                   </td>
                 </tr>
@@ -132,6 +170,7 @@ const TransactionsPage: React.FC = () => {
                         <span className="bank">{tr.bankAccount}</span>
                       </div>
                     </td>
+                    <td><span style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tr.userId?.name || '?'}</span></td>
                     <td><span className="badge">{tr.category}</span></td>
                     <td className="amount">
                       {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
@@ -205,6 +244,31 @@ const TransactionsPage: React.FC = () => {
         }
         .table-responsive {
           overflow-x: auto;
+        }
+        
+        .filters-card {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+          padding: 16px 20px;
+          align-items: flex-end;
+        }
+        .filter-group {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-width: 150px;
+        }
+        .filter-group label {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-muted);
+          margin-bottom: 6px;
+          text-transform: uppercase;
+        }
+        .filter-group .form-control {
+          padding: 10px 12px;
+          font-size: 14px;
         }
       `}</style>
     </div>

@@ -278,7 +278,6 @@ export class FamilyService {
       throw new ConflictException('Join request already pending');
     }
 
-    // Check if user is already a member
     const existingMember = await this.userModel.findOne({
       _id: userObjId,
       familyId: family._id,

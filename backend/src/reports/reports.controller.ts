@@ -38,6 +38,7 @@ export class ReportsController {
     @Req() req: any,
     @Query('startDate') start: string,
     @Query('endDate') end: string,
+    @Query('type') type?: string,
   ) {
     const familyId = this.ensureFamilyId(req);
     const startDate = start
@@ -48,6 +49,7 @@ export class ReportsController {
       familyId,
       startDate,
       endDate,
+      type,
     );
   }
 }

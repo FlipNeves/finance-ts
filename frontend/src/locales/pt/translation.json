@@ -20,7 +20,8 @@
     "selectAccount": "Selecione uma conta",
     "approve": "Aprovar",
     "reject": "Recusar",
-    "refresh": "Atualizar"
+    "refresh": "Atualizar",
+    "user": "Usuário"
   },
   "auth": {
     "welcome": "Bem-vindo ao Rastreador de Finanças Familiar",
@@ -92,6 +93,10 @@
     "spendingByCategory": "Gastos por Categoria",
     "noFamily": "Bem-vindo!",
     "noFamilyDesc": "Para ver seu painel financeiro, primeiro crie ou entre em um grupo familiar.",
-    "noData": "Nenhum dado de gastos para este período"
+    "noData": "Nenhum dado de gastos para este período",
+    "all": "Todos os Tipos",
+    "startDate": "Data Inicial",
+    "endDate": "Data Final",
+    "viewAll": "Ver Tudo"
   }
 }

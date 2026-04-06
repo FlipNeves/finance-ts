@@ -18,7 +18,7 @@ export class ReportsService {
       .aggregate([
         {
           $match: {
-            familyId: new Types.ObjectId(familyId),
+            familyId: familyId,
             date: { $gte: startDate, $lte: endDate },
           },
         },
@@ -50,15 +50,18 @@ export class ReportsService {
     familyId: string,
     startDate: Date,
     endDate: Date,
+    type?: string,
   ): Promise<any> {
+    const matchQuery: any = {
+      familyId: familyId,
+      date: { $gte: startDate, $lte: endDate },
+      type: 'expense'
+    };
+
     const results = await this.transactionModel
       .aggregate([
         {
-          $match: {
-            familyId: new Types.ObjectId(familyId),
-            type: 'expense',
-            date: { $gte: startDate, $lte: endDate },
-          },
+          $match: matchQuery,
         },
         {
           $group: {
