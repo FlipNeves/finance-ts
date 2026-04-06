@@ -28,7 +28,7 @@ export class TransactionsService {
   async create(
     createTransactionDto: any,
     userId: string,
-    familyId: string,
+    familyId: string | null,
   ): Promise<Transaction> {
     const data = {
       ...createTransactionDto,
@@ -40,8 +40,14 @@ export class TransactionsService {
     return transaction;
   }
 
-  async findAll(familyId: string, filters?: any): Promise<Transaction[]> {
-    const query: any = { familyId: familyId };
+  async findAll(familyId: string | null, userId: string, filters?: any): Promise<Transaction[]> {
+    const query: any = {};
+    if (familyId) {
+      query.familyId = familyId;
+    } else {
+      query.userId = userId;
+      query.familyId = null;
+    }
     
     if (filters?.type && filters.type !== 'all') {
       query.type = filters.type;
@@ -88,9 +94,12 @@ export class TransactionsService {
     }
   }
 
-  async getCategories(familyId: string): Promise<string[]> {
-    const family = await this.familyModel.findById(familyId).exec();
-    const customCategories = family?.customCategories || [];
+  async getCategories(familyId: string | null): Promise<string[]> {
+    let customCategories: string[] = [];
+    if (familyId) {
+      const family = await this.familyModel.findById(familyId).exec();
+      customCategories = family?.customCategories || [];
+    }
     return [...new Set([...this.defaultCategories, ...customCategories])];
   }
 }

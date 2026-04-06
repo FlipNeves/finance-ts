@@ -7,11 +7,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  private ensureFamilyId(req: any): string {
+  private getFamilyId(req: any): string | null {
     const familyId = req.user.familyId;
-    if (!familyId) {
-      throw new BadRequestException('User does not belong to a family');
-    }
+    if (!familyId) return null;
     return familyId.toString();
   }
 
@@ -21,13 +19,14 @@ export class ReportsController {
     @Query('startDate') start: string,
     @Query('endDate') end: string,
   ) {
-    const familyId = this.ensureFamilyId(req);
+    const familyId = this.getFamilyId(req);
     const startDate = start
       ? new Date(start)
       : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const endDate = end ? new Date(end) : new Date();
     return this.reportsService.getFamilySummary(
       familyId,
+      req.user._id,
       startDate,
       endDate,
     );
@@ -40,16 +39,23 @@ export class ReportsController {
     @Query('endDate') end: string,
     @Query('type') type?: string,
   ) {
-    const familyId = this.ensureFamilyId(req);
+    const familyId = this.getFamilyId(req);
     const startDate = start
       ? new Date(start)
       : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const endDate = end ? new Date(end) : new Date();
     return this.reportsService.getSpendingByCategory(
       familyId,
+      req.user._id,
       startDate,
       endDate,
       type,
     );
+  }
+
+  @Get('evolution')
+  async getEvolution(@Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.reportsService.getEvolutionReport(familyId, req.user._id);
   }
 }

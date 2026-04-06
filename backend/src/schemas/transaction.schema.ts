@@ -24,8 +24,8 @@ export class Transaction extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Family', required: true })
-  familyId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Family', default: null })
+  familyId: Types.ObjectId | null;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

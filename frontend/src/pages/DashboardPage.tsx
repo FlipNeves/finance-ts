@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,6 +17,7 @@ const DashboardPage: React.FC = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [bankAccounts, setBankAccounts] = useState<string[]>([]);
+  const [evolution, setEvolution] = useState<any[]>([]);
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -44,18 +45,20 @@ const DashboardPage: React.FC = () => {
       const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
       const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [summaryRes, spendingRes, transRes, catRes, familyRes] = await Promise.all([
+      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes] = await Promise.all([
         api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions/categories'),
-        api.get('/family/details'),
+        api.get('/family/details').catch(() => ({ data: { bankAccounts: [] } })),
+        api.get('/reports/evolution')
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
       setTransactions(transRes.data.slice(0, 5)); 
       setCategories(catRes.data);
       setBankAccounts(familyRes.data.bankAccounts || []);
+      setEvolution(evolutionRes.data.reverse()); // Ensure chronological order
     } catch (err) {
       console.error(err);
     } finally {
@@ -80,22 +83,7 @@ const DashboardPage: React.FC = () => {
 
   if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
 
-  if (!user?.familyId) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-2 mt-3" style={{ minHeight: '50vh' }}>
-        <div className="card" style={{ maxWidth: '500px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏠</div>
-          <h2>{t('dashboard.noFamily') || 'Welcome!'}</h2>
-          <p style={{ color: 'var(--text-muted)', margin: '12px 0' }}>
-            {t('dashboard.noFamilyDesc') || 'To see your financial dashboard, first create or join a family group.'}
-          </p>
-          <Link to="/family" className="btn btn-primary" style={{ display: 'inline-block', marginTop: '8px' }}>
-            {t('family.title') || 'Go to Family'} →
-          </Link>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="dashboard-container">
@@ -153,6 +141,61 @@ const DashboardPage: React.FC = () => {
           <div className="icon">💰</div>
         </div>
       </div>
+
+       <div className="card mt-3">
+        <div className="flex justify-between items-center mb-2">
+           <h2>{t('transactions.recent')}</h2>
+           <Link to="/transactions" className="btn btn-outline btn-sm">{t('dashboard.viewAll') || 'View All'} →</Link>
+        </div>
+        <div className="table-responsive">
+          <table className="transaction-table">
+            <thead>
+              <tr>
+                <th>{t('transactions.date')}</th>
+                <th>{t('transactions.description')}</th>
+                <th>{t('common.user') || 'User'}</th>
+                <th>{t('transactions.category')}</th>
+                <th>{t('transactions.amount')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center" style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                    {t('transactions.noTransactions') || 'No transactions found.'}
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((tr) => (
+                  <tr key={tr._id} className={tr.type}>
+                    <td>{new Date(tr.date).toLocaleDateString()}</td>
+                    <td>
+                      <div className="flex flex-col">
+                        <span className="desc">{tr.description || '-'}</span>
+                        <span className="bank">{tr.bankAccount}</span>
+                      </div>
+                    </td>
+                    <td><span style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tr.userId?.name || '?'}</span></td>
+                    <td><span className="badge">{tr.category}</span></td>
+                    <td className="amount">
+                      {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <TransactionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadData}
+        type={modalType}
+        initialCategories={categories}
+        initialBankAccounts={bankAccounts}
+      />
 
       <div className="grid-charts mt-3">
         <div className="card chart-container">
@@ -221,62 +264,38 @@ const DashboardPage: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
 
-      <div className="card mt-3">
-        <div className="flex justify-between items-center mb-2">
-           <h2>{t('transactions.recent')}</h2>
-           <Link to="/transactions" className="btn btn-outline btn-sm">{t('dashboard.viewAll') || 'View All'} →</Link>
-        </div>
-        <div className="table-responsive">
-          <table className="transaction-table">
-            <thead>
-              <tr>
-                <th>{t('transactions.date')}</th>
-                <th>{t('transactions.description')}</th>
-                <th>{t('common.user') || 'User'}</th>
-                <th>{t('transactions.category')}</th>
-                <th>{t('transactions.amount')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center" style={{ padding: '20px', color: 'var(--text-muted)' }}>
-                    {t('transactions.noTransactions') || 'No transactions found.'}
-                  </td>
-                </tr>
-              ) : (
-                transactions.map((tr) => (
-                  <tr key={tr._id} className={tr.type}>
-                    <td>{new Date(tr.date).toLocaleDateString()}</td>
-                    <td>
-                      <div className="flex flex-col">
-                        <span className="desc">{tr.description || '-'}</span>
-                        <span className="bank">{tr.bankAccount}</span>
-                      </div>
-                    </td>
-                    <td><span style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tr.userId?.name || '?'}</span></td>
-                    <td><span className="badge">{tr.category}</span></td>
-                    <td className="amount">
-                      {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="card chart-container" style={{ gridColumn: '1 / -1' }}>
+          <h3>{t('dashboard.evolution') || 'Last 3 Months Evolution'}</h3>
+          <div className="chart-wrapper">
+            {evolution.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={evolution} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="label" stroke="var(--text-muted)" />
+                  <YAxis stroke="var(--text-muted)" />
+                  <Tooltip 
+                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                     itemStyle={{ color: 'var(--text)' }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="income" name={t('transactions.income') || 'Income'} stroke={COLORS[0]} strokeWidth={3} dot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="expense" name={t('transactions.expense') || 'Expense'} stroke={COLORS[4]} strokeWidth={3} dot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="balance" name={t('dashboard.balance') || 'Balance'} stroke={COLORS[1]} strokeWidth={3} dot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center" style={{ height: '100%', color: 'var(--text-muted)' }}>
+                {t('dashboard.noData') || 'No data evolution available'}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <TransactionModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={loadData}
-        type={modalType}
-        initialCategories={categories}
-        initialBankAccounts={bankAccounts}
-      />
+     
+
+      
 
       <style>{`
         .dashboard-header {

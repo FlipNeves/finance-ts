@@ -19,17 +19,15 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-  private ensureFamilyId(req: any): string {
+  private getFamilyId(req: any): string | null {
     const familyId = req.user.familyId;
-    if (!familyId) {
-      throw new BadRequestException('User does not belong to a family');
-    }
+    if (!familyId) return null;
     return familyId.toString();
   }
 
   @Post()
   async create(@Body() createTransactionDto: any, @Req() req: any) {
-    const familyId = this.ensureFamilyId(req);
+    const familyId = this.getFamilyId(req);
     return this.transactionsService.create(
       createTransactionDto,
       req.user._id,
@@ -39,13 +37,13 @@ export class TransactionsController {
 
   @Get()
   async findAll(@Req() req: any, @Query() filters: any) {
-    const familyId = this.ensureFamilyId(req);
-    return this.transactionsService.findAll(familyId, filters);
+    const familyId = this.getFamilyId(req);
+    return this.transactionsService.findAll(familyId, req.user._id, filters);
   }
 
   @Get('categories')
   async getCategories(@Req() req: any) {
-    const familyId = this.ensureFamilyId(req);
+    const familyId = this.getFamilyId(req);
     return this.transactionsService.getCategories(familyId);
   }
 

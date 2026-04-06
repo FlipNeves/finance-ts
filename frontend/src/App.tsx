@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { MessageModalProvider } from './contexts/MessageModalContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FamilyPage from './pages/FamilyPage';
@@ -100,7 +101,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <MessageModalProvider>
+          <AppContent />
+        </MessageModalProvider>
       </AuthProvider>
     </ThemeProvider>
   );

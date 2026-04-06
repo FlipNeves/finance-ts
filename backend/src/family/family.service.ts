@@ -9,12 +9,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Family } from '../schemas/family.schema';
 import { User } from '../schemas/user.schema';
+import { Transaction } from '../schemas/transaction.schema';
 
 @Injectable()
 export class FamilyService {
   constructor(
     @InjectModel(Family.name) private readonly familyModel: Model<Family>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
   ) {}
 
   private toObjectId(id: string | Types.ObjectId): Types.ObjectId {
@@ -45,7 +47,6 @@ export class FamilyService {
     }
 
     const family = await this.familyModel.create({
-      ...createFamilyDto,
       familyCode,
       owner: this.toObjectId(userId),
       pendingMembers: [],
@@ -105,6 +106,12 @@ export class FamilyService {
     // Remove from pending
     family.pendingMembers.splice(index, 1);
     await family.save();
+
+    // Delete solo transactions
+    await this.transactionModel.deleteMany({
+      userId: memberObjId,
+      familyId: null
+    }).exec();
 
     // Assign family
     user.familyId = family._id;

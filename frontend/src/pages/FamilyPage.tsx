@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useMessageModal } from '../contexts/MessageModalContext';
 
 interface Member {
   _id: string;
@@ -12,7 +13,7 @@ interface Member {
 const FamilyPage: React.FC = () => {
   const { t } = useTranslation();
   const { user, login } = useAuth();
-  const [familyName, setFamilyName] = useState('');
+  const { showMessage, showConfirm } = useMessageModal();
   const [joinCode, setJoinCode] = useState('');
   const [familyDetails, setFamilyDetails] = useState<any>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -53,29 +54,37 @@ const FamilyPage: React.FC = () => {
   const handleCreateFamily = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/family/create', { name: familyName });
+      await api.post('/family/create', {});
       const token = localStorage.getItem('token');
       if (token) await login(token); // Refresh user data
+      showMessage(t('common.success') || 'Success', t('family.createSuccess') || 'Family created successfully!');
     } catch {
-      alert(t('family.createError'));
+      showMessage(t('common.error') || 'Error', t('family.createError') || 'Failed to create family');
     }
   };
 
   const handleJoinFamily = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
-    
-    try {
-      // Try both familyCode and inviteCode
-      await api.post('/family/join', { 
-        familyCode: joinCode.trim(),
-        inviteCode: joinCode.trim(),
-      });
-      alert(t('family.joinRequestSent') || 'Join request sent! Wait for owner approval.');
-      setJoinCode('');
-    } catch {
-      alert(t('family.joinError') || 'Error joining family. Check the code and try again.');
-    }
+
+    showConfirm(
+      t('family.joinWarningTitle') || 'Warning: Data Loss',
+      t('family.joinWarningDesc') || 'By joining a family, ALL your current individual transactions and records will be permanently deleted once approved. Do you want to proceed?',
+      async () => {
+        try {
+          // Try both familyCode and inviteCode
+          await api.post('/family/join', { 
+            familyCode: joinCode.trim(),
+            inviteCode: joinCode.trim(),
+          });
+          showMessage(t('common.success') || 'Success', t('family.joinRequestSent') || 'Join request sent! Wait for owner approval.');
+          setJoinCode('');
+        } catch {
+          showMessage(t('common.error') || 'Error', t('family.joinError') || 'Error joining family. Check the code and try again.');
+        }
+      },
+      true // isDestructive
+    );
   };
 
   const handleApprove = async (memberId: string) => {
@@ -83,7 +92,7 @@ const FamilyPage: React.FC = () => {
       await api.post(`/family/approve/${memberId}`);
       loadData();
     } catch {
-      alert('Error approving member');
+      showMessage('Error', 'Error approving member');
     }
   };
 
@@ -92,19 +101,24 @@ const FamilyPage: React.FC = () => {
       await api.post(`/family/reject/${memberId}`);
       loadData();
     } catch {
-      alert('Error rejecting member');
+      showMessage('Error', 'Error rejecting member');
     }
   };
 
-  const handleRemove = async (memberId: string) => {
-    if (window.confirm(t('common.confirmDelete'))) {
-      try {
-        await api.delete(`/family/members/${memberId}`);
-        loadData();
-      } catch {
-        alert('Error removing member');
-      }
-    }
+  const handleRemove = (memberId: string) => {
+    showConfirm(
+      t('common.confirmDelete') || 'Are you sure?',
+      t('family.removeConfirm') || 'Are you sure you want to remove this member?',
+      async () => {
+        try {
+          await api.delete(`/family/members/${memberId}`);
+          loadData();
+        } catch {
+          showMessage('Error', 'Error removing member');
+        }
+      },
+      true
+    );
   };
 
   const copyInviteCode = () => {
@@ -153,14 +167,6 @@ const FamilyPage: React.FC = () => {
           <h2>{t('family.create')}</h2>
           <p className="text-muted mb-2">{t('family.createDesc') || 'Create a family group to start tracking together.'}</p>
           <form onSubmit={handleCreateFamily} className="flex flex-col gap-2">
-            <input 
-              type="text" 
-              className="form-control"
-              placeholder={t('family.name') || 'Family Name'} 
-              value={familyName} 
-              onChange={(e) => setFamilyName(e.target.value)} 
-              required 
-            />
             <button type="submit" className="btn btn-primary">{t('family.create')}</button>
           </form>
         </div>
@@ -268,9 +274,9 @@ const FamilyPage: React.FC = () => {
         .member-list {
           list-style: none;
           padding: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 16px;
         }
         .member-item {
           padding: 12px;

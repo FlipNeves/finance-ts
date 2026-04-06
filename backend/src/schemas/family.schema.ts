@@ -3,9 +3,6 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Family extends Document {
-  @Prop({ required: true })
-  name: string;
-
   @Prop({ required: true, unique: true })
   familyCode: string;
 
