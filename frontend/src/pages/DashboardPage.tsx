@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,9 +27,10 @@ const DashboardPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
 
+  // Soft fintech colors for charts
   const COLORS = theme === 'light' 
-    ? ['#2ecc71', '#3498db', '#f1c40f', '#e67e22', '#e74c3c', '#9b59b6']
-    : ['#27ae60', '#2980b9', '#f39c12', '#d35400', '#c0392b', '#8e44ad'];
+    ? ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6']
+    : ['#059669', '#2563eb', '#d97706', '#7c3aed', '#db2777', '#0d9488'];
 
   useEffect(() => {
     if (user?.familyId) {
@@ -71,35 +72,29 @@ const DashboardPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handlePrevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
+  const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   
   const monthLabel = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
-
-
+  if (loading) return <div className="text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</div>;
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container fade-in">
       <header className="dashboard-header mb-3">
-        <div className="header-left flex items-center gap-2">
-          <h1>{t('dashboard.title')}</h1>
-          <div className="month-selector flex items-center gap-1">
-            <button className="btn btn-outline btn-sm" onClick={handlePrevMonth}>&lt;</button>
-            <span style={{ fontWeight: 600, minWidth: '130px', textAlign: 'center', textTransform: 'capitalize' }}>{monthLabel}</span>
-            <button className="btn btn-outline btn-sm" onClick={handleNextMonth}>&gt;</button>
-          </div>
+        <div className="header-left flex flex-col gap-1">
+          <h1 className="header-title">{t('dashboard.title')}</h1>
+          <p className="header-subtitle text-muted">Acompanhe suas finanças com clareza.</p>
         </div>
-        <div className="header-actions flex gap-2">
+        <div className="header-actions flex gap-2 items-center">
+          <div className="month-selector flex items-center">
+            <button className="btn-icon" onClick={handlePrevMonth}>&lt;</button>
+            <span className="month-label">{monthLabel}</span>
+            <button className="btn-icon" onClick={handleNextMonth}>&gt;</button>
+          </div>
           <select 
             className="form-control" 
-            style={{ width: 'auto', padding: '6px 12px' }} 
+            style={{ width: 'auto' }} 
             value={typeFilter} 
             onChange={(e) => setTypeFilter(e.target.value as any)}
           >
@@ -107,45 +102,54 @@ const DashboardPage: React.FC = () => {
             <option value="income">{t('transactions.income')}</option>
             <option value="expense">{t('transactions.expense')}</option>
           </select>
-          <button className="btn btn-outline" style={{ color: 'var(--primary)', borderColor: 'var(--primary)', padding: '6px 12px' }} onClick={() => openModal('income')}>
+          <button className="btn btn-outline income-btn" onClick={() => openModal('income')}>
             + {t('transactions.addIncome') || 'Income'}
           </button>
-          <button className="btn btn-primary" style={{ padding: '6px 12px' }} onClick={() => openModal('expense')}>
+          <button className="btn btn-primary expense-btn" onClick={() => openModal('expense')}>
             + {t('transactions.addExpense') || 'Expense'}
           </button>
         </div>
       </header>
 
-      <div className="grid-summary">
-        <div className="card summary-card income">
-          <div className="flex flex-col">
-            <span className="label">{t('dashboard.totalIncome')}</span>
-            <span className="value">+{summary?.totalIncome.toFixed(2)}</span>
+      <div className="grid-summary mb-3">
+        <div className="card summary-card income-card">
+          <div className="card-bg-decoration decoration-green"></div>
+          <div className="flex flex-col relative z-10">
+            <span className="label flex items-center gap-1">
+              <span className="dot dot-success"></span>
+              {t('dashboard.totalIncome')}
+            </span>
+            <span className="value">R${summary?.totalIncome.toFixed(2)}</span>
           </div>
-          <div className="icon">📈</div>
         </div>
-        <div className="card summary-card expense">
-          <div className="flex flex-col">
-            <span className="label">{t('dashboard.totalExpense')}</span>
-            <span className="value">-{summary?.totalExpense.toFixed(2)}</span>
+        <div className="card summary-card expense-card">
+           <div className="card-bg-decoration decoration-red"></div>
+          <div className="flex flex-col relative z-10">
+            <span className="label flex items-center gap-1">
+               <span className="dot dot-danger"></span>
+              {t('dashboard.totalExpense')}
+            </span>
+            <span className="value">R${summary?.totalExpense.toFixed(2)}</span>
           </div>
-          <div className="icon">📉</div>
         </div>
-        <div className="card summary-card balance">
-          <div className="flex flex-col">
-            <span className="label">{t('dashboard.balance')}</span>
+        <div className="card summary-card balance-card">
+          <div className="card-bg-decoration decoration-blue"></div>
+          <div className="flex flex-col relative z-10">
+            <span className="label flex items-center gap-1">
+               <span className="dot dot-info"></span>
+              {t('dashboard.balance')}
+            </span>
             <span className={`value ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
-              {summary?.balance.toFixed(2)}
+              R${summary?.balance.toFixed(2)}
             </span>
           </div>
-          <div className="icon">💰</div>
         </div>
       </div>
 
-       <div className="card mt-3">
-        <div className="flex justify-between items-center mb-2">
-           <h2>{t('transactions.recent')}</h2>
-           <Link to="/transactions" className="btn btn-outline btn-sm">{t('dashboard.viewAll') || 'View All'} →</Link>
+       <div className="card mb-3 table-card">
+        <div className="flex justify-between items-center mb-2 table-header">
+           <h2 className="section-title">{t('transactions.recent')}</h2>
+           <Link to="/transactions" className="btn btn-outline btn-sm view-all-btn">{t('dashboard.viewAll') || 'View All'} →</Link>
         </div>
         <div className="table-responsive">
           <table className="transaction-table">
@@ -155,30 +159,30 @@ const DashboardPage: React.FC = () => {
                 <th>{t('transactions.description')}</th>
                 <th>{t('common.user') || 'User'}</th>
                 <th>{t('transactions.category')}</th>
-                <th>{t('transactions.amount')}</th>
+                <th className="text-right">{t('transactions.amount')}</th>
               </tr>
             </thead>
             <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center" style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                  <td colSpan={5} className="text-center empty-state">
                     {t('transactions.noTransactions') || 'No transactions found.'}
                   </td>
                 </tr>
               ) : (
                 transactions.map((tr) => (
-                  <tr key={tr._id} className={tr.type}>
-                    <td>{new Date(tr.date).toLocaleDateString()}</td>
+                  <tr key={tr._id} className={`tr-${tr.type}`}>
+                    <td className="text-muted">{new Date(tr.date).toLocaleDateString()}</td>
                     <td>
                       <div className="flex flex-col">
                         <span className="desc">{tr.description || '-'}</span>
                         <span className="bank">{tr.bankAccount}</span>
                       </div>
                     </td>
-                    <td><span style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tr.userId?.name || '?'}</span></td>
-                    <td><span className="badge">{tr.category}</span></td>
-                    <td className="amount">
-                      {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
+                    <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
+                    <td><span className="category-badge">{tr.category}</span></td>
+                    <td className={`amount ${tr.type}`}>
+                      {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
                     </td>
                   </tr>
                 ))
@@ -198,8 +202,8 @@ const DashboardPage: React.FC = () => {
       />
 
       <div className="grid-charts mt-3">
-        <div className="card chart-container">
-          <h3>{t('dashboard.spendingByCategory')} (Pie)</h3>
+        <div className="card chart-container shadow-sm">
+          <h3 className="section-title">{t('dashboard.spendingByCategory')} (Pie)</h3>
           <div className="chart-wrapper">
             {spending.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -208,49 +212,43 @@ const DashboardPage: React.FC = () => {
                     data={spending}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={(props: any) => {
-                      const { category, percent } = props;
-                      return `${category} ${(percent * 100).toFixed(0)}%`;
-                    }}
+                    innerRadius={70}
                     outerRadius={100}
-                    fill="#8884d8"
+                    paddingAngle={5}
                     dataKey="amount"
                     nameKey="category"
                   >
                     {spending.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    itemStyle={{ color: 'var(--text)' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center" style={{ height: '100%', color: 'var(--text-muted)' }}>
+              <div className="flex items-center justify-center empty-state">
                 {t('dashboard.noData') || 'No spending data for this period'}
               </div>
             )}
           </div>
         </div>
 
-        <div className="card chart-container">
-          <h3>{t('dashboard.spendingByCategory')} (Bar)</h3>
+        <div className="card chart-container shadow-sm">
+          <h3 className="section-title">{t('dashboard.spendingByCategory')} (Bar)</h3>
           <div className="chart-wrapper">
             {spending.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={spending}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="category" stroke="var(--text-muted)" />
-                  <YAxis stroke="var(--text-muted)" />
+                <BarChart data={spending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                  <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} tickFormatter={(val) => `R$${val}`} />
                   <Tooltip 
-                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                     itemStyle={{ color: 'var(--text)' }}
+                     cursor={{ fill: 'var(--bg)', opacity: 0.5 }}
+                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
                   />
-                  <Legend />
-                  <Bar dataKey="amount">
+                  <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                     {spending.map((_, index) => (
                       <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -258,34 +256,42 @@ const DashboardPage: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center" style={{ height: '100%', color: 'var(--text-muted)' }}>
+              <div className="flex items-center justify-center empty-state">
                 {t('dashboard.noData') || 'No spending data for this period'}
               </div>
             )}
           </div>
         </div>
 
-        <div className="card chart-container" style={{ gridColumn: '1 / -1' }}>
-          <h3>{t('dashboard.evolution') || 'Last 3 Months Evolution'}</h3>
+        <div className="card chart-container area-chart-card shadow-sm" style={{ gridColumn: '1 / -1' }}>
+          <h3 className="section-title">{t('dashboard.evolution') || 'Last 3 Months Evolution'}</h3>
           <div className="chart-wrapper">
             {evolution.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={evolution} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="label" stroke="var(--text-muted)" />
-                  <YAxis stroke="var(--text-muted)" />
+                <AreaChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} tickFormatter={(val) => `R$${val}`}/>
                   <Tooltip 
-                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                     itemStyle={{ color: 'var(--text)' }}
+                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
                   />
-                  <Legend />
-                  <Line type="monotone" dataKey="income" name={t('transactions.income') || 'Income'} stroke={COLORS[0]} strokeWidth={3} dot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="expense" name={t('transactions.expense') || 'Expense'} stroke={COLORS[4]} strokeWidth={3} dot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="balance" name={t('dashboard.balance') || 'Balance'} stroke={COLORS[1]} strokeWidth={3} dot={{ r: 5 }} />
-                </LineChart>
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
+                  <Area type="monotone" dataKey="income" name={t('transactions.income') || 'Income'} stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                  <Area type="monotone" dataKey="expense" name={t('transactions.expense') || 'Expense'} stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center" style={{ height: '100%', color: 'var(--text-muted)' }}>
+              <div className="flex items-center justify-center empty-state">
                 {t('dashboard.noData') || 'No data evolution available'}
               </div>
             )}
@@ -293,11 +299,16 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-     
-
-      
-
       <style>{`
+        .fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
         .dashboard-header {
            display: flex;
            justify-content: space-between;
@@ -305,111 +316,220 @@ const DashboardPage: React.FC = () => {
            flex-wrap: wrap;
            gap: 16px;
         }
-        .btn-sm {
-           padding: 4px 10px;
-           font-size: 14px;
+        
+        .header-title {
+          font-size: 28px;
+          margin-bottom: 0;
         }
+        
+        .header-subtitle {
+          margin: 0;
+          font-size: 14px;
+        }
+        
+        .text-muted { color: var(--text-muted); }
+
+        .month-selector {
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 4px;
+        }
+        
+        .month-label {
+          font-weight: 600;
+          min-width: 140px;
+          text-align: center;
+          text-transform: capitalize;
+          font-size: 14px;
+        }
+
+        .btn-icon {
+          background: transparent;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: background 0.2s;
+        }
+
+        .btn-icon:hover {
+          background: var(--bg);
+        }
+
+        .income-btn { color: #10b981; border-color: #10b981; }
+        .income-btn:hover { background: #d1fae5 !important; border-color: #059669; color: #059669; }
+
+        .expense-btn { background-color: #ef4444; }
+        .expense-btn:hover { background-color: #dc2626 !important; }
+
         .grid-summary {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 24px;
         }
+
         .summary-card {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+          position: relative;
+          overflow: hidden;
+          padding: 24px 28px;
         }
+
+        .card-bg-decoration {
+          position: absolute;
+          top: -30px;
+          right: -30px;
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          opacity: 0.15;
+          filter: blur(20px);
+          z-index: 0;
+        }
+
+        .decoration-green { background: #10b981; }
+        .decoration-red { background: #ef4444; }
+        .decoration-blue { background: #3b82f6; }
+
         .summary-card .label {
           font-size: 14px;
           color: var(--text-muted);
           font-weight: 600;
-          text-transform: uppercase;
           letter-spacing: 0.5px;
+          margin-bottom: 8px;
         }
+        
+        .dot {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+        .dot-success { background: #10b981; }
+        .dot-danger { background: #ef4444; }
+        .dot-info { background: #3b82f6; }
+
         .summary-card .value {
-          font-size: 28px;
-          font-weight: 800;
-          margin-top: 4px;
-        }
-        .summary-card .icon {
           font-size: 32px;
-          opacity: 0.8;
+          font-weight: 800;
+          letter-spacing: -1px;
         }
-        .summary-card.income .value { color: var(--success); }
-        .summary-card.expense .value { color: var(--danger); }
-        .summary-card.balance .value.positive { color: var(--primary); }
-        .summary-card.balance .value.negative { color: var(--danger); }
+        
+        .summary-card .value.positive { color: #10b981; }
+        .summary-card .value.negative { color: #ef4444; }
+
+        .section-title {
+          font-size: 18px;
+          margin-bottom: 0;
+        }
+
+        .table-card {
+          padding: 24px;
+        }
+
+        .view-all-btn {
+          border: none;
+          box-shadow: none;
+          color: var(--primary);
+        }
+
+        .transaction-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0 8px;
+        }
+        
+        .transaction-table th {
+          text-align: left;
+          padding: 8px 16px;
+          color: var(--text-muted);
+          font-size: 12px;
+          text-transform: uppercase;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .text-right { text-align: right !important; }
+        
+        .transaction-table td {
+          padding: 16px;
+          font-size: 14px;
+          background: var(--bg-card);
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
+        }
+
+        /* Rounded row edges */
+        .transaction-table td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .transaction-table td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        
+        .transaction-table tbody tr {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .transaction-table tbody tr:hover td {
+          background: var(--bg);
+          cursor: pointer;
+        }
+
+        .amount {
+          font-weight: 700;
+          text-align: right;
+          font-variant-numeric: tabular-nums;
+        }
+        
+        .amount.income { color: #10b981; }
+        .amount.expense { color: var(--text); } /* Stripe style usually keeps expenses neutral text and incomes green, but we can do red for expense */
+        .amount.expense { color: #ef4444; }
+
+        .category-badge {
+          background-color: var(--primary-light);
+          color: var(--primary-dark);
+          padding: 4px 10px;
+          border-radius: 9999px; /* Pill */
+          font-size: 12px;
+          font-weight: 600;
+        }
+        
+        .user-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bg);
+          border: 1px solid var(--border);
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .bank { font-size: 12px; color: var(--text-muted); margin-top: 2px;}
+        .desc { font-weight: 600; color: var(--text); }
+        .empty-state { padding: 40px !important; color: var(--text-muted); }
+        
+        .table-responsive { overflow-x: auto; }
 
         .grid-charts {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
           gap: 24px;
         }
-        .chart-container h3 {
-          margin-bottom: 24px;
-          font-size: 18px;
-          font-weight: 700;
-        }
+        
+        .chart-container { padding: 24px; }
+        .chart-container .section-title { margin-bottom: 24px; }
+        
         .chart-wrapper {
-          height: 350px;
+          height: 300px;
           width: 100%;
         }
 
         @media (max-width: 600px) {
-          .grid-charts {
-            grid-template-columns: 1fr;
-          }
-          .chart-wrapper {
-            height: 300px;
-          }
-          .dashboard-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .header-actions {
-            width: 100%;
-            justify-content: space-between;
-          }
+          .grid-charts { grid-template-columns: 1fr; }
+          .chart-wrapper { height: 260px; }
+          .dashboard-header { flex-direction: column; align-items: flex-start; }
+          .header-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+          .transaction-table td { padding: 12px 8px; }
         }
-        
-        /* Table Styles from Transactions */
-        .transaction-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .transaction-table th {
-          text-align: left;
-          padding: 12px;
-          border-bottom: 2px solid var(--border);
-          color: var(--text-muted);
-          font-size: 14px;
-          text-transform: uppercase;
-        }
-        .transaction-table td {
-          padding: 12px;
-          border-bottom: 1px solid var(--border);
-          font-size: 15px;
-        }
-        .transaction-table tr:hover {
-          background-color: var(--bg);
-        }
-        .transaction-table .amount {
-          font-weight: 700;
-          text-align: right;
-        }
-        .transaction-table tr.income .amount { color: var(--success); }
-        .transaction-table tr.expense .amount { color: var(--danger); }
-        .badge {
-          background-color: var(--primary-light);
-          color: var(--primary);
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 700;
-        }
-        .bank { font-size: 11px; color: var(--text-muted); }
-        .desc { font-weight: 600; }
-        .table-responsive { overflow-x: auto; }
       `}</style>
     </div>
   );
