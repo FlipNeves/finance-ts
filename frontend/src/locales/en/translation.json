@@ -1,5 +1,7 @@
 {
   "common": {
+    "success": "Success",
+    "error": "Error",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -53,9 +55,13 @@
     "codeOrInvite": "Family Code or Invite Code",
     "joinRequestSent": "Join request sent! Wait for owner approval.",
     "pendingRequests": "Pending Requests",
-    "yourInviteCode": "Your Personal Invite Code",
-    "inviteCode": "Invite",
-    "inviteCodeDesc": "Share this code so others can request to join your family after you create one."
+    "joinWarningTitle": "Warning: Data Loss",
+    "joinWarningDesc": "By joining a family, ALL your current individual transactions and records will be permanently deleted once approved. Do you want to proceed?",
+    "createSuccess": "Family created successfully!",
+    "manageMembersDesc": "Manage your network members",
+    "memberName": "Member Name",
+    "owner": "Owner",
+    "removeMember": "Remove Member"
   },
   "transactions": {
     "title": "Transactions",

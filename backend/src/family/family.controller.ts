@@ -39,24 +39,13 @@ export class FamilyController {
 
   @Post('join')
   async join(
-    @Body() joinDto: { inviteCode?: string },
+    @Body() joinDto: { familyCode: string },
     @Req() req: any,
   ) {
-    if (!joinDto.inviteCode) {
-      throw new BadRequestException('Either familyCode or inviteCode is required');
+    if (!joinDto.familyCode) {
+      throw new BadRequestException('familyCode is required');
     }
-    return await this.familyService.joinByInviteCode(joinDto.inviteCode, req.user._id);
-  }
-
-  @Post('join-by-invite')
-  async joinByInvite(
-    @Body() joinDto: { inviteCode: string },
-    @Req() req: any,
-  ) {
-    if (!joinDto.inviteCode) {
-      throw new BadRequestException('inviteCode is required');
-    }
-    return this.familyService.joinByInviteCode(joinDto.inviteCode, req.user._id);
+    return await this.familyService.join(joinDto.familyCode, req.user._id);
   }
 
   @Post('approve/:memberId')

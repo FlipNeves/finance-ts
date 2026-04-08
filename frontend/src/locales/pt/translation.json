@@ -1,5 +1,7 @@
 {
   "common": {
+    "success": "Sucesso",
+    "error": "Erro",
     "save": "Salvar",
     "cancel": "Cancelar",
     "delete": "Excluir",
@@ -53,9 +55,13 @@
     "codeOrInvite": "Código da Família ou Código de Convite",
     "joinRequestSent": "Solicitação enviada! Aguarde a aprovação do proprietário.",
     "pendingRequests": "Solicitações Pendentes",
-    "yourInviteCode": "Seu Código de Convite Pessoal",
-    "inviteCode": "Convite",
-    "inviteCodeDesc": "Compartilhe este código para que outras pessoas possam solicitar entrar na sua família após você criá-la."
+    "joinWarningTitle": "Aviso: Perda de Dados",
+    "joinWarningDesc": "Ao entrar em uma família, TODAS as suas transações individuais e registros atuais serão excluídos permanentemente após a aprovação. Deseja prosseguir?",
+    "createSuccess": "Família criada com sucesso!",
+    "manageMembersDesc": "Gerencie os membros da sua rede",
+    "memberName": "Nome do Membro",
+    "owner": "Proprietário",
+    "removeMember": "Remover Membro"
   },
   "transactions": {
     "title": "Transações",

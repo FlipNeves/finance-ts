@@ -27,27 +27,17 @@ export class AuthService {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Generate a unique invite code for the user
-    let inviteCode = '';
-    let isUnique = false;
-    while (!isUnique) {
-      inviteCode = crypto.randomBytes(4).toString('hex').toUpperCase();
-      const existing = await this.userModel.findOne({ inviteCode }).exec();
-      if (!existing) isUnique = true;
-    }
-
     const newUser = await this.userModel.create({
       email,
       passwordHash,
       name,
-      inviteCode,
     });
+    console.log(newUser);
 
     return {
       email: newUser.email,
       name: newUser.name,
       _id: newUser._id,
-      inviteCode: newUser.inviteCode,
     };
   }
 

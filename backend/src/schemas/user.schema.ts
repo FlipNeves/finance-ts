@@ -17,9 +17,6 @@ export class User extends Document {
 
   @Prop({ default: 'en-US' })
   preferredLanguage: string;
-
-  @Prop({ required: true, unique: true })
-  inviteCode: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

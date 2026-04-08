@@ -19,7 +19,6 @@ const FamilyPage: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
 
   const isOwner = familyDetails?.owner === user?._id;
 
@@ -74,7 +73,6 @@ const FamilyPage: React.FC = () => {
         try {
           await api.post('/family/join', { 
             familyCode: joinCode.trim(),
-            inviteCode: joinCode.trim(),
           });
           showMessage(t('common.success') || 'Success', t('family.joinRequestSent') || 'Join request sent! Wait for owner approval.');
           setJoinCode('');
@@ -120,47 +118,11 @@ const FamilyPage: React.FC = () => {
     );
   };
 
-  const copyInviteCode = () => {
-    if (user?.inviteCode) {
-      navigator.clipboard.writeText(user.inviteCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   if (loading) return <div className="text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</div>;
 
   if (!user?.familyId) {
     return (
       <div className="dashboard-container fade-in flex flex-col items-center gap-3 mt-3">
-        {user?.inviteCode && (
-          <div className="card w-full text-center fade-in" style={{ maxWidth: '500px', background: 'linear-gradient(145deg, var(--primary-light) 0%, #ffffff 100%)', border: '1px solid var(--primary)', padding: '32px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--primary-dark)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-              {t('family.yourInviteCode') || 'Your Personal Invite Code'}
-            </div>
-            <div style={{ 
-              fontSize: '36px', 
-              fontWeight: 800, 
-              letterSpacing: '6px',
-              color: 'var(--primary)',
-              fontFamily: 'var(--mono)',
-              padding: '12px 0',
-            }}>
-              {user.inviteCode}
-            </div>
-            <button 
-              className="btn btn-primary" 
-              onClick={copyInviteCode}
-              style={{ padding: '8px 24px', fontSize: '14px', borderRadius: '20px' }}
-            >
-              {copied ? '✅ ' + (t('common.copied') || 'Copied!') : '📋 ' + (t('common.copy') || 'Copy Code')}
-            </button>
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '16px', lineHeight: '1.5' }}>
-              {t('family.inviteCodeDesc') || 'Share this code so others can request to join your family after you create one.'}
-            </p>
-          </div>
-        )}
-
         <div className="flex gap-3 flex-wrap justify-center w-full" style={{ maxWidth: '1024px' }}>
           <div className="card w-full" style={{ flex: '1', minWidth: '300px' }}>
             <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('family.create')}</h2>
@@ -172,13 +134,13 @@ const FamilyPage: React.FC = () => {
 
           <div className="card w-full" style={{ flex: '1', minWidth: '300px' }}>
              <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('family.join')}</h2>
-            <p className="text-muted mb-3">{t('family.joinDesc') || 'Enter a family code or invite code to request to join.'}</p>
+            <p className="text-muted mb-3">{t('family.joinDesc') || 'Enter a family code to request to join.'}</p>
             <form onSubmit={handleJoinFamily} className="flex flex-col gap-2 mt-auto">
               <input 
                 type="text" 
                 className="form-control"
                 style={{ padding: '12px' }}
-                placeholder={t('family.codeOrInvite') || 'Family Code or Invite Code'} 
+                placeholder={t('family.code') || 'Family Code'} 
                 value={joinCode} 
                 onChange={(e) => setJoinCode(e.target.value)} 
                 required 
@@ -201,15 +163,10 @@ const FamilyPage: React.FC = () => {
       <header className="card mb-3" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: 'white', padding: '32px 40px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div className="flex flex-col">
           <h1 style={{ color: 'white', margin: 0, fontSize: '32px' }}>{familyDetails?.name}</h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0 0', fontSize: '15px' }}>Gerencie os membros da sua rede</p>
+          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0 0', fontSize: '15px' }}>{t('family.manageMembersDesc')}</p>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           <span className="badge-dark" style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600 }}>{t('family.code')}: {familyDetails?.familyCode}</span>
-          {user?.inviteCode && (
-            <span className="badge-dark" onClick={copyInviteCode} style={{ cursor: 'pointer', background: 'rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, transition: 'background 0.2s' }}>
-              {copied ? '✅' : '🔗'} {t('family.inviteCode') || 'Invite'}: {user.inviteCode}
-            </span>
-          )}
         </div>
       </header>
 
@@ -235,10 +192,10 @@ const FamilyPage: React.FC = () => {
                      <td className="text-right">
                         <div className="flex gap-1 justify-end">
                            <button className="btn btn-primary btn-sm" onClick={() => handleApprove(member._id)}>
-                             Aprovar
+                             {t('common.approve')}
                            </button>
                            <button className="btn btn-outline btn-sm" onClick={() => handleReject(member._id)}>
-                             Recusar
+                             {t('common.reject')}
                            </button>
                         </div>
                      </td>
@@ -256,9 +213,9 @@ const FamilyPage: React.FC = () => {
           <table className="transaction-table">
             <thead>
               <tr>
-                <th>Nome do Membro</th>
-                <th>E-mail</th>
-                <th className="text-center">Ações</th>
+                <th>{t('family.memberName')}</th>
+                <th>{t('auth.email')}</th>
+                <th className="text-center">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -271,14 +228,14 @@ const FamilyPage: React.FC = () => {
                        </div>
                        <div className="flex items-center gap-1">
                           <span className="name" style={{ fontWeight: 600 }}>{member.name}</span>
-                          {familyDetails?.owner === member._id && <span className="owner-badge" title="Proprietário">👑</span>}
+                          {familyDetails?.owner === member._id && <span className="owner-badge" title={t('family.owner')}>👑</span>}
                        </div>
                     </div>
                   </td>
                   <td style={{ color: 'var(--text-muted)' }}>{member.email}</td>
                   <td className="text-center" style={{ width: '80px' }}>
                     {isOwner && member._id !== user?._id && (
-                       <button className="btn-icon delete-btn-large" onClick={() => handleRemove(member._id)} title="Remover Membro">
+                       <button className="btn-icon delete-btn-large" onClick={() => handleRemove(member._id)} title={t('family.removeMember')}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 6h18"></path>
                               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>

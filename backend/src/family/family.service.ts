@@ -255,45 +255,5 @@ export class FamilyService {
     return family;
   }
 
-  async joinByInviteCode(inviteCode: string, userId: string): Promise<void> {
-    const user = await this.userModel.findById(userId).exec();
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
-    if (user.familyId) {
-      throw new ConflictException('User already belongs to a family');
-    }
-
-    const inviteOwner = await this.userModel.findOne({ inviteCode }).exec();
-    if (!inviteOwner) {
-      throw new NotFoundException('Invalid invite code');
-    }
-
-    if (!inviteOwner.familyId) {
-      throw new BadRequestException('The owner of this invite code does not have a family yet');
-    }
-
-    const family = await this.familyModel.findById(inviteOwner.familyId).exec();
-    if (!family) {
-      throw new NotFoundException('Family not found');
-    }
-
-    const userObjId = this.toObjectId(userId);
-
-    if (family.pendingMembers.some(id => id.toString() === userObjId.toString())) {
-      throw new ConflictException('Join request already pending');
-    }
-
-    const existingMember = await this.userModel.findOne({
-      _id: userObjId,
-      familyId: family._id,
-    }).exec();
-    if (existingMember) {
-      throw new ConflictException('User is already a member of this family');
-    }
-
-    family.pendingMembers.push(userObjId);
-    await family.save();
-  }
 }
