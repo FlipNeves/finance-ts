@@ -145,8 +145,8 @@ export class ReportsService {
     endDate.setHours(23, 59, 59, 999);
     
     const startDate = new Date(referenceDate);
-    startDate.setMonth(startDate.getMonth() - 2);
     startDate.setDate(1);
+    startDate.setMonth(startDate.getMonth() - 2);
     startDate.setHours(0, 0, 0, 0);
 
     const matchQuery: any = {
@@ -176,6 +176,7 @@ export class ReportsService {
     const months: any[] = [];
     for (let i = 2; i >= 0; i--) {
       const d = new Date(referenceDate);
+      d.setDate(1);
       d.setMonth(d.getMonth() - i);
       months.push({
         year: d.getFullYear(),
