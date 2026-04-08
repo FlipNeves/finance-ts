@@ -140,9 +140,11 @@ export class ReportsService {
     return results;
   }
 
-  async getEvolutionReport(familyId: string | null, userId: string): Promise<any> {
-    const endDate = new Date();
-    const startDate = new Date();
+  async getEvolutionReport(familyId: string | null, userId: string, referenceDate: Date): Promise<any> {
+    const endDate = new Date(referenceDate);
+    endDate.setHours(23, 59, 59, 999);
+    
+    const startDate = new Date(referenceDate);
     startDate.setMonth(startDate.getMonth() - 2);
     startDate.setDate(1);
     startDate.setHours(0, 0, 0, 0);
@@ -173,7 +175,7 @@ export class ReportsService {
 
     const months: any[] = [];
     for (let i = 2; i >= 0; i--) {
-      const d = new Date();
+      const d = new Date(referenceDate);
       d.setMonth(d.getMonth() - i);
       months.push({
         year: d.getFullYear(),

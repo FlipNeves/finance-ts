@@ -15,6 +15,7 @@ interface Transaction {
   bankAccount?: string;
   date: string;
   userId?: { name: string };
+  isFixed?: boolean;
 }
 
 const TransactionsPage: React.FC = () => {
@@ -38,7 +39,7 @@ const TransactionsPage: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
 
   useEffect(() => {
-    if (user?.familyId) {
+    if (user?.familyId || user?._id) {
       loadData();
     } else {
       setLoading(false);
@@ -47,6 +48,7 @@ const TransactionsPage: React.FC = () => {
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const params: any = {};
       if (startDate) params.startDate = new Date(startDate).toISOString();
       if (endDate) {
@@ -59,13 +61,12 @@ const TransactionsPage: React.FC = () => {
       const [transRes, catRes, familyRes] = await Promise.all([
         api.get('/transactions', { params }),
         api.get('/transactions/categories'),
-        api.get('/family/details'),
+        api.get('/family/details').catch(() => ({ data: { bankAccounts: [] } })),
       ]);
-      console.log(transRes);
       
       setTransactions(transRes.data);
       setCategories(catRes.data);
-      setBankAccounts(familyRes.data.bankAccounts || []);
+      setBankAccounts(familyRes.data?.bankAccounts || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -94,35 +95,36 @@ const TransactionsPage: React.FC = () => {
     );
   };
 
-  if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
-
-
+  if (loading) return <div className="text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</div>;
 
   return (
-    <div className="container mt-3" style={{ maxWidth: '1000px' }}>
-      <header className="flex justify-between items-center mb-3">
-        <h1>{t('transactions.title')}</h1>
-        <div className="flex gap-2">
-          <button className="btn btn-outline" style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }} onClick={() => openModal('income')}>
+    <div className="dashboard-container fade-in">
+      <header className="dashboard-header mb-3">
+        <div className="header-left flex flex-col gap-1">
+          <h1 className="header-title">{t('transactions.title')}</h1>
+          <p className="header-subtitle text-muted">Histórico detalhado das suas despesas e receitas.</p>
+        </div>
+        <div className="header-actions flex gap-2 items-center">
+          <button className="btn btn-outline income-btn" onClick={() => openModal('income')}>
             + {t('transactions.addIncome') || 'Add Income'}
           </button>
-          <button className="btn btn-primary" onClick={() => openModal('expense')}>
+          <button className="btn btn-primary expense-btn" onClick={() => openModal('expense')}>
             + {t('transactions.addExpense') || 'Add Expense'}
           </button>
         </div>
       </header>
       
-      <div className="card mb-3 filters-card">
-        <div className="filter-group">
-           <label>{t('dashboard.startDate') || 'Start Date'}</label>
+      <div className="card mb-3 p-3 flex flex-wrap gap-2 items-end" style={{ padding: '16px 24px' }}>
+        <div className="flex flex-col gap-1" style={{ flex: '1', minWidth: '150px' }}>
+           <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('dashboard.startDate') || 'Start Date'}</label>
            <input type="date" className="form-control" value={startDate} onChange={e => setStartDate(e.target.value)} />
         </div>
-        <div className="filter-group">
-           <label>{t('dashboard.endDate') || 'End Date'}</label>
+        <div className="flex flex-col gap-1" style={{ flex: '1', minWidth: '150px' }}>
+           <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('dashboard.endDate') || 'End Date'}</label>
            <input type="date" className="form-control" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
-        <div className="filter-group">
-           <label>{t('transactions.type')}</label>
+        <div className="flex flex-col gap-1" style={{ flex: '1', minWidth: '150px' }}>
+           <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('transactions.type')}</label>
            <select className="form-control" value={typeFilter} onChange={e => setTypeFilter(e.target.value as any)}>
              <option value="all">{t('dashboard.all') || 'All Types'}</option>
              <option value="income">{t('transactions.income')}</option>
@@ -131,8 +133,7 @@ const TransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      <section className="card transaction-list-container">
-        <h2>{t('transactions.recent')}</h2>
+      <div className="card table-card mb-3">
         <div className="table-responsive">
           <table className="transaction-table">
             <thead>
@@ -141,34 +142,43 @@ const TransactionsPage: React.FC = () => {
                 <th>{t('transactions.description')}</th>
                 <th>{t('common.user') || 'User'}</th>
                 <th>{t('transactions.category')}</th>
-                <th>{t('transactions.amount')}</th>
-                <th>{t('common.actions')}</th>
+                <th>Conta</th>
+                <th className="text-right">{t('transactions.amount')}</th>
+                <th className="text-center">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center" style={{ padding: '40px', color: 'var(--text-muted)' }}>
+                  <td colSpan={7} className="text-center empty-state">
                     {t('transactions.noTransactions') || 'No transactions found.'}
                   </td>
                 </tr>
               ) : (
                 transactions.map((tr) => (
-                  <tr key={tr._id} className={tr.type}>
-                    <td>{new Date(tr.date).toLocaleDateString()}</td>
-                    <td>
-                      <div className="flex flex-col">
-                        <span className="desc">{tr.description || '-'}</span>
-                        <span className="bank">{tr.bankAccount}</span>
-                      </div>
+                  <tr key={tr._id} className={`tr-${tr.type}`}>
+                    <td className="text-muted" style={{ width: '120px' }}>{new Date(tr.date).toLocaleDateString()}</td>
+                    <td><span className="desc">{tr.description || '-'}</span></td>
+                    <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
+                    <td><span className="category-badge">{tr.category}</span></td>
+                    <td><span className="bank">{tr.bankAccount || '-'} {tr.isFixed ? '(Fixa)' : ''}</span></td>
+                    <td className={`amount ${tr.type}`}>
+                      {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
                     </td>
-                    <td><span style={{fontSize: '13px', color: 'var(--text-muted)'}}>{tr.userId?.name || '?'}</span></td>
-                    <td><span className="badge">{tr.category}</span></td>
-                    <td className="amount">
-                      {tr.type === 'income' ? '+' : '-'}${tr.amount.toFixed(2)}
-                    </td>
-                    <td>
-                      <button className="btn-icon delete" onClick={() => handleDelete(tr._id)}>🗑️</button>
+                    <td className="text-center" style={{ width: '80px' }}>
+                      <button 
+                        className="btn-icon delete-btn-large" 
+                        onClick={() => handleDelete(tr._id)}
+                        title="Remover Transação"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -176,7 +186,7 @@ const TransactionsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
 
       <TransactionModal 
         isOpen={isModalOpen}
@@ -188,79 +198,145 @@ const TransactionsPage: React.FC = () => {
       />
 
       <style>{`
+        .fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           flex-wrap: wrap;
+           gap: 16px;
+        }
+        
+        .header-title {
+          font-size: 28px;
+          margin-bottom: 0;
+        }
+        
+        .header-subtitle {
+          margin: 0;
+          font-size: 14px;
+        }
+
+        .btn-icon {
+          background: transparent;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: background 0.2s;
+        }
+
+        .btn-icon:hover {
+          background: var(--bg);
+        }
+
+        .income-btn { color: #10b981; border-color: #10b981; }
+        .income-btn:hover { background: #d1fae5 !important; border-color: #059669; color: #059669; }
+
+        .expense-btn { background-color: #ef4444; }
+        .expense-btn:hover { background-color: #dc2626 !important; }
+
+        .table-card {
+          padding: 24px;
+        }
+
         .transaction-table {
           width: 100%;
-          border-collapse: collapse;
+          border-collapse: separate;
+          border-spacing: 0 8px;
         }
+        
         .transaction-table th {
           text-align: left;
-          padding: 12px;
-          border-bottom: 2px solid var(--border);
+          padding: 8px 16px;
           color: var(--text-muted);
-          font-size: 14px;
+          font-size: 12px;
           text-transform: uppercase;
-        }
-        .transaction-table td {
-          padding: 12px;
+          font-weight: 600;
+          letter-spacing: 0.5px;
           border-bottom: 1px solid var(--border);
-          font-size: 15px;
         }
-        .transaction-table tr:hover {
-          background-color: var(--bg);
+
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        
+        .transaction-table td {
+          padding: 16px;
+          font-size: 14px;
+          background: var(--bg-card);
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
         }
-        .transaction-table .amount {
+
+        /* Rounded row edges */
+        .transaction-table td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .transaction-table td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        
+        .transaction-table tbody tr {
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .transaction-table tbody tr:hover td {
+          background: var(--bg);
+          cursor: pointer;
+        }
+
+        .amount {
           font-weight: 700;
           text-align: right;
+          font-variant-numeric: tabular-nums;
         }
-        .transaction-table tr.income .amount { color: var(--success); }
-        .transaction-table tr.expense .amount { color: var(--danger); }
         
-        .badge {
+        .amount.income { color: #10b981; }
+        .amount.expense { color: #ef4444; }
+
+        .category-badge {
           background-color: var(--primary-light);
-          color: var(--primary);
-          padding: 4px 8px;
-          border-radius: 4px;
+          color: var(--primary-dark);
+          padding: 4px 10px;
+          border-radius: 9999px;
           font-size: 12px;
-          font-weight: 700;
-        }
-        .bank {
-          font-size: 11px;
-          color: var(--text-muted);
-        }
-        .desc {
           font-weight: 600;
-        }
-        .btn-icon.delete:hover {
-          background-color: #fee2e2;
-          color: var(--danger);
-        }
-        .table-responsive {
-          overflow-x: auto;
         }
         
-        .filters-card {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-          padding: 16px 20px;
-          align-items: flex-end;
-        }
-        .filter-group {
-          display: flex;
-          flex-direction: column;
-          flex: 1;
-          min-width: 150px;
-        }
-        .filter-group label {
+        .user-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bg);
+          border: 1px solid var(--border);
+          padding: 4px 10px;
+          border-radius: 6px;
           font-size: 12px;
-          font-weight: 600;
-          color: var(--text-muted);
-          margin-bottom: 6px;
-          text-transform: uppercase;
+          font-weight: 500;
         }
-        .filter-group .form-control {
-          padding: 10px 12px;
-          font-size: 14px;
+
+        .bank { font-size: 12px; color: var(--text-muted); margin-top: 2px;}
+        .desc { font-weight: 600; color: var(--text); }
+        .empty-state { padding: 40px !important; color: var(--text-muted); }
+        
+        .table-responsive { overflow-x: auto; }
+
+        .delete-btn-large {
+           padding: 12px;
+           color: var(--text-muted);
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           margin: 0 auto;
+        }
+        
+        .delete-btn-large:hover {
+           color: #ef4444;
+           background-color: #fee2e2;
+           box-shadow: var(--shadow-sm);
         }
       `}</style>
     </div>

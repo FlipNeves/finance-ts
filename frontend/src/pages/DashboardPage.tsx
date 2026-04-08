@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
+import BudgetModal from '../components/BudgetModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -24,6 +25,7 @@ const DashboardPage: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+  const [isBudgetOpen, setIsBudgetOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -52,14 +54,14 @@ const DashboardPage: React.FC = () => {
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions/categories'),
         api.get('/family/details').catch(() => ({ data: { bankAccounts: [] } })),
-        api.get('/reports/evolution')
+        api.get('/reports/evolution', { params: { endDate: end } })
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
       setTransactions(transRes.data.slice(0, 5)); 
       setCategories(catRes.data);
       setBankAccounts(familyRes.data.bankAccounts || []);
-      setEvolution(evolutionRes.data.reverse()); // Ensure chronological order
+      setEvolution(evolutionRes.data); // Ensure chronological order since backend already provides it oldest to newest
     } catch (err) {
       console.error(err);
     } finally {
@@ -113,26 +115,12 @@ const DashboardPage: React.FC = () => {
           <button className="btn btn-primary expense-btn" onClick={() => openModal('expense')}>
             + {t('transactions.addExpense') || 'Expense'}
           </button>
+          <button className="btn btn-outline" onClick={() => setIsBudgetOpen(true)} style={{ marginLeft: '8px' }}>
+            Orçamentos
+          </button>
         </div>
       </header>
       
-      {summary?.budgetLimit > 0 && (
-        <div className="card mb-3 p-3 flex flex-col gap-1" style={{ padding: '16px 24px' }}>
-            <div className="flex justify-between items-center text-sm" style={{ fontWeight: 600 }}>
-              <span>Progresso do Orçamento Mensal</span>
-              <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
-            </div>
-            <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ 
-                height: '100%', 
-                background: budgetPct > 90 ? '#ef4444' : budgetPct > 75 ? '#f59e0b' : '#10b981',
-                width: Math.min(budgetPct, 100) + '%',
-                transition: 'width 0.5s ease-in-out'
-              }}></div>
-            </div>
-        </div>
-      )}
-
       <div className="grid-summary mb-3">
         <div className="card summary-card income-card">
           <div className="card-bg-decoration decoration-green"></div>
@@ -179,6 +167,23 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {summary?.budgetLimit > 0 && (
+        <div className="card mb-3 p-3 flex flex-col gap-1" style={{ padding: '16px 24px' }}>
+            <div className="flex justify-between items-center text-sm" style={{ fontWeight: 600 }}>
+              <span>Progresso do Orçamento Mensal</span>
+              <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
+            </div>
+            <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ 
+                height: '100%', 
+                background: budgetPct > 90 ? '#ef4444' : budgetPct > 75 ? '#f59e0b' : '#10b981',
+                width: Math.min(budgetPct, 100) + '%',
+                transition: 'width 0.5s ease-in-out'
+              }}></div>
+            </div>
+        </div>
+      )}
       
       {summary?.biggestExpense && (
         <div className="mb-3" style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600 }}>
@@ -201,13 +206,14 @@ const DashboardPage: React.FC = () => {
                 <th>{t('transactions.description')}</th>
                 <th>{t('common.user') || 'User'}</th>
                 <th>{t('transactions.category')}</th>
+                <th>Conta</th>
                 <th className="text-right">{t('transactions.amount')}</th>
               </tr>
             </thead>
             <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center empty-state">
+                  <td colSpan={6} className="text-center empty-state">
                     {t('transactions.noTransactions') || 'No transactions found.'}
                   </td>
                 </tr>
@@ -215,14 +221,10 @@ const DashboardPage: React.FC = () => {
                 transactions.map((tr) => (
                   <tr key={tr._id} className={`tr-${tr.type}`}>
                     <td className="text-muted">{new Date(tr.date).toLocaleDateString()}</td>
-                    <td>
-                      <div className="flex flex-col">
-                        <span className="desc">{tr.description || '-'}</span>
-                        <span className="bank">{tr.bankAccount} {tr.isFixed ? '(Fixa)' : ''}</span>
-                      </div>
-                    </td>
+                    <td><span className="desc">{tr.description || '-'}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
                     <td><span className="category-badge">{tr.category}</span></td>
+                    <td><span className="bank">{tr.bankAccount || '-'} {tr.isFixed ? '(Fixa)' : ''}</span></td>
                     <td className={`amount ${tr.type}`}>
                       {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
                     </td>
@@ -241,6 +243,11 @@ const DashboardPage: React.FC = () => {
         type={modalType}
         initialCategories={categories}
         initialBankAccounts={bankAccounts}
+      />
+      <BudgetModal 
+        isOpen={isBudgetOpen}
+        onClose={() => setIsBudgetOpen(false)}
+        onSuccess={loadData}
       />
 
       <div className="grid-charts mt-3">
@@ -552,7 +559,7 @@ const DashboardPage: React.FC = () => {
 
         .grid-charts {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          grid-template-columns: 1fr 1fr;
           gap: 24px;
         }
         

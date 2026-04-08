@@ -54,8 +54,12 @@ export class ReportsController {
   }
 
   @Get('evolution')
-  async getEvolution(@Req() req: any) {
+  async getEvolution(
+    @Req() req: any,
+    @Query('endDate') end: string,
+  ) {
     const familyId = this.getFamilyId(req);
-    return this.reportsService.getEvolutionReport(familyId, req.user._id);
+    const referenceDate = end ? new Date(end) : new Date();
+    return this.reportsService.getEvolutionReport(familyId, req.user._id, referenceDate);
   }
 }

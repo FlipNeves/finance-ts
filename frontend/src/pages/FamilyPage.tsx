@@ -72,7 +72,6 @@ const FamilyPage: React.FC = () => {
       t('family.joinWarningDesc') || 'By joining a family, ALL your current individual transactions and records will be permanently deleted once approved. Do you want to proceed?',
       async () => {
         try {
-          // Try both familyCode and inviteCode
           await api.post('/family/join', { 
             familyCode: joinCode.trim(),
             inviteCode: joinCode.trim(),
@@ -129,206 +128,263 @@ const FamilyPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-center mt-3">{t('common.loading')}</div>;
+  if (loading) return <div className="text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</div>;
 
   if (!user?.familyId) {
     return (
-      <div className="flex flex-col items-center gap-3 mt-3">
-        {/* Show personal invite code */}
+      <div className="dashboard-container fade-in flex flex-col items-center gap-3 mt-3">
         {user?.inviteCode && (
-          <div className="card w-full" style={{ maxWidth: '500px', textAlign: 'center', borderColor: 'var(--primary)', borderWidth: '2px' }}>
-            <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+          <div className="card w-full text-center fade-in" style={{ maxWidth: '500px', background: 'linear-gradient(145deg, var(--primary-light) 0%, #ffffff 100%)', border: '1px solid var(--primary)', padding: '32px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--primary-dark)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
               {t('family.yourInviteCode') || 'Your Personal Invite Code'}
             </div>
             <div style={{ 
-              fontSize: '28px', 
+              fontSize: '36px', 
               fontWeight: 800, 
-              letterSpacing: '4px',
+              letterSpacing: '6px',
               color: 'var(--primary)',
-              fontFamily: 'monospace',
-              padding: '8px 0',
+              fontFamily: 'var(--mono)',
+              padding: '12px 0',
             }}>
               {user.inviteCode}
             </div>
             <button 
-              className="btn btn-outline" 
+              className="btn btn-primary" 
               onClick={copyInviteCode}
-              style={{ marginTop: '8px', fontSize: '14px' }}
+              style={{ padding: '8px 24px', fontSize: '14px', borderRadius: '20px' }}
             >
               {copied ? '✅ ' + (t('common.copied') || 'Copied!') : '📋 ' + (t('common.copy') || 'Copy Code')}
             </button>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '12px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '16px', lineHeight: '1.5' }}>
               {t('family.inviteCodeDesc') || 'Share this code so others can request to join your family after you create one.'}
             </p>
           </div>
         )}
 
-        <div className="card w-full" style={{ maxWidth: '500px' }}>
-          <h2>{t('family.create')}</h2>
-          <p className="text-muted mb-2">{t('family.createDesc') || 'Create a family group to start tracking together.'}</p>
-          <form onSubmit={handleCreateFamily} className="flex flex-col gap-2">
-            <button type="submit" className="btn btn-primary">{t('family.create')}</button>
-          </form>
-        </div>
+        <div className="flex gap-3 flex-wrap justify-center w-full" style={{ maxWidth: '1024px' }}>
+          <div className="card w-full" style={{ flex: '1', minWidth: '300px' }}>
+            <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('family.create')}</h2>
+            <p className="text-muted mb-3">{t('family.createDesc') || 'Create a family group to start tracking together.'}</p>
+            <form onSubmit={handleCreateFamily} className="flex flex-col gap-2">
+              <button type="submit" className="btn btn-primary w-full" style={{ padding: '12px' }}>{t('family.create')}</button>
+            </form>
+          </div>
 
-        <div className="card w-full" style={{ maxWidth: '500px' }}>
-          <h2>{t('family.join')}</h2>
-          <p className="text-muted mb-2">{t('family.joinDesc') || 'Enter a family code or invite code to request to join.'}</p>
-          <form onSubmit={handleJoinFamily} className="flex flex-col gap-2">
-            <input 
-              type="text" 
-              className="form-control"
-              placeholder={t('family.codeOrInvite') || 'Family Code or Invite Code'} 
-              value={joinCode} 
-              onChange={(e) => setJoinCode(e.target.value)} 
-              required 
-            />
-            <button type="submit" className="btn btn-outline">{t('family.join')}</button>
-          </form>
+          <div className="card w-full" style={{ flex: '1', minWidth: '300px' }}>
+             <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('family.join')}</h2>
+            <p className="text-muted mb-3">{t('family.joinDesc') || 'Enter a family code or invite code to request to join.'}</p>
+            <form onSubmit={handleJoinFamily} className="flex flex-col gap-2 mt-auto">
+              <input 
+                type="text" 
+                className="form-control"
+                style={{ padding: '12px' }}
+                placeholder={t('family.codeOrInvite') || 'Family Code or Invite Code'} 
+                value={joinCode} 
+                onChange={(e) => setJoinCode(e.target.value)} 
+                required 
+              />
+              <button type="submit" className="btn btn-outline w-full" style={{ padding: '12px' }}>{t('family.join')}</button>
+            </form>
+          </div>
         </div>
         
         <style>{`
-          .form-control {
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background-color: var(--bg);
-            color: var(--text);
-            font-size: 16px;
-          }
-          .text-muted { color: var(--text-muted); font-size: 14px; }
+          .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         `}</style>
       </div>
     );
   }
 
   return (
-    <div className="container mt-3" style={{ maxWidth: '800px' }}>
-      <header className="flex justify-between items-center mb-3">
+    <div className="dashboard-container fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      <header className="card mb-3" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: 'white', padding: '32px 40px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div className="flex flex-col">
-          <h1>{familyDetails?.name}</h1>
-          <div className="flex gap-1 items-center" style={{ marginTop: '4px' }}>
-            <span className="badge">{t('family.code')}: {familyDetails?.familyCode}</span>
-            {user?.inviteCode && (
-              <span className="badge invite-badge" onClick={copyInviteCode} style={{ cursor: 'pointer' }}>
-                {copied ? '✅' : '🔗'} {t('family.inviteCode') || 'Invite'}: {user.inviteCode}
-              </span>
-            )}
-          </div>
+          <h1 style={{ color: 'white', margin: 0, fontSize: '32px' }}>{familyDetails?.name}</h1>
+          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0 0', fontSize: '15px' }}>Gerencie os membros da sua rede</p>
+        </div>
+        <div className="flex gap-2 items-center flex-wrap">
+          <span className="badge-dark" style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600 }}>{t('family.code')}: {familyDetails?.familyCode}</span>
+          {user?.inviteCode && (
+            <span className="badge-dark" onClick={copyInviteCode} style={{ cursor: 'pointer', background: 'rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, transition: 'background 0.2s' }}>
+              {copied ? '✅' : '🔗'} {t('family.inviteCode') || 'Invite'}: {user.inviteCode}
+            </span>
+          )}
         </div>
       </header>
 
       {isOwner && pendingMembers.length > 0 && (
-        <section className="card mb-3" style={{ borderColor: 'var(--primary)', borderLeftWidth: '4px' }}>
-          <h3 style={{ color: 'var(--primary)' }}>🔔 {t('family.pendingRequests') || 'Pending Requests'}</h3>
-          <ul className="member-list mt-2">
-            {pendingMembers.map((member) => (
-              <li key={member._id} className="member-item flex justify-between items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="avatar pending">{member.name.charAt(0).toUpperCase()}</div>
-                  <div className="flex flex-col">
-                    <span className="name">{member.name}</span>
-                    <span className="email">{member.email}</span>
-                  </div>
-                </div>
-                <div className="flex gap-1">
-                  <button className="btn btn-primary" style={{ padding: '6px 12px' }} onClick={() => handleApprove(member._id)}>
-                    {t('common.approve') || 'Approve'}
-                  </button>
-                  <button className="btn btn-outline" style={{ padding: '6px 12px' }} onClick={() => handleReject(member._id)}>
-                    {t('common.reject') || 'Reject'}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <section className="card mb-3 notification-card">
+          <h3 className="flex items-center gap-1" style={{ color: '#d97706', marginBottom: '16px' }}>
+            <span>🔔</span> {t('family.pendingRequests') || 'Pending Requests'}
+          </h3>
+          <div className="table-responsive">
+            <table className="transaction-table">
+              <tbody>
+                {pendingMembers.map((member) => (
+                  <tr key={member._id}>
+                     <td>
+                       <div className="flex items-center gap-2">
+                         <div className="avatar pending">{member.name.charAt(0).toUpperCase()}</div>
+                         <div className="flex flex-col">
+                            <span className="name" style={{ fontWeight: 600 }}>{member.name}</span>
+                            <span className="email" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{member.email}</span>
+                         </div>
+                       </div>
+                     </td>
+                     <td className="text-right">
+                        <div className="flex gap-1 justify-end">
+                           <button className="btn btn-primary btn-sm" onClick={() => handleApprove(member._id)}>
+                             Aprovar
+                           </button>
+                           <button className="btn btn-outline btn-sm" onClick={() => handleReject(member._id)}>
+                             Recusar
+                           </button>
+                        </div>
+                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
-      <section className="card mb-3">
-        <h3>{t('family.members')}</h3>
-        <ul className="member-list mt-2">
-          {members.map((member) => (
-            <li key={member._id} className="member-item flex justify-between items-center gap-2">
-              <div className="flex items-center gap-2">
-                <div className="avatar">
-                  {member.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1">
-                    <span className="name">{member.name}</span>
-                    {familyDetails?.owner === member._id && <span className="owner-badge">👑</span>}
-                  </div>
-                  <span className="email">{member.email}</span>
-                </div>
-              </div>
-              {isOwner && member._id !== user?._id && (
-                <button className="btn-icon delete" onClick={() => handleRemove(member._id)}>🗑️</button>
-              )}
-            </li>
-          ))}
-        </ul>
+      <section className="card mb-3 table-card">
+        <h3 style={{ marginBottom: '24px' }}>{t('family.members')}</h3>
+        <div className="table-responsive">
+          <table className="transaction-table">
+            <thead>
+              <tr>
+                <th>Nome do Membro</th>
+                <th>E-mail</th>
+                <th className="text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {members.map((member) => (
+                <tr key={member._id}>
+                  <td>
+                    <div className="flex items-center gap-2">
+                       <div className="avatar">
+                         {member.name.charAt(0).toUpperCase()}
+                       </div>
+                       <div className="flex items-center gap-1">
+                          <span className="name" style={{ fontWeight: 600 }}>{member.name}</span>
+                          {familyDetails?.owner === member._id && <span className="owner-badge" title="Proprietário">👑</span>}
+                       </div>
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--text-muted)' }}>{member.email}</td>
+                  <td className="text-center" style={{ width: '80px' }}>
+                    {isOwner && member._id !== user?._id && (
+                       <button className="btn-icon delete-btn-large" onClick={() => handleRemove(member._id)} title="Remover Membro">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18"></path>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              <line x1="10" y1="11" x2="10" y2="17"></line>
+                              <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                       </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <style>{`
-        .member-list {
-          list-style: none;
-          padding: 0;
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 16px;
-        }
-        .member-item {
-          padding: 12px;
-          border-radius: 8px;
-          background-color: var(--bg);
-          transition: transform 0.2s;
-        }
-        .member-item:hover {
-          transform: translateX(4px);
-        }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .avatar {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
-          background-color: var(--primary);
-          color: white;
+          background-color: var(--primary-light);
+          color: var(--primary-dark);
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
+          font-size: 14px;
         }
         .avatar.pending {
-          background-color: var(--accent);
+          background-color: #fef3c7;
+          color: #d97706;
         }
-        .member-item .name {
-          font-weight: 600;
-        }
-        .member-item .email {
-          font-size: 13px;
-          color: var(--text-muted);
-        }
+
         .owner-badge {
           font-size: 14px;
         }
-        .btn-icon.delete:hover {
-          background-color: #fee2e2;
-          color: var(--danger);
+        
+        .notification-card {
+           border: 1px solid #fcd34d;
+           background-color: #fffbeb;
         }
-        .badge {
-          background-color: var(--primary-light);
-          color: var(--primary);
-          padding: 4px 12px;
-          border-radius: 20px;
+
+        .transaction-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0 8px;
+        }
+        
+        .transaction-table th {
+          text-align: left;
+          padding: 8px 16px;
+          color: var(--text-muted);
+          font-size: 12px;
+          text-transform: uppercase;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        
+        .transaction-table td {
+          padding: 16px;
           font-size: 14px;
-          font-weight: 700;
+          background: var(--bg-card);
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
         }
-        .invite-badge {
-          background-color: transparent;
-          border: 1px solid var(--primary);
+
+        .transaction-table td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .transaction-table td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        
+        .transaction-table tbody tr {
+          transition: transform 0.2s, box-shadow 0.2s;
         }
-        .invite-badge:hover {
-          background-color: var(--primary-light);
+        .transaction-table tbody tr:hover td {
+          background: var(--bg);
+        }
+
+        .btn-sm {
+           padding: 6px 14px;
+           font-size: 13px;
+        }
+        
+        .delete-btn-large {
+           padding: 12px;
+           color: var(--text-muted);
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           margin: 0 auto;
+           background: transparent;
+           border: none;
+           border-radius: 8px;
+           cursor: pointer;
+           transition: all 0.2s;
+        }
+        .delete-btn-large:hover {
+           color: #ef4444;
+           background-color: #fee2e2;
         }
       `}</style>
     </div>

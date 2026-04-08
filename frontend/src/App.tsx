@@ -32,7 +32,6 @@ const Navigation: React.FC = () => {
             <div className="nav-links flex gap-2 ml-3">
               <Link to="/" className="nav-item">{t('dashboard.title')}</Link>
               <Link to="/transactions" className="nav-item">{t('transactions.title')}</Link>
-              <Link to="/budget" className="nav-item">Orçamento</Link>
               <Link to="/family" className="nav-item">{t('family.title')}</Link>
             </div>
           )}

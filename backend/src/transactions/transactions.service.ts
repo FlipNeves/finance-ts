@@ -108,6 +108,7 @@ export class TransactionsService {
     
     return this.transactionModel
       .find(query)
+      .populate('userId', 'name')
       .sort({ date: -1 })
       .exec();
   }
