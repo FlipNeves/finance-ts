@@ -23,7 +23,8 @@
     "approve": "Approve",
     "reject": "Reject",
     "refresh": "Refresh",
-    "user": "User"
+    "user": "User",
+    "ok": "OK"
   },
   "auth": {
     "welcome": "Welcome to Family Finance Tracker",
@@ -61,7 +62,12 @@
     "manageMembersDesc": "Manage your network members",
     "memberName": "Member Name",
     "owner": "Owner",
-    "removeMember": "Remove Member"
+    "removeMember": "Remove Member",
+    "noPendingRequests": "No pending requests at the moment.",
+    "joinRequestApproved": "Request approved successfully!",
+    "joinRequestRejected": "Request rejected.",
+    "approveError": "Error approving member.",
+    "rejectError": "Error rejecting request."
   },
   "transactions": {
     "title": "Transactions",

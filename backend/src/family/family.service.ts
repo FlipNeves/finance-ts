@@ -89,7 +89,7 @@ export class FamilyService {
     const family = await this.familyModel.findById(familyId).exec();
     if (!family) throw new NotFoundException('Family not found');
 
-    if (family.owner.toString() !== ownerId) {
+    if (family.owner.toString() !== ownerId.toString()) {
       throw new ForbiddenException('Only family owner can approve members');
     }
 
@@ -122,7 +122,7 @@ export class FamilyService {
     const family = await this.familyModel.findById(familyId).exec();
     if (!family) throw new NotFoundException('Family not found');
 
-    if (family.owner.toString() !== ownerId) {
+    if (family.owner.toString() !== ownerId.toString()) {
       throw new ForbiddenException('Only family owner can reject members');
     }
 
@@ -141,7 +141,7 @@ export class FamilyService {
     const family = await this.familyModel.findById(familyId).exec();
     if (!family) throw new NotFoundException('Family not found');
 
-    if (family.owner.toString() !== ownerId) {
+    if (family.owner.toString() !== ownerId.toString()) {
       throw new ForbiddenException('Only family owner can view pending members');
     }
 

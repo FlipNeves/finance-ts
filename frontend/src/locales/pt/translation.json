@@ -23,7 +23,8 @@
     "approve": "Aprovar",
     "reject": "Recusar",
     "refresh": "Atualizar",
-    "user": "Usuário"
+    "user": "Usuário",
+    "ok": "OK"
   },
   "auth": {
     "welcome": "Bem-vindo ao Rastreador de Finanças Familiar",
@@ -61,7 +62,12 @@
     "manageMembersDesc": "Gerencie os membros da sua rede",
     "memberName": "Nome do Membro",
     "owner": "Proprietário",
-    "removeMember": "Remover Membro"
+    "removeMember": "Remover Membro",
+    "noPendingRequests": "Nenhuma solicitação pendente no momento.",
+    "joinRequestApproved": "Solicitação aprovada com sucesso!",
+    "joinRequestRejected": "Solicitação recusada.",
+    "approveError": "Erro ao aprovar membro.",
+    "rejectError": "Erro ao recusar solicitação."
   },
   "transactions": {
     "title": "Transações",

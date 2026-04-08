@@ -88,8 +88,9 @@ const FamilyPage: React.FC = () => {
     try {
       await api.post(`/family/approve/${memberId}`);
       loadData();
+      showMessage(t('common.success'), t('family.joinRequestApproved') || 'Member approved successfully!');
     } catch {
-      showMessage('Error', 'Error approving member');
+      showMessage(t('common.error'), t('family.approveError') || 'Error approving member');
     }
   };
 
@@ -97,8 +98,9 @@ const FamilyPage: React.FC = () => {
     try {
       await api.post(`/family/reject/${memberId}`);
       loadData();
+      showMessage(t('common.success'), t('family.joinRequestRejected') || 'Request rejected.');
     } catch {
-      showMessage('Error', 'Error rejecting member');
+      showMessage(t('common.error'), t('family.rejectError') || 'Error rejecting member');
     }
   };
 
@@ -170,39 +172,58 @@ const FamilyPage: React.FC = () => {
         </div>
       </header>
 
-      {isOwner && pendingMembers.length > 0 && (
-        <section className="card mb-3 notification-card">
-          <h3 className="flex items-center gap-1" style={{ color: '#d97706', marginBottom: '16px' }}>
-            <span>🔔</span> {t('family.pendingRequests') || 'Pending Requests'}
-          </h3>
+      {isOwner && (
+        <section className="card mb-3 management-card">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="flex items-center gap-1">
+              <span className="icon-group">👥</span> {t('family.pendingRequests')}
+              {pendingMembers.length > 0 && <span className="badge-count">{pendingMembers.length}</span>}
+            </h3>
+          </div>
+          
           <div className="table-responsive">
-            <table className="transaction-table">
-              <tbody>
-                {pendingMembers.map((member) => (
-                  <tr key={member._id}>
-                     <td>
-                       <div className="flex items-center gap-2">
-                         <div className="avatar pending">{member.name.charAt(0).toUpperCase()}</div>
-                         <div className="flex flex-col">
+            {pendingMembers.length > 0 ? (
+              <table className="transaction-table">
+                <tbody>
+                  {pendingMembers.map((member) => (
+                    <tr key={member._id}>
+                      <td style={{ width: '100%' }}>
+                        <div className="flex items-center gap-2">
+                          <div className="avatar pending">{member.name.charAt(0).toUpperCase()}</div>
+                          <div className="flex flex-col">
                             <span className="name" style={{ fontWeight: 600 }}>{member.name}</span>
                             <span className="email" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{member.email}</span>
-                         </div>
-                       </div>
-                     </td>
-                     <td className="text-right">
-                        <div className="flex gap-1 justify-end">
-                           <button className="btn btn-primary btn-sm" onClick={() => handleApprove(member._id)}>
-                             {t('common.approve')}
-                           </button>
-                           <button className="btn btn-outline btn-sm" onClick={() => handleReject(member._id)}>
-                             {t('common.reject')}
-                           </button>
+                          </div>
                         </div>
-                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="text-right" style={{ whiteSpace: 'nowrap' }}>
+                        <div className="flex gap-1 justify-end">
+                          <button 
+                            className="btn btn-primary btn-sm btn-approve" 
+                            onClick={() => handleApprove(member._id)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            {t('common.approve')}
+                          </button>
+                          <button 
+                            className="btn btn-outline btn-sm btn-reject" 
+                            onClick={() => handleReject(member._id)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            {t('common.reject')}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">✓</div>
+                <p>{t('family.noPendingRequests')}</p>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -283,10 +304,74 @@ const FamilyPage: React.FC = () => {
            background-color: #fffbeb;
         }
 
+        .management-card {
+           border: 1px solid var(--border);
+           background-color: var(--bg-card);
+        }
+
+        .management-card h3 {
+           font-size: 18px;
+           margin: 0;
+        }
+
+        .badge-count {
+           background-color: var(--primary);
+           color: white;
+           font-size: 12px;
+           padding: 2px 8px;
+           border-radius: 12px;
+           margin-left: 4px;
+        }
+
+        .icon-group {
+           font-size: 20px;
+        }
+
+        .empty-state {
+           padding: 40px 20px;
+           text-align: center;
+           color: var(--text-muted);
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           gap: 12px;
+        }
+
+        .empty-icon {
+           width: 48px;
+           height: 48px;
+           background-color: var(--bg);
+           color: var(--primary);
+           border-radius: 50%;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           font-size: 24px;
+           border: 2px dashed var(--border);
+        }
+
+        .btn-approve {
+           background-color: #10b981;
+           color: white;
+        }
+        .btn-approve:hover {
+           background-color: #059669;
+        }
+
+        .btn-reject {
+           border-color: #ef4444;
+           color: #ef4444;
+        }
+        .btn-reject:hover {
+           background-color: #fef2f2;
+           border-color: #ef4444;
+           color: #ef4444;
+        }
+
         .transaction-table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0 8px;
+           width: 100%;
+           border-collapse: separate;
+           border-spacing: 0 8px;
         }
         
         .transaction-table th {
