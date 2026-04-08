@@ -18,6 +18,9 @@ export class Transaction extends Document {
   @Prop()
   bankAccount: string;
 
+  @Prop({ default: false })
+  isFixed: boolean;
+
   @Prop({ required: true })
   date: Date;
 

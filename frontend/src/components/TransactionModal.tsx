@@ -34,6 +34,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   const [categories, setCategories] = useState<string[]>(initialCategories);
   const [bankAccounts, setBankAccounts] = useState<string[]>(initialBankAccounts);
   
+  const [isFixed, setIsFixed] = useState(false);
+
   const [newCategory, setNewCategory] = useState('');
   const [newBankAccount, setNewBankAccount] = useState('');
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
@@ -105,14 +107,20 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     
     setLoading(true);
     try {
-      await api.post('/transactions', {
+      const res = await api.post('/transactions', {
         description: description || (type === 'income' ? 'Income' : 'Expense'),
         amount: numAmount,
         type,
         category: category || 'General',
         bankAccount: bankAccount || undefined,
         date: new Date(date),
+        isFixed: type === 'expense' ? isFixed : false,
       });
+      
+      if (res.data?.alert) {
+        alert(res.data.alert); // Display warning if limit is >= 80%
+      }
+
       onSuccess();
       onClose();
     } catch (err) {
@@ -176,6 +184,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                   <button className="btn btn-outline" onClick={() => setIsCreatingCategory(true)} style={{ minWidth: '42px' }}>+</button>
                 </div>
               )}
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <input type="checkbox" id="isFixed" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} />
+              <label htmlFor="isFixed" style={{ fontSize: '14px', cursor: 'pointer' }}>Despesa Fixa mensal</label>
             </div>
             <button className="btn btn-primary mt-2 w-full" onClick={nextStep} disabled={!canProceedStep1}>
               {t('common.next') || 'Next'} →

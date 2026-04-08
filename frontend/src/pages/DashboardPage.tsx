@@ -12,7 +12,7 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   
-  const [summary, setSummary] = useState<{ totalIncome: number; totalExpense: number; balance: number } | null>(null);
+  const [summary, setSummary] = useState<any>(null);
   const [spending, setSpending] = useState<{ category: string; amount: number }[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -33,7 +33,7 @@ const DashboardPage: React.FC = () => {
     : ['#059669', '#2563eb', '#d97706', '#7c3aed', '#db2777', '#0d9488'];
 
   useEffect(() => {
-    if (user?.familyId) {
+    if (user?.familyId || user?._id) {
       loadData();
     } else {
       setLoading(false);
@@ -79,6 +79,11 @@ const DashboardPage: React.FC = () => {
 
   if (loading) return <div className="text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</div>;
 
+  const budgetPct = summary?.budgetLimit ? (summary.totalExpense / summary.budgetLimit) * 100 : 0;
+  
+  const expenseDiff = summary?.totalExpense - (summary?.previousMonthExpense || 0);
+  const incomeDiff = summary?.totalIncome - (summary?.previousMonthIncome || 0);
+
   return (
     <div className="dashboard-container fade-in">
       <header className="dashboard-header mb-3">
@@ -110,6 +115,23 @@ const DashboardPage: React.FC = () => {
           </button>
         </div>
       </header>
+      
+      {summary?.budgetLimit > 0 && (
+        <div className="card mb-3 p-3 flex flex-col gap-1" style={{ padding: '16px 24px' }}>
+            <div className="flex justify-between items-center text-sm" style={{ fontWeight: 600 }}>
+              <span>Progresso do Orçamento Mensal</span>
+              <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
+            </div>
+            <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ 
+                height: '100%', 
+                background: budgetPct > 90 ? '#ef4444' : budgetPct > 75 ? '#f59e0b' : '#10b981',
+                width: Math.min(budgetPct, 100) + '%',
+                transition: 'width 0.5s ease-in-out'
+              }}></div>
+            </div>
+        </div>
+      )}
 
       <div className="grid-summary mb-3">
         <div className="card summary-card income-card">
@@ -120,6 +142,9 @@ const DashboardPage: React.FC = () => {
               {t('dashboard.totalIncome')}
             </span>
             <span className="value">R${summary?.totalIncome.toFixed(2)}</span>
+            <span style={{ fontSize: '12px', marginTop: '4px', color: incomeDiff >= 0 ? '#10b981' : '#ef4444' }}>
+              {incomeDiff >= 0 ? '↑' : '↓'} R$ {Math.abs(incomeDiff).toFixed(2)} vs mês anterior
+            </span>
           </div>
         </div>
         <div className="card summary-card expense-card">
@@ -130,6 +155,15 @@ const DashboardPage: React.FC = () => {
               {t('dashboard.totalExpense')}
             </span>
             <span className="value">R${summary?.totalExpense.toFixed(2)}</span>
+            <span style={{ fontSize: '12px', marginTop: '4px', color: expenseDiff <= 0 ? '#10b981' : '#ef4444' }}>
+              {expenseDiff > 0 ? '↑' : '↓'} R$ {Math.abs(expenseDiff).toFixed(2)} vs mês anterior
+            </span>
+            {summary?.totalExpense > 0 && (
+              <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid rgba(128,128,128,0.2)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <span>Fixo: R$ {summary.fixedExpense.toFixed(2)} ({(summary.fixedExpense/summary.totalExpense*100).toFixed(0)}%)</span>
+                <span>Var: R$ {summary.variableExpense.toFixed(2)}</span>
+              </div>
+            )}
           </div>
         </div>
         <div className="card summary-card balance-card">
@@ -145,7 +179,15 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {summary?.biggestExpense && (
+        <div className="mb-3" style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600 }}>
+          <span>⚠️</span>
+          <span>Maior despesa do mês: {summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) na categoria {summary.biggestExpense.category}.</span>
+        </div>
+      )}
 
+      {/* Rest of the tables and charts remain the same structure */}
        <div className="card mb-3 table-card">
         <div className="flex justify-between items-center mb-2 table-header">
            <h2 className="section-title">{t('transactions.recent')}</h2>
@@ -176,7 +218,7 @@ const DashboardPage: React.FC = () => {
                     <td>
                       <div className="flex flex-col">
                         <span className="desc">{tr.description || '-'}</span>
-                        <span className="bank">{tr.bankAccount}</span>
+                        <span className="bank">{tr.bankAccount} {tr.isFixed ? '(Fixa)' : ''}</span>
                       </div>
                     </td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
@@ -479,7 +521,6 @@ const DashboardPage: React.FC = () => {
         }
         
         .amount.income { color: #10b981; }
-        .amount.expense { color: var(--text); } /* Stripe style usually keeps expenses neutral text and incomes green, but we can do red for expense */
         .amount.expense { color: #ef4444; }
 
         .category-badge {

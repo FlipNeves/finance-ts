@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
+import { Budget } from '../schemas/budget.schema';
 
 @Injectable()
 export class ReportsService {
   constructor(
     @InjectModel(Transaction.name) private transactionModel: Model<Transaction>,
+    @InjectModel(Budget.name) private budgetModel: Model<Budget>,
   ) {}
 
   async getFamilySummary(
@@ -25,32 +27,72 @@ export class ReportsService {
       matchQuery.familyId = null;
     }
 
-    const results = await this.transactionModel
-      .aggregate([
-        {
-          $match: matchQuery,
+    const results = await this.transactionModel.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { type: '$type', isFixed: '$isFixed' },
+          total: { $sum: '$amount' },
         },
-        {
-          $group: {
-            _id: '$type',
-            total: { $sum: '$amount' },
-          },
-        },
-      ])
-      .exec();
+      },
+    ]).exec();
+
+    // Biggest expense
+    const biggestExpenseArr = await this.transactionModel.find({ ...matchQuery, type: 'expense' }).sort({ amount: -1 }).limit(1).exec();
+    const biggestExpense = biggestExpenseArr.length > 0 ? biggestExpenseArr[0] : null;
 
     const summary = {
       totalIncome: 0,
       totalExpense: 0,
       balance: 0,
+      fixedExpense: 0,
+      variableExpense: 0,
+      biggestExpense,
+      previousMonthIncome: 0,
+      previousMonthExpense: 0,
+      budgetLimit: 0,
     };
 
     results.forEach((res) => {
-      if (res._id === 'income') summary.totalIncome = res.total;
-      if (res._id === 'expense') summary.totalExpense = res.total;
+      if (res._id.type === 'income') summary.totalIncome += res.total;
+      if (res._id.type === 'expense') {
+        summary.totalExpense += res.total;
+        if (res._id.isFixed) summary.fixedExpense += res.total;
+        else summary.variableExpense += res.total;
+      }
     });
 
     summary.balance = summary.totalIncome - summary.totalExpense;
+
+    // Previous month logic
+    const prevStartDate = new Date(startDate);
+    prevStartDate.setMonth(prevStartDate.getMonth() - 1);
+    const prevEndDate = new Date(endDate);
+    prevEndDate.setMonth(prevEndDate.getMonth() - 1);
+    
+    const prevMatchQuery = { ...matchQuery, date: { $gte: prevStartDate, $lte: prevEndDate } };
+    const prevResults = await this.transactionModel.aggregate([
+      { $match: prevMatchQuery },
+      { $group: { _id: '$type', total: { $sum: '$amount' } } }
+    ]).exec();
+
+    prevResults.forEach((res) => {
+      if (res._id === 'income') summary.previousMonthIncome = res.total;
+      if (res._id === 'expense') summary.previousMonthExpense = res.total;
+    });
+
+    // Budget global limit
+    const m = startDate.getMonth() + 1;
+    const y = startDate.getFullYear();
+    const budgetQuery: any = { month: m, year: y };
+    if (familyId) budgetQuery.familyId = familyId;
+    else { budgetQuery.userId = userId; budgetQuery.familyId = null; }
+
+    const budget = await this.budgetModel.findOne(budgetQuery).exec();
+    if (budget) {
+      summary.budgetLimit = budget.totalLimit || 0;
+    }
+
     return summary;
   }
 

@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage';
 import FamilyPage from './pages/FamilyPage';
 import TransactionsPage from './pages/TransactionsPage';
 import DashboardPage from './pages/DashboardPage';
+import BudgetPage from './pages/BudgetPage';
 import './App.css';
 
 const Navigation: React.FC = () => {
@@ -31,6 +32,7 @@ const Navigation: React.FC = () => {
             <div className="nav-links flex gap-2 ml-3">
               <Link to="/" className="nav-item">{t('dashboard.title')}</Link>
               <Link to="/transactions" className="nav-item">{t('transactions.title')}</Link>
+              <Link to="/budget" className="nav-item">Orçamento</Link>
               <Link to="/family" className="nav-item">{t('family.title')}</Link>
             </div>
           )}
@@ -84,6 +86,11 @@ function AppContent() {
           <Route path="/family" element={
             <PrivateRoute>
               <FamilyPage />
+            </PrivateRoute>
+          } />
+          <Route path="/budget" element={
+            <PrivateRoute>
+              <BudgetPage />
             </PrivateRoute>
           } />
           <Route path="/transactions" element={

@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { FamilyModule } from './family/family.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { ReportsModule } from './reports/reports.module';
+import { BudgetsModule } from './budgets/budgets.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ReportsModule } from './reports/reports.module';
     FamilyModule,
     TransactionsModule,
     ReportsModule,
+    BudgetsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
