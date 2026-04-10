@@ -110,10 +110,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     setLoading(true);
     try {
       const res = await api.post('/transactions', {
-        description: description || (type === 'income' ? 'Income' : 'Expense'),
+        description: description || (type === 'income' ? (t('transactions.income') || 'Income') : (t('transactions.expense') || 'Expense')),
         amount: numAmount,
         type,
-        category: category || 'General',
+        category: type === 'income' ? 'Income' : (category || 'General'),
         bankAccount: bankAccount || undefined,
         date: new Date(date),
         isFixed: type === 'expense' ? isFixed : false,

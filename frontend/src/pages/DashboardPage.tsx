@@ -194,7 +194,7 @@ const DashboardPage: React.FC = () => {
       {summary?.biggestExpense && (
         <div className="biggest-expense-alert">
           <span>⚠️</span>
-          <span>{t('dashboard.biggestExpense')}: {summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) {t('dashboard.inCategory')} {translateCategory(summary.biggestExpense.category)}.</span>
+          <span>{t('dashboard.biggestExpense')}: {summary.biggestExpense.description === 'Income' ? t('transactions.income') : summary.biggestExpense.description === 'Expense' ? t('transactions.expense') : summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) {t('dashboard.inCategory')} {translateCategory(summary.biggestExpense.category)}.</span>
         </div>
       )}
 
@@ -229,7 +229,7 @@ const DashboardPage: React.FC = () => {
                 transactions.map((tr) => (
                   <tr key={tr._id}>
                     <td className="text-muted">{new Date(tr.date).toLocaleDateString(i18n.language)}</td>
-                    <td><span className="tx-desc">{tr.description || '-'}</span></td>
+                    <td><span className="tx-desc">{tr.description === 'Income' ? t('transactions.income') : tr.description === 'Expense' ? t('transactions.expense') : (tr.description || '-')}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
                     <td><span className="category-badge">{translateCategory(tr.category)}</span></td>
                     <td><span className="tx-bank">{tr.bankAccount || '-'} {tr.isFixed ? t('transactions.fixedTag') : ''}</span></td>
@@ -254,7 +254,7 @@ const DashboardPage: React.FC = () => {
               <div key={tr._id} className="tx-card">
                 <div className="tx-card-top">
                   <div className="tx-card-left">
-                    <span className="tx-card-desc">{tr.description || '-'}</span>
+                    <span className="tx-card-desc">{tr.description === 'Income' ? t('transactions.income') : tr.description === 'Expense' ? t('transactions.expense') : (tr.description || '-')}</span>
                     <div className="tx-card-meta">
                       <span className="category-badge-sm">{translateCategory(tr.category)}</span>
                       <span className="tx-card-date">{new Date(tr.date).toLocaleDateString(i18n.language)}</span>
