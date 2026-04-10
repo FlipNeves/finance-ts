@@ -306,10 +306,37 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         </div>
         <div className="tm-field">
           <label className="tm-label">{t('transactions.bankAccount')} ({t('common.optional') || 'Optional'})</label>
-          <select className="form-control" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
-            <option value="">{t('common.select') || 'Select'}</option>
-            {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
+          {isCreatingAccount ? (
+            <div className="tm-inline-create">
+              <input 
+                type="text" 
+                className="form-control"
+                style={{ flex: 1 }} 
+                value={newBankAccount} 
+                onChange={(e) => setNewBankAccount(e.target.value)}
+                placeholder="New account name"
+                autoFocus
+              />
+              <button className="btn btn-primary btn-sm" onClick={handleCreateAccount} disabled={loading || !newBankAccount.trim()}>
+                {loading ? '...' : (t('common.add') || 'Add')}
+              </button>
+              <button className="btn btn-outline btn-sm" onClick={() => setIsCreatingAccount(false)}>✕</button>
+            </div>
+          ) : (
+            <div className="tm-select-row">
+              {bankAccounts.length > 0 ? (
+                <select className="form-control" style={{ flex: 1 }} value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
+                  <option value="">{t('common.select') || 'Select'}</option>
+                  {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              ) : (
+                <div className="form-control tm-placeholder" style={{ flex: 1 }}>
+                  {t('transactions.noAccountsYet') || 'No accounts yet — create one →'}
+                </div>
+              )}
+              <button className="btn btn-outline btn-sm" onClick={() => setIsCreatingAccount(true)}>+</button>
+            </div>
+          )}
         </div>
         <div className="tm-field">
           <label className="tm-label">{t('transactions.date')}</label>

@@ -127,11 +127,11 @@ const DashboardPage: React.FC = () => {
       {/* SUMMARY CARDS */}
       <div className="summary-grid">
         <div className="card summary-card">
-          <div className="card-decoration deco-green"></div>
+          <div className="card-decoration"></div>
           <div className="summary-inner">
             <span className="summary-label">
               <span className="dot dot-green"></span>
-              {t('dashboard.totalIncome')}
+              <p className="text-green">{t('dashboard.totalIncome')}</p>
             </span>
             <span className="summary-value">{`R$${summary?.totalIncome.toFixed(2)}`}</span>
             <span className="summary-diff" style={{ color: incomeDiff >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
@@ -141,11 +141,11 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card summary-card">
-          <div className="card-decoration deco-red"></div>
+          <div className="card-decoration"></div>
           <div className="summary-inner">
             <span className="summary-label">
               <span className="dot dot-red"></span>
-              {t('dashboard.totalExpense')}
+              <p className="text-red">{t('dashboard.totalExpense')}</p>
             </span>
             <span className="summary-value">{`R$${summary?.totalExpense.toFixed(2)}`}</span>
             <span className="summary-diff" style={{ color: expenseDiff <= 0 ? 'var(--primary)' : 'var(--danger)' }}>
@@ -161,11 +161,11 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card summary-card">
-          <div className="card-decoration deco-blue"></div>
+          <div className="card-decoration"></div>
           <div className="summary-inner">
             <span className="summary-label">
               <span className="dot dot-blue"></span>
-              {t('dashboard.balance')}
+              <p className="text-blue">{t('dashboard.balance')}</p>
             </span>
             <span className={`summary-value ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
               {`R$${summary?.balance.toFixed(2)}`}
@@ -402,6 +402,9 @@ const DashboardPage: React.FC = () => {
         .dot-green { background: var(--primary); }
         .dot-red { background: var(--danger); }
         .dot-blue { background: var(--info); }
+        .text-green { color: var(--primary); }
+        .text-red { color: var(--danger); }
+        .text-blue { color: var(--info); }
         .summary-value { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
         .summary-value.positive { color: var(--primary); }
         .summary-value.negative { color: var(--danger); }
