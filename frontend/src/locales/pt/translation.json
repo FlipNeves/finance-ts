@@ -148,5 +148,29 @@
     "noLimits": "Nenhum limite de categoria definido.",
     "selectCategory": "Selecionar categoria para limitar...",
     "deleteLimit": "Apagar limite"
+  },
+  "categoryNames": {
+    "Alimentação": "Alimentação",
+    "Food": "Alimentação",
+    "Moradia": "Moradia",
+    "Housing": "Moradia",
+    "Transporte": "Transporte",
+    "Transport": "Transporte",
+    "Transportation": "Transporte",
+    "Saúde": "Saúde",
+    "Health": "Saúde",
+    "Medical": "Saúde",
+    "Educação": "Educação",
+    "Education": "Educação",
+    "Lazer": "Lazer",
+    "Entertainment": "Lazer",
+    "Outros": "Outros",
+    "Others": "Outros",
+    "Salário": "Salário",
+    "Salary": "Salário",
+    "Investimentos": "Investimentos",
+    "Investments": "Investimentos",
+    "Utilities": "Contas",
+    "Contas": "Contas"
   }
 }

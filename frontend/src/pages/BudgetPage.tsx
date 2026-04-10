@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
+import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
 
 const BudgetPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { translateCategory } = useCategoryTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [globalLimit, setGlobalLimit] = useState<number>(0);
   const [, setCategories] = useState<string[]>([]);
@@ -87,7 +89,7 @@ const BudgetPage: React.FC = () => {
 
   const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  const monthLabel = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const monthLabel = currentMonth.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
 
   return (
     <div className="container" style={{ maxWidth: '800px' }}>
@@ -129,7 +131,7 @@ const BudgetPage: React.FC = () => {
             <div className="flex flex-col gap-2">
               {categoryLimits.map(cl => (
                 <div key={cl.category} className="flex justify-between items-center" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-                  <span style={{ fontWeight: 500 }}>{cl.category}</span>
+                  <span style={{ fontWeight: 500 }}>{translateCategory(cl.category)}</span>
                   <div className="flex items-center gap-1" style={{ maxWidth: '200px' }}>
                     <span style={{ color: 'var(--text-muted)' }}>R$</span>
                     <input 

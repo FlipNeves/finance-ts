@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { NumericFormat } from 'react-number-format';
 import Modal from './Modal';
 import api from '../services/api';
+import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   initialBankAccounts,
 }) => {
   const { t } = useTranslation();
+  const { translateCategory } = useCategoryTranslation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -175,7 +177,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 <div className="tm-select-row">
                   {categories.length > 0 ? (
                     <select className="form-control" style={{ flex: 1 }} value={category} onChange={(e) => setCategory(e.target.value)}>
-                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      {categories.map(c => <option key={c} value={c}>{translateCategory(c)}</option>)}
                     </select>
                   ) : (
                     <div className="form-control tm-placeholder" style={{ flex: 1 }}>

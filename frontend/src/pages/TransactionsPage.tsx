@@ -5,6 +5,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useMessageModal } from '../contexts/MessageModalContext';
 import TransactionModal from '../components/TransactionModal';
+import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
 
 interface Transaction {
   _id: string;
@@ -19,7 +20,8 @@ interface Transaction {
 }
 
 const TransactionsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { translateCategory } = useCategoryTranslation();
   const { user } = useAuth();
   const { showMessage, showConfirm } = useMessageModal();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -157,10 +159,10 @@ const TransactionsPage: React.FC = () => {
               ) : (
                 transactions.map((tr) => (
                   <tr key={tr._id} className={`tr-${tr.type}`}>
-                    <td className="text-muted" style={{ width: '120px' }}>{new Date(tr.date).toLocaleDateString()}</td>
+                    <td className="text-muted" style={{ width: '120px' }}>{new Date(tr.date).toLocaleDateString(i18n.language)}</td>
                     <td><span className="desc">{tr.description || '-'}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
-                    <td><span className="category-badge">{tr.category}</span></td>
+                    <td><span className="category-badge">{translateCategory(tr.category)}</span></td>
                     <td><span className="bank">{tr.bankAccount || '-'} {tr.isFixed ? t('transactions.fixedTag') : ''}</span></td>
                     <td className={`amount ${tr.type}`}>
                       {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}

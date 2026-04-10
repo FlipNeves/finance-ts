@@ -3,6 +3,7 @@ import { NumericFormat } from 'react-number-format';
 import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 import api from '../services/api';
+import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
 
 interface BudgetModalProps {
   isOpen: boolean;
@@ -11,7 +12,8 @@ interface BudgetModalProps {
 }
 
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { translateCategory } = useCategoryTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [globalLimit, setGlobalLimit] = useState<number | string>('');
   const [categoryLimits, setCategoryLimits] = useState<{ category: string; limit: number | string }[]>([]);
@@ -125,7 +127,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
 
   const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  const monthLabel = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const monthLabel = currentMonth.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
 
   // Let's present the list as only the ACTIVE limits. That way they can "apagar" a field and it disappears.
   // And they have a dropdown to add a new category limit.
@@ -182,7 +184,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
               ) : (
                 displayLimits.map(cl => (
                   <div key={cl.category} className="flex justify-between items-center bg-[var(--bg-card)] p-2 rounded border border-[var(--border)]">
-                    <span style={{ fontWeight: 500, fontSize: '14px' }}>{cl.category}</span>
+                    <span style={{ fontWeight: 500, fontSize: '14px' }}>{translateCategory(cl.category)}</span>
                     <div className="flex items-center gap-1">
                       <span style={{ color: 'var(--text-muted)' }}>R$</span>
                       <NumericFormat 
@@ -220,7 +222,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
                   style={{ fontSize: '14px', padding: '8px 12px' }}
                 >
                   <option value="">{t('budget.selectCategory')}</option>
-                  {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                  {availableCategories.map(c => <option key={c} value={c}>{translateCategory(c)}</option>)}
                 </select>
                 <button 
                   className="btn btn-outline" 

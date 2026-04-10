@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
         <div className="auth-header text-center mb-3">
           <div className="auth-logo mb-2">
             <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="32" height="32" rx="6" fill="var(--primary)"/>
+              <rect width="32" height="32" rx="6" fill="#00684A"/>
               <path d="M16 5C16 5 9 12 9 18c0 4 3.14 7 7 7s7-3 7-7c0-6-7-13-7-13z" fill="var(--primary-vivid)" opacity="0.9"/>
               <path d="M15.5 14v8.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M13.5 18.5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"/>

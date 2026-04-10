@@ -7,9 +7,11 @@ import TransactionModal from '../components/TransactionModal';
 import BudgetModal from '../components/BudgetModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
 
 const DashboardPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { translateCategory } = useCategoryTranslation();
   const { user } = useAuth();
   const { theme } = useTheme();
   
@@ -76,7 +78,7 @@ const DashboardPage: React.FC = () => {
   const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   
-  const monthLabel = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const monthLabel = currentMonth.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
 
   if (loading) return <div className="text-center mt-3 text-muted">{t('common.loading')}</div>;
 
@@ -192,7 +194,7 @@ const DashboardPage: React.FC = () => {
       {summary?.biggestExpense && (
         <div className="biggest-expense-alert">
           <span>⚠️</span>
-          <span>{t('dashboard.biggestExpense')}: {summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) {t('dashboard.inCategory')} {summary.biggestExpense.category}.</span>
+          <span>{t('dashboard.biggestExpense')}: {summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) {t('dashboard.inCategory')} {translateCategory(summary.biggestExpense.category)}.</span>
         </div>
       )}
 
@@ -226,10 +228,10 @@ const DashboardPage: React.FC = () => {
               ) : (
                 transactions.map((tr) => (
                   <tr key={tr._id}>
-                    <td className="text-muted">{new Date(tr.date).toLocaleDateString()}</td>
+                    <td className="text-muted">{new Date(tr.date).toLocaleDateString(i18n.language)}</td>
                     <td><span className="tx-desc">{tr.description || '-'}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
-                    <td><span className="category-badge">{tr.category}</span></td>
+                    <td><span className="category-badge">{translateCategory(tr.category)}</span></td>
                     <td><span className="tx-bank">{tr.bankAccount || '-'} {tr.isFixed ? t('transactions.fixedTag') : ''}</span></td>
                     <td className={`tx-amount ${tr.type}`}>
                       {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
@@ -254,8 +256,8 @@ const DashboardPage: React.FC = () => {
                   <div className="tx-card-left">
                     <span className="tx-card-desc">{tr.description || '-'}</span>
                     <div className="tx-card-meta">
-                      <span className="category-badge-sm">{tr.category}</span>
-                      <span className="tx-card-date">{new Date(tr.date).toLocaleDateString()}</span>
+                      <span className="category-badge-sm">{translateCategory(tr.category)}</span>
+                      <span className="tx-card-date">{new Date(tr.date).toLocaleDateString(i18n.language)}</span>
                     </div>
                   </div>
                   <span className={`tx-card-amount ${tr.type}`}>
@@ -291,14 +293,14 @@ const DashboardPage: React.FC = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={spending}
+                    data={spending.map(s => ({...s, name: translateCategory(s.category)}))}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
                     outerRadius={90}
                     paddingAngle={5}
                     dataKey="amount"
-                    nameKey="category"
+                    nameKey="name"
                   >
                     {spending.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
@@ -318,9 +320,9 @@ const DashboardPage: React.FC = () => {
           <div className="chart-wrapper">
             {spending.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={spending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={spending.map(s => ({...s, name: translateCategory(s.category)}))} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`} />
                   <Tooltip cursor={{ fill: 'var(--bg)', opacity: 0.5 }} contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} />
                   <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
