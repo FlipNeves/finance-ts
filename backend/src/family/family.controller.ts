@@ -101,8 +101,8 @@ export class FamilyController {
     @Body('category') category: string,
     @Req() req: any,
   ) {
-    const familyId = this.ensureFamilyId(req);
-    return this.familyService.addCustomCategory(familyId, category);
+    const familyId = req.user.familyId ? req.user.familyId.toString() : null;
+    return this.familyService.addCustomCategory(familyId, req.user._id.toString(), category);
   }
 
   @Post('bank-accounts')
@@ -110,8 +110,8 @@ export class FamilyController {
     @Body('bankAccount') bankAccount: string,
     @Req() req: any,
   ) {
-    const familyId = this.ensureFamilyId(req);
-    return this.familyService.addBankAccount(familyId, bankAccount);
+    const familyId = req.user.familyId ? req.user.familyId.toString() : null;
+    return this.familyService.addBankAccount(familyId, req.user._id.toString(), bankAccount);
   }
 
   @Delete('bank-accounts/:name')
@@ -119,7 +119,7 @@ export class FamilyController {
     @Param('name') bankAccount: string,
     @Req() req: any,
   ) {
-    const familyId = this.ensureFamilyId(req);
-    return this.familyService.removeBankAccount(familyId, bankAccount);
+    const familyId = req.user.familyId ? req.user.familyId.toString() : null;
+    return this.familyService.removeBankAccount(familyId, req.user._id.toString(), bankAccount);
   }
 }

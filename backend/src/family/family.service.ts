@@ -193,66 +193,76 @@ export class FamilyService {
     await user.save();
   }
 
-  async addCustomCategory(familyId: string, category: string): Promise<Family> {
-    if (!familyId) {
-      throw new BadRequestException('User does not belong to a family');
-    }
-
-    const family = await this.familyModel.findById(familyId).exec();
-
-    if (!family) {
-      throw new NotFoundException(`Family with ID ${familyId} not found`);
-    }
-
+  async addCustomCategory(familyId: string | null, userId: string, category: string): Promise<Family | User> {
     if (!category || !category.trim()) {
       throw new BadRequestException('Invalid category');
     }
-
     const normalized = category.trim();
 
-    if (!family.customCategories.includes(normalized)) {
-      family.customCategories.push(normalized);
-      await family.save();
+    if (familyId) {
+      const family = await this.familyModel.findById(familyId).exec();
+      if (!family) throw new NotFoundException(`Family with ID ${familyId} not found`);
+      if (!family.customCategories.includes(normalized)) {
+        family.customCategories.push(normalized);
+        await family.save();
+      }
+      return family;
+    } else {
+      const user = await this.userModel.findById(userId).exec();
+      if (!user) throw new NotFoundException('User not found');
+      if (!user.customCategories.includes(normalized)) {
+        user.customCategories.push(normalized);
+        await user.save();
+      }
+      return user;
     }
-
-    return family;
   }
 
-  async addBankAccount(familyId: string, bankAccount: string): Promise<Family> {
-    const family = await this.familyModel.findById(familyId).exec();
-
-    if (!family) {
-      throw new NotFoundException('Family not found');
-    }
-
+  async addBankAccount(familyId: string | null, userId: string, bankAccount: string): Promise<Family | User> {
     if (!bankAccount || !bankAccount.trim()) {
       throw new BadRequestException('Invalid bank account name');
     }
-
     const normalized = bankAccount.trim();
 
-    if (!family.bankAccounts.includes(normalized)) {
-      family.bankAccounts.push(normalized);
-      await family.save();
+    if (familyId) {
+      const family = await this.familyModel.findById(familyId).exec();
+      if (!family) throw new NotFoundException('Family not found');
+      if (!family.bankAccounts.includes(normalized)) {
+        family.bankAccounts.push(normalized);
+        await family.save();
+      }
+      return family;
+    } else {
+      const user = await this.userModel.findById(userId).exec();
+      if (!user) throw new NotFoundException('User not found');
+      if (!user.bankAccounts.includes(normalized)) {
+        user.bankAccounts.push(normalized);
+        await user.save();
+      }
+      return user;
     }
-
-    return family;
   }
 
-  async removeBankAccount(familyId: string, bankAccount: string): Promise<Family> {
-    const family = await this.familyModel.findById(familyId).exec();
-
-    if (!family) {
-      throw new NotFoundException('Family not found');
+  async removeBankAccount(familyId: string | null, userId: string, bankAccount: string): Promise<Family | User> {
+    if (familyId) {
+      const family = await this.familyModel.findById(familyId).exec();
+      if (!family) throw new NotFoundException('Family not found');
+      const index = family.bankAccounts.indexOf(bankAccount);
+      if (index > -1) {
+        family.bankAccounts.splice(index, 1);
+        await family.save();
+      }
+      return family;
+    } else {
+      const user = await this.userModel.findById(userId).exec();
+      if (!user) throw new NotFoundException('User not found');
+      const index = user.bankAccounts.indexOf(bankAccount);
+      if (index > -1) {
+        user.bankAccounts.splice(index, 1);
+        await user.save();
+      }
+      return user;
     }
-
-    const index = family.bankAccounts.indexOf(bankAccount);
-    if (index > -1) {
-      family.bankAccounts.splice(index, 1);
-      await family.save();
-    }
-
-    return family;
   }
 
 

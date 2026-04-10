@@ -44,7 +44,7 @@ export class TransactionsController {
   @Get('categories')
   async getCategories(@Req() req: any) {
     const familyId = this.getFamilyId(req);
-    return this.transactionsService.getCategories(familyId);
+    return this.transactionsService.getCategories(familyId, req.user._id);
   }
 
   @Get(':id')

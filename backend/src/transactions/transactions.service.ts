@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
 import { Family } from '../schemas/family.schema';
 import { Budget } from '../schemas/budget.schema';
+import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class TransactionsService {
@@ -25,6 +26,7 @@ export class TransactionsService {
     @InjectModel(Transaction.name) private transactionModel: Model<Transaction>,
     @InjectModel(Family.name) private familyModel: Model<Family>,
     @InjectModel(Budget.name) private budgetModel: Model<Budget>,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
   async create(
@@ -138,11 +140,14 @@ export class TransactionsService {
     }
   }
 
-  async getCategories(familyId: string | null): Promise<string[]> {
+  async getCategories(familyId: string | null, userId: string): Promise<string[]> {
     let customCategories: string[] = [];
     if (familyId) {
       const family = await this.familyModel.findById(familyId).exec();
       customCategories = family?.customCategories || [];
+    } else {
+      const user = await this.userModel.findById(userId).exec();
+      customCategories = user?.customCategories || [];
     }
     return [...new Set([...this.defaultCategories, ...customCategories])];
   }

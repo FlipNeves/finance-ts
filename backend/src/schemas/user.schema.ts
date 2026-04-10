@@ -12,6 +12,12 @@ export class User extends Document {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ type: [String], default: [] })
+  customCategories: string[];
+
+  @Prop({ type: [String], default: [] })
+  bankAccounts: string[];
+
   @Prop({ type: Types.ObjectId, ref: 'Family', default: null })
   familyId: Types.ObjectId | null;
 

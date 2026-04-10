@@ -54,7 +54,7 @@ const DashboardPage: React.FC = () => {
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions/categories'),
-        api.get('/family/details').catch(() => ({ data: { bankAccounts: [] } })),
+        api.get('/family/details').catch(() => api.get('/users/profile').catch(() => ({ data: { bankAccounts: [] } }))),
         api.get('/reports/evolution', { params: { endDate: end } })
       ]);
       setSummary(summaryRes.data);
