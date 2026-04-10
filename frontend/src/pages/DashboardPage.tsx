@@ -61,7 +61,7 @@ const DashboardPage: React.FC = () => {
       setTransactions(transRes.data.slice(0, 5)); 
       setCategories(catRes.data);
       setBankAccounts(familyRes.data.bankAccounts || []);
-      setEvolution(evolutionRes.data); // Ensure chronological order since backend already provides it oldest to newest
+      setEvolution(evolutionRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -87,21 +87,23 @@ const DashboardPage: React.FC = () => {
   const incomeDiff = summary?.totalIncome - (summary?.previousMonthIncome || 0);
 
   return (
-    <div className="dashboard-container fade-in">
-      <header className="dashboard-header mb-3">
-        <div className="header-left flex flex-col gap-1">
-          <h1 className="header-title">{t('dashboard.title')}</h1>
-          <p className="header-subtitle text-muted">Acompanhe suas finanças com clareza.</p>
-        </div>
-        <div className="header-actions flex gap-2 items-center">
-          <div className="month-selector flex items-center">
-            <button className="btn-icon" onClick={handlePrevMonth}>&lt;</button>
-            <span className="month-label">{monthLabel}</span>
-            <button className="btn-icon" onClick={handleNextMonth}>&gt;</button>
+    <div className="dash fade-in">
+      {/* HEADER: Title + Controls */}
+      <header className="dash-header">
+        <div className="dash-header-top">
+          <div>
+            <h1 className="dash-title">{t('dashboard.title')}</h1>
+            <p className="dash-subtitle">Acompanhe suas finanças com clareza.</p>
           </div>
+          <div className="dash-month-nav">
+            <button className="month-arrow" onClick={handlePrevMonth}>&lt;</button>
+            <span className="month-label">{monthLabel}</span>
+            <button className="month-arrow" onClick={handleNextMonth}>&gt;</button>
+          </div>
+        </div>
+        <div className="dash-actions">
           <select 
-            className="form-control" 
-            style={{ width: 'auto' }} 
+            className="form-control dash-filter" 
             value={typeFilter} 
             onChange={(e) => setTypeFilter(e.target.value as any)}
           >
@@ -115,91 +117,96 @@ const DashboardPage: React.FC = () => {
           <button className="btn btn-primary expense-btn" onClick={() => openModal('expense')}>
             + {t('transactions.addExpense') || 'Expense'}
           </button>
-          <button className="btn btn-outline" onClick={() => setIsBudgetOpen(true)} style={{ marginLeft: '8px' }}>
+          <button className="btn btn-outline" onClick={() => setIsBudgetOpen(true)}>
             Orçamentos
           </button>
         </div>
       </header>
       
-      <div className="grid-summary mb-3">
-        <div className="card summary-card income-card">
-          <div className="card-bg-decoration decoration-green"></div>
-          <div className="flex flex-col relative z-10">
-            <span className="label flex items-center gap-1">
-              <span className="dot dot-success"></span>
+      {/* SUMMARY CARDS */}
+      <div className="summary-grid">
+        <div className="card summary-card">
+          <div className="card-decoration deco-green"></div>
+          <div className="summary-inner">
+            <span className="summary-label">
+              <span className="dot dot-green"></span>
               {t('dashboard.totalIncome')}
             </span>
-            <span className="value">R${summary?.totalIncome.toFixed(2)}</span>
-            <span style={{ fontSize: '12px', marginTop: '4px', color: incomeDiff >= 0 ? '#10b981' : '#ef4444' }}>
+            <span className="summary-value">{`R$${summary?.totalIncome.toFixed(2)}`}</span>
+            <span className="summary-diff" style={{ color: incomeDiff >= 0 ? '#10b981' : '#ef4444' }}>
               {incomeDiff >= 0 ? '↑' : '↓'} R$ {Math.abs(incomeDiff).toFixed(2)} vs mês anterior
             </span>
           </div>
         </div>
-        <div className="card summary-card expense-card">
-           <div className="card-bg-decoration decoration-red"></div>
-          <div className="flex flex-col relative z-10">
-            <span className="label flex items-center gap-1">
-               <span className="dot dot-danger"></span>
+
+        <div className="card summary-card">
+          <div className="card-decoration deco-red"></div>
+          <div className="summary-inner">
+            <span className="summary-label">
+              <span className="dot dot-red"></span>
               {t('dashboard.totalExpense')}
             </span>
-            <span className="value">R${summary?.totalExpense.toFixed(2)}</span>
-            <span style={{ fontSize: '12px', marginTop: '4px', color: expenseDiff <= 0 ? '#10b981' : '#ef4444' }}>
+            <span className="summary-value">{`R$${summary?.totalExpense.toFixed(2)}`}</span>
+            <span className="summary-diff" style={{ color: expenseDiff <= 0 ? '#10b981' : '#ef4444' }}>
               {expenseDiff > 0 ? '↑' : '↓'} R$ {Math.abs(expenseDiff).toFixed(2)} vs mês anterior
             </span>
             {summary?.totalExpense > 0 && (
-              <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: '1px solid rgba(128,128,128,0.2)', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <div className="summary-breakdown">
                 <span>Fixo: R$ {summary.fixedExpense.toFixed(2)} ({(summary.fixedExpense/summary.totalExpense*100).toFixed(0)}%)</span>
                 <span>Var: R$ {summary.variableExpense.toFixed(2)}</span>
               </div>
             )}
           </div>
         </div>
-        <div className="card summary-card balance-card">
-          <div className="card-bg-decoration decoration-blue"></div>
-          <div className="flex flex-col relative z-10">
-            <span className="label flex items-center gap-1">
-               <span className="dot dot-info"></span>
+
+        <div className="card summary-card">
+          <div className="card-decoration deco-blue"></div>
+          <div className="summary-inner">
+            <span className="summary-label">
+              <span className="dot dot-blue"></span>
               {t('dashboard.balance')}
             </span>
-            <span className={`value ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
-              R${summary?.balance.toFixed(2)}
+            <span className={`summary-value ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
+              {`R$${summary?.balance.toFixed(2)}`}
             </span>
           </div>
         </div>
       </div>
 
+      {/* BUDGET PROGRESS */}
       {summary?.budgetLimit > 0 && (
-        <div className="card mb-3 p-3 flex flex-col gap-1" style={{ padding: '16px 24px' }}>
-            <div className="flex justify-between items-center text-sm" style={{ fontWeight: 600 }}>
-              <span>Progresso do Orçamento Mensal</span>
-              <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
-            </div>
-            <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ 
-                height: '100%', 
-                background: budgetPct > 90 ? '#ef4444' : budgetPct > 75 ? '#f59e0b' : '#10b981',
-                width: Math.min(budgetPct, 100) + '%',
-                transition: 'width 0.5s ease-in-out'
-              }}></div>
-            </div>
+        <div className="card budget-progress">
+          <div className="budget-progress-header">
+            <span>Progresso do Orçamento Mensal</span>
+            <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
+          </div>
+          <div className="budget-bar-track">
+            <div className="budget-bar-fill" style={{ 
+              background: budgetPct > 90 ? '#ef4444' : budgetPct > 75 ? '#f59e0b' : '#10b981',
+              width: Math.min(budgetPct, 100) + '%',
+            }}></div>
+          </div>
         </div>
       )}
       
+      {/* BIGGEST EXPENSE */}
       {summary?.biggestExpense && (
-        <div className="mb-3" style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600 }}>
+        <div className="biggest-expense-alert">
           <span>⚠️</span>
           <span>Maior despesa do mês: {summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) na categoria {summary.biggestExpense.category}.</span>
         </div>
       )}
 
-      {/* Rest of the tables and charts remain the same structure */}
-       <div className="card mb-3 table-card">
-        <div className="flex justify-between items-center mb-2 table-header">
-           <h2 className="section-title">{t('transactions.recent')}</h2>
-           <Link to="/transactions" className="btn btn-outline btn-sm view-all-btn">{t('dashboard.viewAll') || 'View All'} →</Link>
+      {/* RECENT TRANSACTIONS */}
+      <div className="card transactions-section">
+        <div className="transactions-header">
+          <h2 className="section-title">{t('transactions.recent')}</h2>
+          <Link to="/transactions" className="view-all-link">{t('dashboard.viewAll') || 'View All'} →</Link>
         </div>
-        <div className="table-responsive">
-          <table className="transaction-table">
+
+        {/* Desktop table */}
+        <div className="table-responsive desktop-table">
+          <table className="tx-table">
             <thead>
               <tr>
                 <th>{t('transactions.date')}</th>
@@ -213,19 +220,19 @@ const DashboardPage: React.FC = () => {
             <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center empty-state">
+                  <td colSpan={6} className="text-center empty-td">
                     {t('transactions.noTransactions') || 'No transactions found.'}
                   </td>
                 </tr>
               ) : (
                 transactions.map((tr) => (
-                  <tr key={tr._id} className={`tr-${tr.type}`}>
+                  <tr key={tr._id}>
                     <td className="text-muted">{new Date(tr.date).toLocaleDateString()}</td>
-                    <td><span className="desc">{tr.description || '-'}</span></td>
+                    <td><span className="tx-desc">{tr.description || '-'}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
                     <td><span className="category-badge">{tr.category}</span></td>
-                    <td><span className="bank">{tr.bankAccount || '-'} {tr.isFixed ? '(Fixa)' : ''}</span></td>
-                    <td className={`amount ${tr.type}`}>
+                    <td><span className="tx-bank">{tr.bankAccount || '-'} {tr.isFixed ? '(Fixa)' : ''}</span></td>
+                    <td className={`tx-amount ${tr.type}`}>
                       {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
                     </td>
                   </tr>
@@ -233,6 +240,32 @@ const DashboardPage: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="mobile-tx-list">
+          {transactions.length === 0 ? (
+            <div className="empty-state-mobile">
+              {t('transactions.noTransactions') || 'No transactions found.'}
+            </div>
+          ) : (
+            transactions.map((tr) => (
+              <div key={tr._id} className="tx-card">
+                <div className="tx-card-top">
+                  <div className="tx-card-left">
+                    <span className="tx-card-desc">{tr.description || '-'}</span>
+                    <div className="tx-card-meta">
+                      <span className="category-badge-sm">{tr.category}</span>
+                      <span className="tx-card-date">{new Date(tr.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <span className={`tx-card-amount ${tr.type}`}>
+                    {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       
@@ -250,8 +283,9 @@ const DashboardPage: React.FC = () => {
         onSuccess={loadData}
       />
 
-      <div className="grid-charts mt-3">
-        <div className="card chart-container shadow-sm">
+      {/* CHARTS */}
+      <div className="charts-grid">
+        <div className="card chart-card">
           <h3 className="section-title">{t('dashboard.spendingByCategory')} (Pie)</h3>
           <div className="chart-wrapper">
             {spending.length > 0 ? (
@@ -261,8 +295,8 @@ const DashboardPage: React.FC = () => {
                     data={spending}
                     cx="50%"
                     cy="50%"
-                    innerRadius={70}
-                    outerRadius={100}
+                    innerRadius={60}
+                    outerRadius={90}
                     paddingAngle={5}
                     dataKey="amount"
                     nameKey="category"
@@ -271,32 +305,25 @@ const DashboardPage: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
-                  />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center empty-state">
-                {t('dashboard.noData') || 'No spending data for this period'}
-              </div>
+              <div className="chart-empty">{t('dashboard.noData') || 'No spending data for this period'}</div>
             )}
           </div>
         </div>
 
-        <div className="card chart-container shadow-sm">
+        <div className="card chart-card">
           <h3 className="section-title">{t('dashboard.spendingByCategory')} (Bar)</h3>
           <div className="chart-wrapper">
             {spending.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={spending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} tickFormatter={(val) => `R$${val}`} />
-                  <Tooltip 
-                     cursor={{ fill: 'var(--bg)', opacity: 0.5 }}
-                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
-                  />
+                  <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`} />
+                  <Tooltip cursor={{ fill: 'var(--bg)', opacity: 0.5 }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }} />
                   <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                     {spending.map((_, index) => (
                       <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -305,14 +332,12 @@ const DashboardPage: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center empty-state">
-                {t('dashboard.noData') || 'No spending data for this period'}
-              </div>
+              <div className="chart-empty">{t('dashboard.noData') || 'No spending data for this period'}</div>
             )}
           </div>
         </div>
 
-        <div className="card chart-container area-chart-card shadow-sm" style={{ gridColumn: '1 / -1' }}>
+        <div className="card chart-card chart-full">
           <h3 className="section-title">{t('dashboard.evolution') || 'Last 3 Months Evolution'}</h3>
           <div className="chart-wrapper">
             {evolution.length > 0 ? (
@@ -329,20 +354,16 @@ const DashboardPage: React.FC = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} tickFormatter={(val) => `R$${val}`}/>
-                  <Tooltip 
-                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
-                  />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }} />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
-                  <Area type="monotone" dataKey="income" name={t('transactions.income') || 'Income'} stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
-                  <Area type="monotone" dataKey="expense" name={t('transactions.expense') || 'Expense'} stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
+                  <Area type="monotone" dataKey="income" name={t('transactions.income') || 'Income'} stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" />
+                  <Area type="monotone" dataKey="expense" name={t('transactions.expense') || 'Expense'} stroke="#ef4444" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpense)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center empty-state">
-                {t('dashboard.noData') || 'No data evolution available'}
-              </div>
+              <div className="chart-empty">{t('dashboard.noData') || 'No data evolution available'}</div>
             )}
           </div>
         </div>
@@ -352,231 +373,407 @@ const DashboardPage: React.FC = () => {
         .fade-in {
           animation: fadeIn 0.4s ease-out forwards;
         }
-
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        .dashboard-header {
-           display: flex;
-           justify-content: space-between;
-           align-items: center;
-           flex-wrap: wrap;
-           gap: 16px;
+        /* ========== HEADER ========== */
+        .dash-header {
+          margin-bottom: 20px;
         }
-        
-        .header-title {
-          font-size: 28px;
-          margin-bottom: 0;
+        .dash-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 12px;
         }
-        
-        .header-subtitle {
+        .dash-title {
+          font-size: 26px;
           margin: 0;
-          font-size: 14px;
         }
-        
-        .text-muted { color: var(--text-muted); }
-
-        .month-selector {
+        .dash-subtitle {
+          margin: 2px 0 0 0;
+          font-size: 14px;
+          color: var(--text-muted);
+        }
+        .dash-month-nav {
+          display: inline-flex;
+          align-items: center;
           background: var(--bg-card);
           border: 1px solid var(--border);
           border-radius: 8px;
-          padding: 4px;
+          padding: 2px;
+          flex-shrink: 0;
         }
-        
-        .month-label {
-          font-weight: 600;
-          min-width: 140px;
-          text-align: center;
-          text-transform: capitalize;
-          font-size: 14px;
-        }
-
-        .btn-icon {
+        .month-arrow {
           background: transparent;
           border: none;
-          padding: 6px 12px;
+          padding: 6px 10px;
           border-radius: 6px;
+          cursor: pointer;
+          color: var(--text);
+          font-weight: 700;
           transition: background 0.2s;
         }
-
-        .btn-icon:hover {
-          background: var(--bg);
+        .month-arrow:hover { background: var(--bg); }
+        .month-label {
+          font-weight: 600;
+          min-width: 120px;
+          text-align: center;
+          text-transform: capitalize;
+          font-size: 13px;
         }
-
+        .dash-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+        .dash-filter {
+          width: auto;
+          padding: 8px 12px;
+          font-size: 13px;
+        }
         .income-btn { color: #10b981; border-color: #10b981; }
         .income-btn:hover { background: #d1fae5 !important; border-color: #059669; color: #059669; }
-
         .expense-btn { background-color: #ef4444; }
         .expense-btn:hover { background-color: #dc2626 !important; }
 
-        .grid-summary {
+        /* ========== SUMMARY GRID ========== */
+        .summary-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 24px;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 16px;
         }
-
         .summary-card {
           position: relative;
           overflow: hidden;
-          padding: 24px 28px;
+          padding: 20px;
         }
-
-        .card-bg-decoration {
+        .summary-card:hover { transform: none; }
+        .card-decoration {
           position: absolute;
           top: -30px;
           right: -30px;
-          width: 120px;
-          height: 120px;
+          width: 100px;
+          height: 100px;
           border-radius: 50%;
           opacity: 0.15;
           filter: blur(20px);
           z-index: 0;
         }
-
-        .decoration-green { background: #10b981; }
-        .decoration-red { background: #ef4444; }
-        .decoration-blue { background: #3b82f6; }
-
-        .summary-card .label {
-          font-size: 14px;
+        .deco-green { background: #10b981; }
+        .deco-red { background: #ef4444; }
+        .deco-blue { background: #3b82f6; }
+        .summary-inner {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+        }
+        .summary-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
           color: var(--text-muted);
           font-weight: 600;
-          letter-spacing: 0.5px;
-          margin-bottom: 8px;
+          letter-spacing: 0.3px;
+          margin-bottom: 6px;
         }
-        
         .dot {
-          display: inline-block;
           width: 8px;
           height: 8px;
           border-radius: 50%;
+          flex-shrink: 0;
         }
-        .dot-success { background: #10b981; }
-        .dot-danger { background: #ef4444; }
-        .dot-info { background: #3b82f6; }
-
-        .summary-card .value {
-          font-size: 32px;
+        .dot-green { background: #10b981; }
+        .dot-red { background: #ef4444; }
+        .dot-blue { background: #3b82f6; }
+        .summary-value {
+          font-size: 28px;
           font-weight: 800;
-          letter-spacing: -1px;
+          letter-spacing: -0.5px;
         }
-        
-        .summary-card .value.positive { color: #10b981; }
-        .summary-card .value.negative { color: #ef4444; }
+        .summary-value.positive { color: #10b981; }
+        .summary-value.negative { color: #ef4444; }
+        .summary-diff {
+          font-size: 11px;
+          margin-top: 4px;
+        }
+        .summary-breakdown {
+          display: flex;
+          gap: 12px;
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid rgba(128,128,128,0.2);
+          font-size: 11px;
+          color: var(--text-muted);
+        }
 
+        /* ========== BUDGET PROGRESS ========== */
+        .budget-progress {
+          padding: 14px 20px;
+          margin-bottom: 16px;
+        }
+        .budget-progress:hover { transform: none; }
+        .budget-progress-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 8px;
+          gap: 8px;
+        }
+        .budget-bar-track {
+          width: 100%;
+          height: 8px;
+          background: var(--border);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        .budget-bar-fill {
+          height: 100%;
+          transition: width 0.5s ease-in-out;
+          border-radius: 4px;
+        }
+
+        /* ========== BIGGEST EXPENSE ========== */
+        .biggest-expense-alert {
+          background: var(--primary-light);
+          color: var(--primary-dark);
+          padding: 12px 16px;
+          border-radius: 8px;
+          border: 1px solid var(--primary);
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 16px;
+          line-height: 1.4;
+        }
+
+        /* ========== TRANSACTIONS TABLE (Desktop) ========== */
+        .transactions-section { margin-bottom: 16px; }
+        .transactions-section:hover { transform: none; }
+        .transactions-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
         .section-title {
-          font-size: 18px;
-          margin-bottom: 0;
+          font-size: 17px;
+          margin: 0;
         }
-
-        .table-card {
-          padding: 24px;
-        }
-
-        .view-all-btn {
-          border: none;
-          box-shadow: none;
+        .view-all-link {
+          font-size: 13px;
+          font-weight: 600;
           color: var(--primary);
         }
-
-        .transaction-table {
+        .table-responsive { overflow-x: auto; }
+        .tx-table {
           width: 100%;
           border-collapse: separate;
-          border-spacing: 0 8px;
+          border-spacing: 0 6px;
         }
-        
-        .transaction-table th {
+        .tx-table th {
           text-align: left;
-          padding: 8px 16px;
+          padding: 8px 12px;
           color: var(--text-muted);
-          font-size: 12px;
+          font-size: 11px;
           text-transform: uppercase;
           font-weight: 600;
           letter-spacing: 0.5px;
           border-bottom: 1px solid var(--border);
         }
-
-        .text-right { text-align: right !important; }
-        
-        .transaction-table td {
-          padding: 16px;
-          font-size: 14px;
+        .tx-table td {
+          padding: 12px;
+          font-size: 13px;
           background: var(--bg-card);
           border-top: 1px solid var(--border);
           border-bottom: 1px solid var(--border);
         }
-
-        /* Rounded row edges */
-        .transaction-table td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        .transaction-table td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
-        
-        .transaction-table tbody tr {
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .transaction-table tbody tr:hover td {
-          background: var(--bg);
-          cursor: pointer;
-        }
-
-        .amount {
+        .tx-table td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .tx-table td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        .tx-table tbody tr:hover td { background: var(--bg); }
+        .tx-desc { font-weight: 600; color: var(--text); }
+        .tx-bank { font-size: 12px; color: var(--text-muted); }
+        .tx-amount {
           font-weight: 700;
           text-align: right;
           font-variant-numeric: tabular-nums;
+          white-space: nowrap;
         }
-        
-        .amount.income { color: #10b981; }
-        .amount.expense { color: #ef4444; }
-
+        .tx-amount.income { color: #10b981; }
+        .tx-amount.expense { color: #ef4444; }
+        .text-right { text-align: right !important; }
         .category-badge {
           background-color: var(--primary-light);
           color: var(--primary-dark);
-          padding: 4px 10px;
-          border-radius: 9999px; /* Pill */
-          font-size: 12px;
+          padding: 3px 8px;
+          border-radius: 9999px;
+          font-size: 11px;
           font-weight: 600;
+          white-space: nowrap;
         }
-        
         .user-badge {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
           background: var(--bg);
           border: 1px solid var(--border);
-          padding: 4px 10px;
+          padding: 3px 8px;
           border-radius: 6px;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 500;
         }
+        .empty-td { padding: 32px !important; color: var(--text-muted); }
 
-        .bank { font-size: 12px; color: var(--text-muted); margin-top: 2px;}
-        .desc { font-weight: 600; color: var(--text); }
-        .empty-state { padding: 40px !important; color: var(--text-muted); }
-        
-        .table-responsive { overflow-x: auto; }
+        /* ========== TRANSACTIONS MOBILE CARDS ========== */
+        .mobile-tx-list {
+          display: none;
+        }
+        .tx-card {
+          padding: 14px 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .tx-card:last-child { border-bottom: none; }
+        .tx-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .tx-card-left {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
+          flex: 1;
+        }
+        .tx-card-desc {
+          font-weight: 600;
+          font-size: 14px;
+          color: var(--text);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .tx-card-meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .category-badge-sm {
+          background-color: var(--primary-light);
+          color: var(--primary-dark);
+          padding: 2px 6px;
+          border-radius: 6px;
+          font-size: 10px;
+          font-weight: 600;
+        }
+        .tx-card-date {
+          font-size: 11px;
+          color: var(--text-muted);
+        }
+        .tx-card-amount {
+          font-weight: 700;
+          font-size: 15px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .tx-card-amount.income { color: #10b981; }
+        .tx-card-amount.expense { color: #ef4444; }
+        .empty-state-mobile {
+          padding: 32px 16px;
+          text-align: center;
+          color: var(--text-muted);
+          font-size: 14px;
+        }
 
-        .grid-charts {
+        /* ========== CHARTS ========== */
+        .charts-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 24px;
+          gap: 16px;
         }
-        
-        .chart-container { padding: 24px; }
-        .chart-container .section-title { margin-bottom: 24px; }
-        
+        .chart-card { padding: 20px; }
+        .chart-card:hover { transform: none; }
+        .chart-card .section-title { margin-bottom: 16px; }
         .chart-wrapper {
-          height: 300px;
+          height: 280px;
           width: 100%;
         }
+        .chart-full { grid-column: 1 / -1; }
+        .chart-empty {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+          font-size: 14px;
+        }
 
-        @media (max-width: 600px) {
-          .grid-charts { grid-template-columns: 1fr; }
-          .chart-wrapper { height: 260px; }
-          .dashboard-header { flex-direction: column; align-items: flex-start; }
-          .header-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
-          .transaction-table td { padding: 12px 8px; }
+        /* ========== MOBILE ========== */
+        @media (max-width: 768px) {
+          .dash-header-top {
+            flex-direction: column;
+            gap: 10px;
+          }
+          .dash-title { font-size: 22px; }
+          .dash-month-nav { align-self: stretch; justify-content: space-between; }
+          .month-label { min-width: 0; flex: 1; }
+          .dash-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+          }
+          .dash-filter {
+            grid-column: 1 / -1;
+          }
+
+          .summary-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+          .summary-card { padding: 16px; }
+          .summary-value { font-size: 24px; }
+          .summary-label { font-size: 12px; }
+          .summary-diff { font-size: 10px; }
+          .summary-breakdown { font-size: 10px; gap: 8px; }
+
+          .budget-progress { padding: 12px 16px; }
+          .budget-progress-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            font-size: 12px;
+          }
+
+          .biggest-expense-alert { font-size: 12px; }
+
+          /* Hide desktop table, show mobile cards */
+          .desktop-table { display: none !important; }
+          .mobile-tx-list { display: block; }
+
+          .charts-grid {
+            grid-template-columns: 1fr;
+          }
+          .chart-wrapper { height: 220px; }
+
+          .section-title { font-size: 15px; }
+        }
+
+        @media (max-width: 380px) {
+          .dash-actions {
+            grid-template-columns: 1fr;
+          }
+          .summary-value { font-size: 22px; }
         }
       `}</style>
     </div>

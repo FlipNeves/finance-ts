@@ -118,7 +118,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       });
       
       if (res.data?.alert) {
-        alert(res.data.alert); // Display warning if limit is >= 80%
+        alert(res.data.alert);
       }
 
       onSuccess();
@@ -140,10 +140,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     switch (step) {
       case 1:
         return (
-          <div className="flex flex-col gap-2">
-            <h3>{t('transactions.step1') || 'Step 1: Description & Category'}</h3>
-            <div className="flex flex-col gap-1">
-              <label>{t('transactions.description')}</label>
+          <div className="tm-step">
+            <h3 className="tm-step-title">{t('transactions.step1') || 'Step 1: Description & Category'}</h3>
+            <div className="tm-field">
+              <label className="tm-label">{t('transactions.description')}</label>
               <input 
                 type="text" 
                 className="form-control" 
@@ -153,58 +153,58 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 autoFocus
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <label>{t('transactions.category')}</label>
+            <div className="tm-field">
+              <label className="tm-label">{t('transactions.category')}</label>
               {isCreatingCategory ? (
-                <div className="flex gap-1">
+                <div className="tm-inline-create">
                   <input 
                     type="text" 
-                    className="form-control flex-1" 
+                    className="form-control" 
+                    style={{ flex: 1 }}
                     value={newCategory} 
                     onChange={(e) => setNewCategory(e.target.value)}
                     placeholder="New category name"
                     autoFocus
                   />
-                  <button className="btn btn-primary" onClick={handleCreateCategory} disabled={loading || !newCategory.trim()}>
+                  <button className="btn btn-primary btn-sm" onClick={handleCreateCategory} disabled={loading || !newCategory.trim()}>
                     {loading ? '...' : (t('common.add') || 'Add')}
                   </button>
-                  <button className="btn btn-outline" onClick={() => setIsCreatingCategory(false)}>✕</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => setIsCreatingCategory(false)}>✕</button>
                 </div>
               ) : (
-                <div className="flex gap-1">
+                <div className="tm-select-row">
                   {categories.length > 0 ? (
-                    <select className="form-control flex-1" value={category} onChange={(e) => setCategory(e.target.value)}>
+                    <select className="form-control" style={{ flex: 1 }} value={category} onChange={(e) => setCategory(e.target.value)}>
                       {categories.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   ) : (
-                    <div className="form-control flex-1" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                    <div className="form-control tm-placeholder" style={{ flex: 1 }}>
                       {t('transactions.noCategoriesYet') || 'No categories yet — create one →'}
                     </div>
                   )}
-                  <button className="btn btn-outline" onClick={() => setIsCreatingCategory(true)} style={{ minWidth: '42px' }}>+</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => setIsCreatingCategory(true)}>+</button>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="tm-checkbox">
               <input type="checkbox" id="isFixed" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} />
-              <label htmlFor="isFixed" style={{ fontSize: '14px', cursor: 'pointer' }}>Despesa Fixa mensal</label>
+              <label htmlFor="isFixed">Despesa Fixa mensal</label>
             </div>
-            <button className="btn btn-primary mt-2 w-full" onClick={nextStep} disabled={!canProceedStep1}>
+            <button className="btn btn-primary tm-next-btn" onClick={nextStep} disabled={!canProceedStep1}>
               {t('common.next') || 'Next'} →
             </button>
           </div>
         );
       case 2:
         return (
-          <div className="flex flex-col gap-2">
-            <h3>{t('transactions.step2') || 'Step 2: Amount'}</h3>
-            <div className="flex flex-col gap-1">
-              <label>{t('transactions.amount')}</label>
-              <div className="flex items-center gap-1">
-                <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)' }}>$</span>
+          <div className="tm-step">
+            <h3 className="tm-step-title">{t('transactions.step2') || 'Step 2: Amount'}</h3>
+            <div className="tm-field">
+              <label className="tm-label">{t('transactions.amount')}</label>
+              <div className="tm-amount-wrapper">
+                <span className="tm-currency">R$</span>
                 <NumericFormat 
-                  className="form-control flex-1" 
-                  style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center' }}
+                  className="form-control tm-amount-input" 
                   value={amount} 
                   onValueChange={(values) => setAmount(values.floatValue || '')}
                   thousandSeparator="."
@@ -217,9 +217,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 />
               </div>
             </div>
-            <div className="flex gap-2 mt-2">
-              <button className="btn btn-outline flex-1" onClick={prevStep}>← {t('common.back') || 'Back'}</button>
-              <button className="btn btn-primary flex-1" onClick={nextStep} disabled={!amount || Number(amount) <= 0}>
+            <div className="tm-nav-buttons">
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={prevStep}>← {t('common.back') || 'Back'}</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={nextStep} disabled={!amount || Number(amount) <= 0}>
                 {t('common.next') || 'Next'} →
               </button>
             </div>
@@ -227,47 +227,48 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         );
       case 3:
         return (
-          <div className="flex flex-col gap-2">
-            <h3>{t('transactions.step3') || 'Step 3: Account & Date'}</h3>
-            <div className="flex flex-col gap-1">
-              <label>{t('transactions.bankAccount') || 'Bank Account'}</label>
+          <div className="tm-step">
+            <h3 className="tm-step-title">{t('transactions.step3') || 'Step 3: Account & Date'}</h3>
+            <div className="tm-field">
+              <label className="tm-label">{t('transactions.bankAccount') || 'Bank Account'}</label>
               {isCreatingAccount ? (
-                <div className="flex gap-1">
+                <div className="tm-inline-create">
                   <input 
                     type="text" 
-                    className="form-control flex-1" 
+                    className="form-control"
+                    style={{ flex: 1 }} 
                     value={newBankAccount} 
                     onChange={(e) => setNewBankAccount(e.target.value)}
                     placeholder="New account name"
                     autoFocus
                   />
-                  <button className="btn btn-primary" onClick={handleCreateAccount} disabled={loading || !newBankAccount.trim()}>
+                  <button className="btn btn-primary btn-sm" onClick={handleCreateAccount} disabled={loading || !newBankAccount.trim()}>
                     {loading ? '...' : (t('common.add') || 'Add')}
                   </button>
-                  <button className="btn btn-outline" onClick={() => setIsCreatingAccount(false)}>✕</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => setIsCreatingAccount(false)}>✕</button>
                 </div>
               ) : (
-                <div className="flex gap-1">
+                <div className="tm-select-row">
                   {bankAccounts.length > 0 ? (
-                    <select className="form-control flex-1" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
+                    <select className="form-control" style={{ flex: 1 }} value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
                       {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                   ) : (
-                    <div className="form-control flex-1" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                    <div className="form-control tm-placeholder" style={{ flex: 1 }}>
                       {t('transactions.noAccountsYet') || 'No accounts yet — create one →'}
                     </div>
                   )}
-                  <button className="btn btn-outline" onClick={() => setIsCreatingAccount(true)} style={{ minWidth: '42px' }}>+</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => setIsCreatingAccount(true)}>+</button>
                 </div>
               )}
             </div>
-            <div className="flex flex-col gap-1">
-                <label>{t('transactions.date')}</label>
-                <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <div className="tm-field">
+              <label className="tm-label">{t('transactions.date')}</label>
+              <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
             </div>
-            <div className="flex gap-2 mt-2">
-              <button className="btn btn-outline flex-1" onClick={prevStep}>← {t('common.back') || 'Back'}</button>
-              <button className="btn btn-primary flex-1" onClick={handleSubmit} disabled={loading}>
+            <div className="tm-nav-buttons">
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={prevStep}>← {t('common.back') || 'Back'}</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSubmit} disabled={loading}>
                 {loading ? '...' : (t('common.confirm') || 'Confirm')}
               </button>
             </div>
@@ -278,14 +279,13 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
   const renderIncomeFlow = () => {
     return (
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1">
-          <label>{t('transactions.amount')}</label>
-          <div className="flex items-center gap-1">
-            <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)' }}>$</span>
+      <div className="tm-step">
+        <div className="tm-field">
+          <label className="tm-label">{t('transactions.amount')}</label>
+          <div className="tm-amount-wrapper">
+            <span className="tm-currency">R$</span>
             <NumericFormat 
-              className="form-control" 
-              style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center' }}
+              className="form-control tm-amount-input" 
               value={amount} 
               onValueChange={(values) => setAmount(values.floatValue || '')}
               thousandSeparator="."
@@ -298,24 +298,22 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             />
           </div>
         </div>
-        <div className="flex flex-col gap-1">
-          <label>{t('transactions.description')} ({t('common.optional') || 'Optional'})</label>
+        <div className="tm-field">
+          <label className="tm-label">{t('transactions.description')} ({t('common.optional') || 'Optional'})</label>
           <input type="text" className="form-control" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex: Salary" />
         </div>
-        <div className="flex flex-col gap-1">
-          <label>{t('transactions.bankAccount')} ({t('common.optional') || 'Optional'})</label>
-          <div className="flex gap-1">
-            <select className="form-control flex-1" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
-              <option value="">{t('common.select') || 'Select'}</option>
-              {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
+        <div className="tm-field">
+          <label className="tm-label">{t('transactions.bankAccount')} ({t('common.optional') || 'Optional'})</label>
+          <select className="form-control" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)}>
+            <option value="">{t('common.select') || 'Select'}</option>
+            {bankAccounts.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
         </div>
-        <div className="flex flex-col gap-1">
-          <label>{t('transactions.date')}</label>
+        <div className="tm-field">
+          <label className="tm-label">{t('transactions.date')}</label>
           <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
-        <button className="btn btn-primary mt-2 w-full" onClick={handleSubmit} disabled={loading || !amount || Number(amount) <= 0}>
+        <button className="btn btn-primary tm-next-btn" onClick={handleSubmit} disabled={loading || !amount || Number(amount) <= 0}>
           {loading ? '...' : (t('common.add') || 'Add')}
         </button>
       </div>
@@ -324,11 +322,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={type === 'expense' ? t('transactions.addExpense') || 'Add Expense' : t('transactions.addIncome') || 'Add Income'}>
-      <div className="modal-stepper">
+      <div className="tm-modal">
         {type === 'expense' && (
-          <div className="steps-indicator flex gap-1 mb-2">
+          <div className="tm-steps-indicator">
             {[1, 2, 3].map(s => (
-              <div key={s} className={`step-dot ${step >= s ? 'active' : ''}`} />
+              <div key={s} className={`tm-step-dot ${step >= s ? 'active' : ''}`} />
             ))}
           </div>
         )}
@@ -336,41 +334,140 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       </div>
 
       <style>{`
-        .steps-indicator {
+        .tm-modal {}
+        .tm-steps-indicator {
+          display: flex;
           justify-content: center;
+          gap: 8px;
+          margin-bottom: 16px;
         }
-        .step-dot {
+        .tm-step-dot {
           width: 8px;
           height: 8px;
           border-radius: 50%;
           background-color: var(--border);
-          transition: background-color 0.3s;
+          transition: background-color 0.3s, transform 0.3s;
         }
-        .step-dot.active {
+        .tm-step-dot.active {
           background-color: var(--primary);
+          transform: scale(1.2);
         }
-        h3 {
-          font-size: 16px;
+        .tm-step {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .tm-step-title {
+          font-size: 15px;
           color: var(--text-muted);
           text-align: center;
-          margin-bottom: 16px;
+          margin: 0;
+          font-weight: 500;
+        }
+        .tm-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .tm-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text);
+        }
+        .tm-inline-create {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+        .tm-select-row {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+        .tm-placeholder {
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          font-size: 13px;
+        }
+        .tm-checkbox {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .tm-checkbox label {
+          font-size: 14px;
+          cursor: pointer;
+          color: var(--text);
+        }
+        .tm-checkbox input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          accent-color: var(--primary);
+        }
+        .tm-amount-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .tm-currency {
+          font-size: 28px;
+          font-weight: 800;
+          color: var(--primary);
+          flex-shrink: 0;
+        }
+        .tm-amount-input {
+          font-size: 28px !important;
+          font-weight: 800 !important;
+          text-align: center;
+          flex: 1;
+          min-width: 0;
+        }
+        .tm-nav-buttons {
+          display: flex;
+          gap: 10px;
+          margin-top: 4px;
+        }
+        .tm-next-btn {
+          width: 100%;
+          padding: 14px;
+          font-size: 15px;
+          margin-top: 4px;
         }
         .form-control {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background-color: var(--bg);
-            color: var(--text);
-            font-size: 16px;
-            width: 100%;
-            transition: all 0.2s;
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          background-color: var(--bg);
+          color: var(--text);
+          font-size: 16px;
+          width: 100%;
+          transition: all 0.2s;
         }
         .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
+          outline: none;
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px var(--primary-light);
         }
-        .flex-1 { flex: 1; }
+
+        @media (max-width: 768px) {
+          .tm-currency { font-size: 24px; }
+          .tm-amount-input { font-size: 24px !important; }
+          .tm-inline-create {
+            flex-wrap: wrap;
+          }
+          .tm-inline-create .form-control {
+            min-width: 0;
+          }
+          .tm-nav-buttons {
+            flex-direction: column;
+          }
+          .tm-nav-buttons .btn {
+            flex: unset;
+            width: 100%;
+            padding: 14px;
+          }
+        }
       `}</style>
     </Modal>
   );

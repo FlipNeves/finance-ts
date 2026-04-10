@@ -6,7 +6,7 @@ const BudgetPage: React.FC = () => {
   const { t } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [globalLimit, setGlobalLimit] = useState<number>(0);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [, setCategories] = useState<string[]>([]);
   const [categoryLimits, setCategoryLimits] = useState<{ category: string; limit: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,8 +93,8 @@ const BudgetPage: React.FC = () => {
     <div className="container" style={{ maxWidth: '800px' }}>
       <header className="flex justify-between items-center mb-3">
         <div>
-          <h2>Orçamento Mensal</h2>
-          <p className="text-muted">Defina seus limites de gastos por categoria para controlar o seu mês.</p>
+          <h2>{t('budget.title') || 'Orçamento Mensal'}</h2>
+          <p className="text-muted">{t('budget.description') || 'Defina seus limites de gastos por categoria para controlar o seu mês.'}</p>
         </div>
         <div className="month-selector flex items-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '4px' }}>
             <button className="btn-icon" onClick={handlePrevMonth}>&lt;</button>

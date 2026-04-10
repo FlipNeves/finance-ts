@@ -1,3 +1,4 @@
+/* ========== HEADER ========== */
 .header {
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border);
@@ -5,6 +6,13 @@
   top: 0;
   z-index: 100;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--header-height);
 }
 
 .brand {
@@ -73,12 +81,211 @@
 .ml-2 { margin-left: 16px; }
 .ml-3 { margin-left: 24px; }
 
+/* ========== HAMBURGER BUTTON ========== */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  z-index: 200;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.hamburger-btn:hover {
+  background: var(--primary-light);
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 20px;
+}
+
+.hamburger-icon span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.hamburger-btn.open .hamburger-icon span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger-btn.open .hamburger-icon span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger-btn.open .hamburger-icon span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ========== FLOATING FAB MENU ========== */
+.fab-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.fab-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fab-menu {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  left: 16px;
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.fab-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.2s;
+  cursor: pointer;
+  width: 100%;
+}
+
+.fab-item:hover,
+.fab-item:active {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  transform: scale(0.98);
+  text-decoration: none;
+}
+
+.fab-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.fab-item-icon.nav-icon { background: var(--primary-light); color: var(--primary-dark); }
+.fab-item-icon.theme-icon { background: #fef3c7; color: #d97706; }
+.fab-item-icon.lang-icon { background: #dbeafe; color: #2563eb; }
+.fab-item-icon.logout-icon { background: #fee2e2; color: #ef4444; }
+
+.fab-item-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.fab-item-label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fab-item-sublabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.fab-section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+  opacity: 0.5;
+}
+
+.fab-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.fab-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.fab-user-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.fab-user-email {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ========== DESKTOP: Hide hamburger, show nav ========== */
+@media (min-width: 769px) {
+  .hamburger-btn { display: none !important; }
+  .fab-overlay { display: none !important; }
+  .fab-menu { display: none !important; }
+}
+
+/* ========== MOBILE: Show hamburger, hide desktop nav ========== */
 @media (max-width: 768px) {
-  .nav-links {
-    display: none; /* simple responsive for now */
+  .hamburger-btn {
+    display: flex;
   }
-  
+
+  .nav-links {
+    display: none !important;
+  }
+
   .user-name {
     display: none;
+  }
+
+  .desktop-controls {
+    display: none !important;
   }
 }

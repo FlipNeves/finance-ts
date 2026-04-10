@@ -21,7 +21,7 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
   --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
   
-  --header-height: 64px;
+  --header-height: 56px;
 
   --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -57,6 +57,8 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -105,8 +107,11 @@ button {
 /* Utils */
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
 .items-center { align-items: center; }
+.items-end { align-items: flex-end; }
 .justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
 .gap-1 { gap: 8px; }
 .gap-2 { gap: 16px; }
 .gap-3 { gap: 24px; }
@@ -117,6 +122,9 @@ button {
 .mb-3 { margin-bottom: 24px; }
 .text-center { text-align: center; }
 .w-full { width: 100%; }
+.text-muted { color: var(--text-muted); }
+.relative { position: relative; }
+.z-10 { z-index: 10; }
 
 /* Buttons */
 .btn {
@@ -131,6 +139,7 @@ button {
   justify-content: center;
   gap: 8px;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .btn:active {
@@ -171,6 +180,11 @@ button {
   transform: scale(0.9);
 }
 
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
 /* Forms */
 .form-control {
   border: 1px solid var(--border);
@@ -179,7 +193,7 @@ button {
   border-radius: 8px;
   padding: 10px 14px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Prevents iOS zoom on focus */
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -187,4 +201,44 @@ button {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* ========== MOBILE RESPONSIVE ========== */
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 52px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .card:hover {
+    transform: none; /* Disable float on touch devices */
+    box-shadow: var(--shadow);
+  }
+
+  .mt-3 { margin-top: 16px; }
+  .mb-3 { margin-bottom: 16px; }
+  .gap-3 { gap: 16px; }
+
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 16px; }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .card {
+    padding: 14px;
+  }
 }
