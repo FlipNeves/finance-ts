@@ -188,7 +188,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             </div>
             <div className="tm-checkbox">
               <input type="checkbox" id="isFixed" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} />
-              <label htmlFor="isFixed">Despesa Fixa mensal</label>
+              <label htmlFor="isFixed">{t('transactions.isFixed')}</label>
             </div>
             <button className="btn btn-primary tm-next-btn" onClick={nextStep} disabled={!canProceedStep1}>
               {t('common.next') || 'Next'} →

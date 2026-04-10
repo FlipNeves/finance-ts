@@ -113,7 +113,7 @@ const FamilyPage: React.FC = () => {
           await api.delete(`/family/members/${memberId}`);
           loadData();
         } catch {
-          showMessage('Error', 'Error removing member');
+          showMessage(t('common.error') || 'Error', t('common.error') || 'Error removing member');
         }
       },
       true

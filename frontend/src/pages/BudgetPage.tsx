@@ -52,10 +52,10 @@ const BudgetPage: React.FC = () => {
       const y = currentMonth.getFullYear();
       await api.post('/budgets/copy', { month: m, year: y });
       await loadData();
-      alert('Orçamento copiado com sucesso!');
+      alert(t('budget.copiedSuccess'));
     } catch (err) {
       console.error(err);
-      alert('Erro ao copiar ou orçamento anterior não existe.');
+      alert(t('budget.copyError'));
       setLoading(false);
     }
   };
@@ -72,10 +72,10 @@ const BudgetPage: React.FC = () => {
         categoryLimits: categoryLimits.filter(c => c.limit > 0),
       };
       await api.post('/budgets', payload);
-      alert('Orçamento salvo com sucesso!');
+      alert(t('budget.savedSuccess'));
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar orçamento.');
+      alert(t('budget.saveError'));
     } finally {
       setSaving(false);
     }
@@ -93,8 +93,8 @@ const BudgetPage: React.FC = () => {
     <div className="container" style={{ maxWidth: '800px' }}>
       <header className="flex justify-between items-center mb-3">
         <div>
-          <h2>{t('budget.title') || 'Orçamento Mensal'}</h2>
-          <p className="text-muted">{t('budget.description') || 'Defina seus limites de gastos por categoria para controlar o seu mês.'}</p>
+          <h2>{t('budget.title')}</h2>
+          <p className="text-muted">{t('budget.description')}</p>
         </div>
         <div className="month-selector flex items-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '4px' }}>
             <button className="btn-icon" onClick={handlePrevMonth}>&lt;</button>
@@ -104,13 +104,13 @@ const BudgetPage: React.FC = () => {
       </header>
 
       {loading ? (
-        <div className="text-center text-muted">Carregando...</div>
+        <div className="text-center text-muted">{t('common.loading')}</div>
       ) : (
         <>
           <div className="card mb-3">
             <div className="flex justify-between items-center mb-2">
-              <h3>Limite Global do Mês</h3>
-              <button className="btn btn-outline btn-sm" onClick={handleCopyPrevMonth}>Copiar do Mês Passado</button>
+              <h3>{t('budget.globalLimit')}</h3>
+              <button className="btn btn-outline btn-sm" onClick={handleCopyPrevMonth}>{t('budget.copyPrevMonth')}</button>
             </div>
             <div className="flex items-center gap-1">
               <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--primary)' }}>R$</span>
@@ -125,7 +125,7 @@ const BudgetPage: React.FC = () => {
           </div>
 
           <div className="card mb-3">
-            <h3 className="mb-2">Limites por Categoria</h3>
+            <h3 className="mb-2">{t('budget.categoryLimits')}</h3>
             <div className="flex flex-col gap-2">
               {categoryLimits.map(cl => (
                 <div key={cl.category} className="flex justify-between items-center" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
@@ -146,7 +146,7 @@ const BudgetPage: React.FC = () => {
           </div>
 
           <button className="btn btn-primary w-full" onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar Orçamento'}
+            {saving ? t('budget.saving') : t('budget.save')}
           </button>
         </>
       )}

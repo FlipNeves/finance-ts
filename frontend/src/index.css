@@ -1,50 +1,72 @@
+/* ========== VerdantCash Design System ========== */
+/* Inspired by MongoDB LeafyGreen */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-  /* Premium Stripe-like Palette - Light Mode */
-  --primary: #635bff; /* Stripe Blurple as primary, or we can use a rich green */
-  /* Let's use a rich green for finance, it looks professional */
-  --primary: #059669; 
-  --primary-dark: #047857;
-  --primary-light: #d1fae5;
-  --accent: #10b981;
-  --success: #10b981;
-  --danger: #ef4444;
-  --info: #3b82f6;
-  
-  --text: #1a1f36;
-  --text-muted: #6b7280;
-  --bg: #f7f9fc;
-  --bg-card: #ffffff;
-  --border: #e2e8f0;
-  
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  
+  /* VerdantCash Palette — Light Mode (MongoDB LeafyGreen inspired) */
+  --primary: #00684A;
+  --primary-dark: #004D37;
+  --primary-light: #E3FCF7;
+  --primary-vivid: #00ED64;
+  --accent: #00ED64;
+  --success: #00684A;
+  --danger: #DB3030;
+  --danger-light: #FFEFEF;
+  --info: #016BF8;
+  --info-light: #E1F7FF;
+  --warning: #FFC010;
+  --warning-light: #FEF7DB;
+
+  --text: #001E2B;
+  --text-secondary: #5C6C75;
+  --bg: #F9FBFA;
+  --bg-card: #FFFFFF;
+  --border: #E8EDEB;
+  --border-hover: #C1C7C6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 30, 43, 0.04);
+  --shadow: 0 4px 10px -2px rgba(0, 30, 43, 0.06), 0 2px 4px -1px rgba(0, 30, 43, 0.03);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 30, 43, 0.08), 0 4px 8px -2px rgba(0, 30, 43, 0.04);
+  --shadow-hover: 0 8px 16px -4px rgba(0, 30, 43, 0.06);
+
   --header-height: 56px;
+  --radius: 6px;
+  --radius-lg: 12px;
 
   --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 [data-theme='dark'] {
-  --primary: #10b981;
-  --primary-dark: #059669;
-  --primary-light: #064e3b;
-  --accent: #34d399;
-  --text: #f3f4f6;
-  --text-muted: #9ca3af;
-  --bg: #0f172a;
-  --bg-card: #1e293b;
-  --border: #334155;
-  
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --primary: #00ED64;
+  --primary-dark: #00D455;
+  --primary-light: #023430;
+  --primary-vivid: #00ED64;
+  --accent: #00ED64;
+  --success: #00ED64;
+  --danger: #EF4444;
+  --danger-light: #3b1818;
+  --info: #0498EC;
+  --info-light: #0b2a3f;
+  --warning: #FFC010;
+  --warning-light: #332a0b;
+
+  --text: #E8EDEB;
+  --text-secondary: #889397;
+  --bg: #001E2B;
+  --bg-card: #112733;
+  --border: #3D4F58;
+  --border-hover: #5C6C75;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.4), 0 4px 8px -2px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 8px 16px -4px rgba(0, 0, 0, 0.3);
 }
 
-* {
+/* ========== RESET ========== */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
@@ -54,6 +76,8 @@ body {
   font-family: var(--sans);
   background-color: var(--bg);
   color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -64,18 +88,19 @@ body {
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   color: var(--text);
-  font-weight: 600;
-  letter-spacing: -0.025em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 a {
-  color: var(--primary);
+  color: var(--info);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 a:hover {
-  color: var(--primary-dark);
+  text-decoration: underline;
 }
 
 button {
@@ -83,28 +108,29 @@ button {
   font-family: inherit;
 }
 
+/* ========== CARD ========== */
 .card {
   background-color: var(--bg-card);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
+/* ========== CONTAINER ========== */
 .container {
-  max-width: 1600px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 0 32px;
 }
 
-/* Utils */
+/* ========== UTILITIES ========== */
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .flex-wrap { flex-wrap: wrap; }
@@ -122,45 +148,54 @@ button {
 .mb-3 { margin-bottom: 24px; }
 .text-center { text-align: center; }
 .w-full { width: 100%; }
-.text-muted { color: var(--text-muted); }
+.text-muted { color: var(--text-secondary); }
 .relative { position: relative; }
 .z-10 { z-index: 10; }
 
-/* Buttons */
+/* ========== BUTTONS ========== */
 .btn {
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
   border: none;
   font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: 13px;
+  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  letter-spacing: 0.01em;
+  gap: 6px;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .btn:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
 .btn-primary {
   background-color: var(--primary);
-  color: #ffffff;
+  color: #FFFFFF;
   box-shadow: var(--shadow-sm);
+}
+
+[data-theme='dark'] .btn-primary {
+  color: #001E2B;
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--primary-dark);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 104, 74, 0.2);
+}
+
+[data-theme='dark'] .btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(0, 237, 100, 0.15);
 }
 
 .btn-outline {
@@ -172,39 +207,43 @@ button {
 
 .btn-outline:hover:not(:disabled) {
   background: var(--bg);
-  border-color: #cbd5e1;
-  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
 .btn-icon:active {
   transform: scale(0.9);
 }
 
-.btn-sm {
-  padding: 6px 14px;
-  font-size: 13px;
-}
-
-/* Forms */
+/* ========== FORMS ========== */
 .form-control {
   border: 1px solid var(--border);
   background-color: var(--bg-card);
   color: var(--text);
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: var(--radius);
+  padding: 10px 12px;
   font-family: inherit;
-  font-size: 16px; /* Prevents iOS zoom on focus */
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 16px;
+  line-height: 1.4;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 104, 74, 0.12);
 }
 
-/* ========== MOBILE RESPONSIVE ========== */
+[data-theme='dark'] .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(0, 237, 100, 0.12);
+}
 
+/* ========== MOBILE ========== */
 @media (max-width: 768px) {
   :root {
     --header-height: 52px;
@@ -216,12 +255,11 @@ button {
 
   .card {
     padding: 16px;
-    border-radius: 12px;
+    border-radius: 10px;
   }
 
   .card:hover {
-    transform: none; /* Disable float on touch devices */
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-sm);
   }
 
   .mt-3 { margin-top: 16px; }
@@ -230,7 +268,7 @@ button {
 
   h1 { font-size: 22px; }
   h2 { font-size: 18px; }
-  h3 { font-size: 16px; }
+  h3 { font-size: 15px; }
 }
 
 @media (max-width: 480px) {

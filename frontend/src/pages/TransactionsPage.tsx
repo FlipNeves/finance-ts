@@ -102,7 +102,7 @@ const TransactionsPage: React.FC = () => {
       <header className="dashboard-header mb-3">
         <div className="header-left flex flex-col gap-1">
           <h1 className="header-title">{t('transactions.title')}</h1>
-          <p className="header-subtitle text-muted">Histórico detalhado das suas despesas e receitas.</p>
+          <p className="header-subtitle text-muted">{t('transactions.subtitle')}</p>
         </div>
         <div className="header-actions flex gap-2 items-center">
           <button className="btn btn-outline income-btn" onClick={() => openModal('income')}>
@@ -142,7 +142,7 @@ const TransactionsPage: React.FC = () => {
                 <th>{t('transactions.description')}</th>
                 <th>{t('common.user') || 'User'}</th>
                 <th>{t('transactions.category')}</th>
-                <th>Conta</th>
+                <th>{t('transactions.account')}</th>
                 <th className="text-right">{t('transactions.amount')}</th>
                 <th className="text-center">{t('common.actions')}</th>
               </tr>
@@ -161,7 +161,7 @@ const TransactionsPage: React.FC = () => {
                     <td><span className="desc">{tr.description || '-'}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
                     <td><span className="category-badge">{tr.category}</span></td>
-                    <td><span className="bank">{tr.bankAccount || '-'} {tr.isFixed ? '(Fixa)' : ''}</span></td>
+                    <td><span className="bank">{tr.bankAccount || '-'} {tr.isFixed ? t('transactions.fixedTag') : ''}</span></td>
                     <td className={`amount ${tr.type}`}>
                       {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
                     </td>

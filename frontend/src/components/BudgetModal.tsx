@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NumericFormat } from 'react-number-format';
+import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 import api from '../services/api';
 
@@ -10,6 +11,7 @@ interface BudgetModalProps {
 }
 
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [globalLimit, setGlobalLimit] = useState<number | string>('');
   const [categoryLimits, setCategoryLimits] = useState<{ category: string; limit: number | string }[]>([]);
@@ -66,10 +68,10 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
       const y = currentMonth.getFullYear();
       await api.post('/budgets/copy', { month: m, year: y });
       await loadData();
-      alert('Orçamento copiado com sucesso!');
+      alert(t('budget.copiedSuccess'));
     } catch (err) {
       console.error(err);
-      alert('Erro ao copiar ou orçamento anterior não existe.');
+      alert(t('budget.copyError'));
       setLoading(false);
     }
   };
@@ -98,7 +100,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar orçamento.');
+      alert(t('budget.saveError'));
     } finally {
       setSaving(false);
     }
@@ -134,7 +136,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
   const availableCategories = categoryLimits.filter(cl => cl.limit === '').map(cl => cl.category);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Orçamento Mensal">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('budget.title')}>
       <div className="flex flex-col gap-3">
         <div className="month-selector flex items-center justify-between" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '4px' }}>
             <button className="btn-icon" onClick={handlePrevMonth}>&lt;</button>
@@ -143,12 +145,12 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
         </div>
 
         {loading ? (
-          <div className="text-center text-muted py-4">Carregando...</div>
+          <div className="text-center text-muted py-4">{t('common.loading')}</div>
         ) : (
           <>
             <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-muted">Limite Global Mensal</span>
+                <span className="text-sm font-semibold text-muted">{t('budget.globalLimit')}</span>
               </div>
               <div className="flex items-center gap-1">
                 <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>R$</span>
@@ -168,15 +170,15 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
             </div>
             
             <div className="flex justify-between items-center">
-               <h3 style={{ fontSize: '16px', margin: 0 }}>Limites por Categoria</h3>
+               <h3 style={{ fontSize: '16px', margin: 0 }}>{t('budget.categoryLimits')}</h3>
                {displayLimits.length === 0 && (
-                 <button className="btn btn-outline btn-sm" onClick={handleCopyPrevMonth}>Copiar do Mês Passado</button>
+                 <button className="btn btn-outline btn-sm" onClick={handleCopyPrevMonth}>{t('budget.copyPrevMonth')}</button>
                )}
             </div>
 
             <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
               {displayLimits.length === 0 ? (
-                <div className="text-center text-muted py-2 text-sm">Nenhum limite de categoria definido.</div>
+                <div className="text-center text-muted py-2 text-sm">{t('budget.noLimits')}</div>
               ) : (
                 displayLimits.map(cl => (
                   <div key={cl.category} className="flex justify-between items-center bg-[var(--bg-card)] p-2 rounded border border-[var(--border)]">
@@ -198,7 +200,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
                       <button 
                         className="btn-icon" 
                         onClick={() => handleDeleteLimit(cl.category)}
-                        title="Apagar limite"
+                        title={t('budget.deleteLimit')}
                         style={{ color: '#ef4444', padding: '6px' }}
                       >
                          ✕
@@ -217,7 +219,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
                   onChange={(e) => setSelectedNewCategory(e.target.value)}
                   style={{ fontSize: '14px', padding: '8px 12px' }}
                 >
-                  <option value="">Selecionar categoria para limitar...</option>
+                  <option value="">{t('budget.selectCategory')}</option>
                   {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 <button 
@@ -225,13 +227,13 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
                   onClick={handleAddNewCategoryLimit}
                   disabled={!selectedNewCategory}
                 >
-                  Adicionar
+                  {t('common.add')}
                 </button>
               </div>
             )}
 
             <button className="btn btn-primary w-full mt-3" onClick={handleSave} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar Orçamento'}
+              {saving ? t('budget.saving') : t('budget.save')}
             </button>
           </>
         )}

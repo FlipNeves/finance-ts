@@ -12,6 +12,16 @@ import DashboardPage from './pages/DashboardPage';
 import BudgetPage from './pages/BudgetPage';
 import './App.css';
 
+/* Inline SVG logo */
+const VerdantLogo = () => (
+  <svg className="brand-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="32" height="32" rx="6" fill="var(--primary)"/>
+    <path d="M16 5C16 5 9 12 9 18c0 4 3.14 7 7 7s7-3 7-7c0-6-7-13-7-13z" fill="var(--primary-vivid)" opacity="0.9"/>
+    <path d="M15.5 14v8.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M13.5 18.5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
 const Navigation: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
@@ -19,12 +29,10 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Close menu on route change
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
 
-  // Prevent body scroll when menu is open
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = 'hidden';
@@ -47,7 +55,7 @@ const Navigation: React.FC = () => {
   const navItems = [
     { to: '/', label: t('dashboard.title'), icon: '📊' },
     { to: '/transactions', label: t('transactions.title'), icon: '💳' },
-    { to: '/family', label: t('family.title'), icon: '👨‍👩‍👧‍👦' },
+    { to: '/family', label: t('family.title'), icon: '👥' },
   ];
 
   return (
@@ -56,8 +64,10 @@ const Navigation: React.FC = () => {
         <div className="container header-inner">
           <div className="flex items-center gap-2">
             <Link to="/" className="brand">
-              <span style={{ fontWeight: 800, fontSize: '22px', color: 'var(--primary)' }}>$</span>
-              <span style={{ fontWeight: 700, fontSize: '18px', marginLeft: '4px' }}>Financial</span>
+              <VerdantLogo />
+              <span className="brand-text">
+                Verdant<span className="brand-text-accent">Cash</span>
+              </span>
             </Link>
             {user && (
               <div className="nav-links flex gap-2 ml-3">
@@ -71,14 +81,13 @@ const Navigation: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Desktop controls */}
             <div className="desktop-controls flex items-center gap-2">
               <div className="flex gap-1">
-                <button className="btn-icon" onClick={() => changeLanguage('en')}>EN</button>
-                <button className="btn-icon" onClick={() => changeLanguage('pt')}>PT</button>
+                <button className="btn-icon" onClick={() => changeLanguage('en')} title="English">EN</button>
+                <button className="btn-icon" onClick={() => changeLanguage('pt')} title="Português">PT</button>
               </div>
               
-              <button className="btn-icon" onClick={toggleTheme}>
+              <button className="btn-icon" onClick={toggleTheme} title={theme === 'light' ? t('common.darkMode') : t('common.lightMode')}>
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
 
@@ -94,7 +103,6 @@ const Navigation: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile hamburger */}
             {user && (
               <button 
                 className={`hamburger-btn ${menuOpen ? 'open' : ''}`} 
@@ -112,10 +120,8 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* FAB Overlay */}
       <div className={`fab-overlay ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(false)} />
       
-      {/* FAB Menu */}
       <div className={`fab-menu ${menuOpen ? 'open' : ''}`}>
         {user && (
           <div className="fab-user-info">
@@ -146,7 +152,7 @@ const Navigation: React.FC = () => {
         <button className="fab-item" onClick={toggleTheme}>
           <div className="fab-item-icon theme-icon">{theme === 'light' ? '🌙' : '☀️'}</div>
           <div className="fab-item-content">
-            <span className="fab-item-label">{theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}</span>
+            <span className="fab-item-label">{theme === 'light' ? t('common.darkMode') : t('common.lightMode')}</span>
           </div>
         </button>
 
@@ -154,7 +160,7 @@ const Navigation: React.FC = () => {
           <div className="fab-item-icon lang-icon">🌐</div>
           <div className="fab-item-content">
             <span className="fab-item-label">{i18n.language === 'pt' ? 'English' : 'Português'}</span>
-            <span className="fab-item-sublabel">{t('common.language') || 'Change language'}</span>
+            <span className="fab-item-sublabel">{t('common.language')}</span>
           </div>
         </button>
 
@@ -171,7 +177,7 @@ const Navigation: React.FC = () => {
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>{/* loading */}</div>;
   return user ? <>{children}</> : <Navigate to="/login" />;
 };
 
@@ -183,26 +189,10 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <DashboardPage />
-            </PrivateRoute>
-          } />
-          <Route path="/family" element={
-            <PrivateRoute>
-              <FamilyPage />
-            </PrivateRoute>
-          } />
-          <Route path="/budget" element={
-            <PrivateRoute>
-              <BudgetPage />
-            </PrivateRoute>
-          } />
-          <Route path="/transactions" element={
-            <PrivateRoute>
-              <TransactionsPage />
-            </PrivateRoute>
-          } />
+          <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+          <Route path="/family" element={<PrivateRoute><FamilyPage /></PrivateRoute>} />
+          <Route path="/budget" element={<PrivateRoute><BudgetPage /></PrivateRoute>} />
+          <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
         </Routes>
       </main>
     </Router>
