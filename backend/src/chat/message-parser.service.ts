@@ -80,10 +80,13 @@ export class MessageParserService {
 
         const date = this.extractDate(trimmed);
 
-        const bankAccount = this.extractBankAccount(trimmed, userBankAccounts);
+        const bankExtract = this.extractBankAccount(trimmed, userBankAccounts);
+        if (bankExtract.needsLlm) {
+          return null;
+        }
 
         description = this.removeDateTokens(description).trim();
-        description = this.removeBankAccountTokens(description).trim();
+        description = this.removeBankAccountTokens(description, bankExtract.account).trim();
 
         if (!description) continue;
 
@@ -95,7 +98,7 @@ export class MessageParserService {
           description: this.capitalize(description),
           category,
           date: date.toISOString(),
-          bankAccount: bankAccount || undefined,
+          bankAccount: bankExtract.account || undefined,
           confidence: 0.85,
         };
       }
@@ -169,40 +172,37 @@ export class MessageParserService {
     return type === 'income' ? 'Salary' : 'Other';
   }
 
-  private extractBankAccount(message: string, bankAccounts: string[]): string | null {
+  private extractBankAccount(message: string, bankAccounts: string[]): { account: string | null, needsLlm: boolean } {
     const lower = message.toLowerCase();
 
     for (const account of bankAccounts) {
       if (lower.includes(account.toLowerCase())) {
-        return account;
+        return { account, needsLlm: false };
       }
     }
 
-    const ptPattern = /(?:na|no|da|do|pela|pelo)\s+(?:conta\s+(?:do|da|de)?\s*)?([\w]+)$/i;
-    const enPattern = /(?:from|via|in|at)\s+(?:my\s+)?([\w]+)\s+account$/i;
-
-    const ptMatch = message.match(ptPattern);
-    if (ptMatch) {
-      const candidate = ptMatch[1].trim();
-      const commonBanks = ['nubank', 'itau', 'itaú', 'bradesco', 'bb', 'inter', 'c6', 'santander', 'caixa', 'picpay', 'mercadopago', 'sicoob', 'sicredi', 'next', 'neon', 'pagbank'];
-      if (commonBanks.some(b => candidate.toLowerCase().includes(b))) {
-        return this.capitalize(candidate);
+    const explicitAccountMarkers = ['conta', 'cartão', 'cartao', 'banco', 'bank', 'account', 'pix', 'crédito', 'credito', 'débito', 'debito'];
+    for (const marker of explicitAccountMarkers) {
+      if (lower.includes(marker)) {
+        return { account: null, needsLlm: true };
       }
     }
 
-    const enMatch = message.match(enPattern);
-    if (enMatch) {
-      return this.capitalize(enMatch[1].trim());
+    const ptPattern = /(?:na|no|da|do|pela|pelo|via)\s+([\w\s]+)$/i;
+    const enPattern = /(?:from|via|in|at)\s+(?:my\s+)?([\w\s]+)$/i;
+
+    if (ptPattern.test(message) || enPattern.test(message)) {
+      return { account: null, needsLlm: true };
     }
 
-    return null;
+    return { account: null, needsLlm: false };
   }
 
-  private removeBankAccountTokens(text: string): string {
-    return text
-      .replace(/\s+(?:na|no|da|do|pela|pelo)\s+(?:conta\s+(?:do|da|de)?\s*)?[\w]+$/gi, '')
-      .replace(/\s+(?:from|via|in|at)\s+(?:my\s+)?[\w]+\s+account$/gi, '')
-      .trim();
+  private removeBankAccountTokens(text: string, knownAccountStr: string | null): string {
+    if (!knownAccountStr) return text;
+    const escaped = knownAccountStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\s*(?:na|no|da|do|pela|pelo|via|from|in|at)?\\s*(?:conta|account)?\\s*${escaped}\\b`, 'gi');
+    return text.replace(regex, '').replace(/\s{2,}/g, ' ').trim();
   }
 
   private capitalize(text: string): string {

@@ -180,12 +180,13 @@
     "open": "Abrir chat",
     "close": "Fechar chat",
     "send": "Enviar",
-    "inputPlaceholder": "ex: \"gastei 50 no mercado\"",
+    "inputPlaceholder": "ex: \"Gastei 50 no mercado\"",
     "welcomeMessage": "Olá! Posso te ajudar a registrar transações.\n\nBasta me dizer o que você gastou ou recebeu, como:\n• \"gastei 50 no mercado\"\n• \"recebi 2000 de salário\"\n• \"paguei 120 de luz ontem\"",
     "rateLimitError": "Muitas mensagens. Aguarde um momento.",
     "genericError": "Algo deu errado. Tente novamente.",
     "saveError": "Erro ao salvar transação. Tente novamente.",
     "cancelled": "Cancelado. Envie uma nova mensagem a qualquer momento!",
-    "confirmed": "Transação salva!"
+    "confirmed": "Transação salva!",
+    "bankAccountCreated": "💳 Conta bancária \"{{account}}\" foi criada automaticamente."
   }
 }

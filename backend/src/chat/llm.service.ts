@@ -195,7 +195,7 @@ OUTPUT JSON SCHEMA:
 
 EXAMPLES:
 - "gastei 50 no mercado" → {"type":"expense","amount":50,"description":"Mercado","category":"Food","date":"${today}","bankAccount":null,"confidence":0.95}
-- "recebi 2000 de salário na nubank" → {"type":"income","amount":2000,"description":"Salário","category":"Salary","date":"${today}","bankAccount":"Nubank","confidence":0.95}
+- "recebi 2000 de salário na conta nubank" → {"type":"income","amount":2000,"description":"Salário","category":"Salary","date":"${today}","bankAccount":"Nubank","confidence":0.95}
 - "paguei 120 de luz ontem" → {"type":"expense","amount":120,"description":"Conta de luz","category":"Utilities","date":"...yesterday...","bankAccount":null,"confidence":0.9}
 - [after previous message about "recebi 1000 de sorteio"] "na verdade foi 10000" → {"type":"income","amount":10000,"description":"Sorteio","category":"Other","date":"${today}","bankAccount":null,"confidence":0.85}`;
   }

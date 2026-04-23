@@ -179,7 +179,6 @@ export class ChatService {
     return user?.bankAccounts || [];
   }
 
-  /** Builds a human-friendly confirmation message */
   private buildConfirmationMessage(parsed: ParsedTransaction, language: string): string {
     const isPt = language?.startsWith('pt');
     const typeLabel = isPt
