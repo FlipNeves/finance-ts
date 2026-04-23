@@ -101,12 +101,16 @@ const ChatWidget: React.FC = () => {
     }
   };
 
-  const handleConfirm = async (parsed?: ParsedTransaction) => {
+  const handleConfirm = async (parsed?: ParsedTransaction, msgId?: string) => {
     const data = parsed || pendingParsed;
     if (!data) return;
 
     setLoading(true);
     setPendingParsed(null);
+
+    if (msgId) {
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: true } : m));
+    }
 
     try {
       const { data: result } = await api.post('/chat/confirm', {
@@ -133,14 +137,20 @@ const ChatWidget: React.FC = () => {
         });
       }
     } catch {
+      if (msgId) {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: false } : m));
+      }
       addMessage({ role: 'error', text: t('chat.saveError') });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = (msgId?: string) => {
     setPendingParsed(null);
+    if (msgId) {
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: true } : m));
+    }
     addMessage({ role: 'bot', text: t('chat.cancelled') });
   };
 
@@ -198,18 +208,18 @@ const ChatWidget: React.FC = () => {
                   <div className={`chat-source-badge ${msg.source}`}> </div>
                 )}
 
-                {msg.parsed && pendingParsed && !msg.confirmed && (
+                {msg.parsed && !msg.confirmed && (
                   <div className="chat-confirm-actions">
                     <button
                       className="chat-confirm-btn primary"
-                      onClick={() => handleConfirm(msg.parsed)}
+                      onClick={() => handleConfirm(msg.parsed, msg.id)}
                       disabled={loading}
                     >
                       ✅ {t('common.confirm')}
                     </button>
                     <button
                       className="chat-confirm-btn danger"
-                      onClick={handleCancel}
+                      onClick={() => handleCancel(msg.id)}
                       disabled={loading}
                     >
                       ❌ {t('common.cancel')}
