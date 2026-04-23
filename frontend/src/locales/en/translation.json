@@ -174,5 +174,20 @@
     "Contas": "Utilities",
     "Income": "Income",
     "Receita": "Income"
+  },
+  "chat": {
+    "title": "Smart Assistant",
+    "subtitle": "Record transactions by chatting",
+    "open": "Open chat",
+    "close": "Close chat",
+    "send": "Send",
+    "inputPlaceholder": "e.g. \"spent 50 on groceries\"",
+    "welcomeMessage": "Hi! I can help you record transactions.\n\nJust tell me what you spent or received, like:\n• \"spent 50 on groceries\"\n• \"received 2000 salary\"\n• \"paid 120 electricity bill yesterday\"",
+    "rateLimitError": "Too many messages. Please wait a moment.",
+    "genericError": "Something went wrong. Please try again.",
+    "saveError": "Error saving transaction. Please try again.",
+    "cancelled": "Cancelled. Send a new message anytime!",
+    "confirmed": "Transaction saved!",
+    "bankAccountCreated": "💳 Bank account \"{{account}}\" was automatically created."
   }
 }

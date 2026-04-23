@@ -23,6 +23,9 @@ export class User extends Document {
 
   @Prop({ default: 'en-US' })
   preferredLanguage: string;
+
+  @Prop({ default: false })
+  skipChatConfirmation: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

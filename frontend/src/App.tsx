@@ -10,6 +10,7 @@ import FamilyPage from './pages/FamilyPage';
 import TransactionsPage from './pages/TransactionsPage';
 import DashboardPage from './pages/DashboardPage';
 import BudgetPage from './pages/BudgetPage';
+import ChatWidget from './components/ChatWidget';
 import './App.css';
 
 /* Inline SVG logo */
@@ -195,6 +196,7 @@ function AppContent() {
           <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
         </Routes>
       </main>
+      <ChatWidget />
     </Router>
   );
 }

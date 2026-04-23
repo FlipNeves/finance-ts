@@ -9,6 +9,7 @@ import { FamilyModule } from './family/family.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { ReportsModule } from './reports/reports.module';
 import { BudgetsModule } from './budgets/budgets.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BudgetsModule } from './budgets/budgets.module';
     TransactionsModule,
     ReportsModule,
     BudgetsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
