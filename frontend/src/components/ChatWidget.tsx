@@ -62,6 +62,11 @@ const ChatWidget: React.FC = () => {
     const text = input.trim();
     if (!text || loading) return;
 
+    setMessages((prev) => 
+      prev.map(m => m.parsed && !m.confirmed ? { ...m, confirmed: true } : m)
+    );
+    setPendingParsed(null);
+
     addMessage({ role: 'user', text });
     setInput('');
     setLoading(true);
