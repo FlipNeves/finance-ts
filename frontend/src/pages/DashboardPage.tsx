@@ -328,7 +328,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card chart-card">
-          <h3 className="section-title">{t('dashboard.spendingByCategory')} ({t('dashboard.barChart')})</h3>
+          <h3 className="section-title">{t('dashboard.spendingByCategory')}</h3>
           <div className="chart-wrapper">
             {spending.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
