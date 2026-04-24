@@ -247,4 +247,42 @@ export class ReportsService {
 
     return { type: familyId ? 'family_transactions' : 'user_transactions', data: results };
   }
+
+  async getDailySpending(
+    familyId: string | null,
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    type?: string
+  ): Promise<any> {
+    const matchQuery: any = {
+      date: { $gte: startDate, $lte: endDate },
+    };
+    
+    if (type && type !== 'all') {
+      matchQuery.type = type;
+    } else {
+      matchQuery.type = 'expense';
+    }
+
+    if (familyId) {
+      matchQuery.familyId = familyId;
+    } else {
+      matchQuery.userId = userId;
+      matchQuery.familyId = null;
+    }
+
+    const results = await this.transactionModel.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          amount: { $sum: '$amount' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).exec();
+
+    return results.map(r => ({ date: r._id, amount: r.amount }));
+  }
 }

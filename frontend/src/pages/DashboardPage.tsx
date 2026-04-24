@@ -21,6 +21,7 @@ const DashboardPage: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [bankAccounts, setBankAccounts] = useState<string[]>([]);
   const [evolution, setEvolution] = useState<any[]>([]);
+  const [dailySpending, setDailySpending] = useState<any[]>([]);
   const [topSpending, setTopSpending] = useState<any>({type: '', data: []});
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -50,14 +51,15 @@ const DashboardPage: React.FC = () => {
       const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
       const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes] = await Promise.all([
+      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes] = await Promise.all([
         api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions/categories'),
         api.get('/family/details').catch(() => api.get('/users/profile').catch(() => ({ data: { bankAccounts: [] } }))),
         api.get('/reports/evolution', { params: { endDate: end } }),
-        api.get('/reports/top-spending', { params: { startDate: start, endDate: end } })
+        api.get('/reports/top-spending', { params: { startDate: start, endDate: end } }),
+        api.get('/reports/daily-spending', { params: { startDate: start, endDate: end, type: typeFilter } })
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
@@ -66,6 +68,21 @@ const DashboardPage: React.FC = () => {
       setBankAccounts(familyRes.data.bankAccounts || []);
       setEvolution(evolutionRes.data);
       setTopSpending(topSpendingRes.data);
+
+      const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+      const fullDailyData = Array.from({ length: daysInMonth }, (_, i) => {
+        const date = new Date(Date.UTC(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1));
+        const dateStr = date.toISOString().split('T')[0];
+        const found = dailyRes.data.find((d: any) => d.date === dateStr);
+        let label = date.toLocaleDateString(i18n.language, { day: '2-digit', weekday: 'short', timeZone: 'UTC' }).replace('.', '');
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+        return {
+          date: dateStr,
+          amount: found ? found.amount : 0,
+          label
+        };
+      });
+      setDailySpending(fullDailyData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -300,8 +317,8 @@ const DashboardPage: React.FC = () => {
                   <div key={idx} className="top-spending-item">
                     <span className="ts-name" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span>{item.description === 'Income' ? t('transactions.income') : item.description === 'Expense' ? t('transactions.expense') : (item.description || 'Despesa')}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                        {item.date ? new Date(item.date).toLocaleDateString(i18n.language) : ''}
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'capitalize' }}>
+                        {item.date ? new Date(item.date).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', weekday: 'short', timeZone: 'UTC'}).replace('.', '') : ''}
                         {topSpending.type === 'family_transactions' && item.userName ? ` • ${item.userName}` : ''}
                       </span>
                     </span>
@@ -339,6 +356,32 @@ const DashboardPage: React.FC = () => {
             ) : (
               <div className="chart-empty">{t('dashboard.noData')}</div>
             )}
+          </div>
+        </div>
+
+        <div className="card chart-card chart-full">
+          <h3 className="section-title">{t('dashboard.dailySpending')}</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                <Tooltip 
+                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }} 
+                  contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} 
+                  formatter={(val: any) => [`R$ ${Number(val || 0).toFixed(2)}`, t('transactions.amount')]}
+                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
+                />
+                <Area type="monotone" dataKey="amount" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 

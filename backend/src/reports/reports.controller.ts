@@ -81,4 +81,25 @@ export class ReportsController {
       endDate,
     );
   }
+
+  @Get('daily-spending')
+  async getDailySpending(
+    @Req() req: any,
+    @Query('startDate') start: string,
+    @Query('endDate') end: string,
+    @Query('type') type?: string,
+  ) {
+    const familyId = this.getFamilyId(req);
+    const startDate = start
+      ? new Date(start)
+      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endDate = end ? new Date(end) : new Date();
+    return this.reportsService.getDailySpending(
+      familyId,
+      req.user._id,
+      startDate,
+      endDate,
+      type,
+    );
+  }
 }
