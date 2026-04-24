@@ -12,6 +12,7 @@ interface TransactionModalProps {
   type: 'income' | 'expense';
   initialCategories: string[];
   initialBankAccounts: string[];
+  editTransaction?: any;
 }
 
 const TransactionModal: React.FC<TransactionModalProps> = ({
@@ -21,6 +22,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   type,
   initialCategories,
   initialBankAccounts,
+  editTransaction,
 }) => {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
@@ -59,9 +61,25 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      resetForm();
+      if (editTransaction) {
+        setStep(1);
+        setDescription(editTransaction.description || '');
+        setAmount(editTransaction.amount || '');
+        setCategories(initialCategories);
+        setBankAccounts(initialBankAccounts);
+        setCategory(editTransaction.category || (initialCategories.length > 0 ? initialCategories[0] : ''));
+        setBankAccount(editTransaction.bankAccount || '');
+        setIsCreatingCategory(false);
+        setIsCreatingAccount(false);
+        setNewCategory('');
+        setNewBankAccount('');
+        setDate(new Date(editTransaction.date).toISOString().split('T')[0]);
+        setIsFixed(editTransaction.isFixed || false);
+      } else {
+        resetForm();
+      }
     }
-  }, [isOpen, resetForm]);
+  }, [isOpen, editTransaction, resetForm, initialCategories, initialBankAccounts]);
 
   const handleCreateCategory = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -109,7 +127,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     
     setLoading(true);
     try {
-      const res = await api.post('/transactions', {
+      const payload = {
         description: description || (type === 'income' ? (t('transactions.income') || 'Income') : (t('transactions.expense') || 'Expense')),
         amount: numAmount,
         type,
@@ -117,7 +135,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         bankAccount: bankAccount || undefined,
         date: new Date(date),
         isFixed: type === 'expense' ? isFixed : false,
-      });
+      };
+
+      let res;
+      if (editTransaction) {
+        res = await api.put(`/transactions/${editTransaction._id}`, payload);
+      } else {
+        res = await api.post('/transactions', payload);
+      }
       
       if (res.data?.alert) {
         alert(res.data.alert);
@@ -271,7 +296,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             <div className="tm-nav-buttons">
               <button className="btn btn-outline" style={{ flex: 1 }} onClick={prevStep}>← {t('common.back') || 'Back'}</button>
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSubmit} disabled={loading}>
-                {loading ? '...' : (t('common.confirm') || 'Confirm')}
+                {loading ? '...' : (editTransaction ? (t('common.save') || 'Save') : (t('common.confirm') || 'Confirm'))}
               </button>
             </div>
           </div>
@@ -343,14 +368,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
           <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
         <button className="btn btn-primary tm-next-btn" onClick={handleSubmit} disabled={loading || !amount || Number(amount) <= 0}>
-          {loading ? '...' : (t('common.add') || 'Add')}
+          {loading ? '...' : (editTransaction ? (t('common.save') || 'Save') : (t('common.add') || 'Add'))}
         </button>
       </div>
     );
   };
 
+  const titlePrefix = editTransaction ? (t('common.edit') || 'Edit') + ' ' : (t('common.add') || 'Add') + ' ';
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={type === 'expense' ? t('transactions.addExpense') || 'Add Expense' : t('transactions.addIncome') || 'Add Income'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={type === 'expense' ? titlePrefix + (t('transactions.expense') || 'Expense') : titlePrefix + (t('transactions.income') || 'Income')}>
       <div className="tm-modal">
         {type === 'expense' && (
           <div className="tm-steps-indicator">

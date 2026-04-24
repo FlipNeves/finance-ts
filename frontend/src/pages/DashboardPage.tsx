@@ -29,6 +29,7 @@ const DashboardPage: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isBudgetOpen, setIsBudgetOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
@@ -92,6 +93,13 @@ const DashboardPage: React.FC = () => {
 
   const openModal = (type: 'income' | 'expense') => {
     setModalType(type);
+    setSelectedTransaction(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (tr: any) => {
+    setModalType(tr.type as any);
+    setSelectedTransaction(tr);
     setIsModalOpen(true);
   };
 
@@ -241,7 +249,7 @@ const DashboardPage: React.FC = () => {
                 </tr>
               ) : (
                 transactions.map((tr) => (
-                  <tr key={tr._id}>
+                  <tr key={tr._id} onClick={() => openEditModal(tr)} style={{ cursor: 'pointer' }}>
                     <td className="text-muted">{new Date(tr.date).toLocaleDateString(i18n.language)}</td>
                     <td><span className="tx-desc">{tr.description === 'Income' ? t('transactions.income') : tr.description === 'Expense' ? t('transactions.expense') : (tr.description || '-')}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
@@ -264,7 +272,7 @@ const DashboardPage: React.FC = () => {
             </div>
           ) : (
             transactions.map((tr) => (
-              <div key={tr._id} className="tx-card">
+              <div key={tr._id} className="tx-card" onClick={() => openEditModal(tr)} style={{ cursor: 'pointer' }}>
                 <div className="tx-card-top">
                   <div className="tx-card-left">
                     <span className="tx-card-desc">{tr.description === 'Income' ? t('transactions.income') : tr.description === 'Expense' ? t('transactions.expense') : (tr.description || '-')}</span>
@@ -285,11 +293,15 @@ const DashboardPage: React.FC = () => {
       
       <TransactionModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
         onSuccess={loadData}
         type={modalType}
         initialCategories={categories}
         initialBankAccounts={bankAccounts}
+        editTransaction={selectedTransaction}
       />
       <BudgetModal 
         isOpen={isBudgetOpen}

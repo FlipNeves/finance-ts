@@ -31,6 +31,7 @@ const TransactionsPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const currentDate = new Date();
   const rawMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -78,6 +79,13 @@ const TransactionsPage: React.FC = () => {
 
   const openModal = (type: 'income' | 'expense') => {
     setModalType(type);
+    setSelectedTransaction(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (tr: Transaction) => {
+    setModalType(tr.type as any);
+    setSelectedTransaction(tr);
     setIsModalOpen(true);
   };
 
@@ -158,7 +166,7 @@ const TransactionsPage: React.FC = () => {
                 </tr>
               ) : (
                 transactions.map((tr) => (
-                  <tr key={tr._id} className={`tr-${tr.type}`}>
+                  <tr key={tr._id} className={`tr-${tr.type}`} onClick={() => openEditModal(tr)}>
                     <td className="text-muted" style={{ width: '120px' }}>{new Date(tr.date).toLocaleDateString(i18n.language)}</td>
                     <td><span className="desc">{tr.description === 'Income' ? t('transactions.income') : tr.description === 'Expense' ? t('transactions.expense') : (tr.description || '-')}</span></td>
                     <td><span className="user-badge">{tr.userId?.name || '?'}</span></td>
@@ -170,7 +178,7 @@ const TransactionsPage: React.FC = () => {
                     <td className="text-center" style={{ width: '80px' }}>
                       <button 
                         className="btn-icon delete-btn-large" 
-                        onClick={() => handleDelete(tr._id)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(tr._id); }}
                         title="Remover Transação"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -192,11 +200,15 @@ const TransactionsPage: React.FC = () => {
 
       <TransactionModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
         onSuccess={loadData}
         type={modalType}
         initialCategories={categories}
         initialBankAccounts={bankAccounts}
+        editTransaction={selectedTransaction}
       />
 
       <style>{`
