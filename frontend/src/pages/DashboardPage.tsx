@@ -109,7 +109,6 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dash fade-in">
-      {/* HEADER */}
       <header className="dash-header">
         <div className="dash-header-top">
           <div>
@@ -144,7 +143,6 @@ const DashboardPage: React.FC = () => {
         </div>
       </header>
       
-      {/* SUMMARY CARDS */}
       <div className="summary-grid">
         <div className="card summary-card">
           <div className="card-decoration"></div>
@@ -194,7 +192,6 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* BUDGET PROGRESS */}
       {summary?.budgetLimit > 0 && (
         <div className="card budget-progress">
           <div className="budget-progress-header">
@@ -210,7 +207,6 @@ const DashboardPage: React.FC = () => {
         </div>
       )}
       
-      {/* BIGGEST EXPENSE */}
       {summary?.biggestExpense && (
         <div className="biggest-expense-alert">
           <span>⚠️</span>
@@ -218,14 +214,12 @@ const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* RECENT TRANSACTIONS */}
       <div className="card transactions-section">
         <div className="transactions-header">
           <h2 className="section-title">{t('transactions.recent')}</h2>
           <Link to="/transactions" className="view-all-link">{t('dashboard.viewAll')} →</Link>
         </div>
 
-        {/* Desktop table */}
         <div className="table-responsive desktop-table">
           <table className="tx-table">
             <thead>
@@ -263,7 +257,6 @@ const DashboardPage: React.FC = () => {
           </table>
         </div>
 
-        {/* Mobile card list */}
         <div className="mobile-tx-list">
           {transactions.length === 0 ? (
             <div className="empty-state-mobile">
@@ -304,11 +297,10 @@ const DashboardPage: React.FC = () => {
         onSuccess={loadData}
       />
 
-      {/* CHARTS */}
       <div className="charts-grid">
         <div className="card chart-card">
           <h3 className="section-title">
-            {t('dashboard.biggestExpense')} (Top 7)
+            {t('dashboard.biggestExpense')}
           </h3>
           <div className="chart-wrapper">
             {topSpending.data && topSpending.data.length > 0 ? (
@@ -316,13 +308,12 @@ const DashboardPage: React.FC = () => {
                 {Array.isArray(topSpending.data) && topSpending.data.map((item: any, idx: number) => (
                   <div key={idx} className="top-spending-item">
                     <span className="ts-name" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span>{item.description === 'Income' ? t('transactions.income') : item.description === 'Expense' ? t('transactions.expense') : (item.description || 'Despesa')}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'capitalize' }}>
-                        {item.date ? new Date(item.date).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', weekday: 'short', timeZone: 'UTC'}).replace('.', '') : ''}
+                      <span>{item.description === 'Income' ? t('transactions.income') : item.description === 'Expense' ? t('transactions.expense') : (item.description || 'Despesa')}
+                        . {item.date ? new Date(item.date).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', weekday: 'short', timeZone: 'UTC'}).replace('.', '') : ''}
                         {topSpending.type === 'family_transactions' && item.userName ? ` • ${item.userName}` : ''}
                       </span>
                     </span>
-                    <span className="ts-amount text-danger">- R$ {Number(item.amount || 0).toFixed(2)}</span>
+                    <span className="ts-amount text-danger">R$ {Number(item.amount || 0).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -360,7 +351,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card chart-card chart-full">
-          <h3 className="section-title">{t('dashboard.dailySpending')}</h3>
+          <h3 className="section-title">{t('dashboard.topSpendingDays')}</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -513,7 +504,7 @@ const DashboardPage: React.FC = () => {
         .chart-full { grid-column: 1 / -1; }
         .chart-empty { height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 14px; }
         .top-spending-list { display: flex; flex-direction: column; gap: 12px; padding-right: 8px; }
-        .top-spending-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
+        .top-spending-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
         .top-spending-item:hover { border-color: var(--primary); }
         .ts-name { font-weight: 600; font-size: 14px; color: var(--text); }
         .ts-amount { font-weight: 700; font-size: 15px; }

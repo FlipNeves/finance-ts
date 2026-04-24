@@ -224,7 +224,7 @@ export class ReportsService {
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },
       { $sort: { amount: -1 } },
-      { $limit: 7 },
+      { $limit: 5 },
       {
         $lookup: {
           from: 'users',

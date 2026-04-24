@@ -133,7 +133,7 @@
     "pieChart": "Pie",
     "barChart": "Bar",
     "topFamilySpenders": "Top Transactions (Most Spent)",
-    "topSpendingDays": "Top Spending Days"
+    "topSpendingDays": "Spending by day"
   },
   "budget": {
     "title": "Monthly Budget",
