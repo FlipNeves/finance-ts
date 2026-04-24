@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import BudgetModal from '../components/BudgetModal';
@@ -21,6 +21,7 @@ const DashboardPage: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [bankAccounts, setBankAccounts] = useState<string[]>([]);
   const [evolution, setEvolution] = useState<any[]>([]);
+  const [topSpending, setTopSpending] = useState<any>({type: '', data: []});
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -49,13 +50,14 @@ const DashboardPage: React.FC = () => {
       const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
       const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes] = await Promise.all([
+      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes] = await Promise.all([
         api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions/categories'),
         api.get('/family/details').catch(() => api.get('/users/profile').catch(() => ({ data: { bankAccounts: [] } }))),
-        api.get('/reports/evolution', { params: { endDate: end } })
+        api.get('/reports/evolution', { params: { endDate: end } }),
+        api.get('/reports/top-spending', { params: { startDate: start, endDate: end } })
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
@@ -63,6 +65,7 @@ const DashboardPage: React.FC = () => {
       setCategories(catRes.data);
       setBankAccounts(familyRes.data.bankAccounts || []);
       setEvolution(evolutionRes.data);
+      setTopSpending(topSpendingRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -287,30 +290,31 @@ const DashboardPage: React.FC = () => {
       {/* CHARTS */}
       <div className="charts-grid">
         <div className="card chart-card">
-          <h3 className="section-title">{t('dashboard.spendingByCategory')} ({t('dashboard.pieChart')})</h3>
+          <h3 className="section-title">
+            {t('dashboard.biggestExpense')} (Top 7)
+          </h3>
           <div className="chart-wrapper">
-            {spending.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={spending.map(s => ({...s, name: translateCategory(s.category)}))}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="amount"
-                    nameKey="name"
-                  >
-                    {spending.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} />
-                </PieChart>
-              </ResponsiveContainer>
+            {topSpending.data && topSpending.data.length > 0 ? (
+              <div className="top-spending-list flex flex-col gap-3">
+                {Array.isArray(topSpending.data) && topSpending.data.map((item: any, idx: number) => (
+                  <div key={idx} className="top-spending-item">
+                    <span className="ts-name" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span>{item.description === 'Income' ? t('transactions.income') : item.description === 'Expense' ? t('transactions.expense') : (item.description || 'Despesa')}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                        {item.date ? new Date(item.date).toLocaleDateString(i18n.language) : ''}
+                        {topSpending.type === 'family_transactions' && item.userName ? ` • ${item.userName}` : ''}
+                      </span>
+                    </span>
+                    <span className="ts-amount text-danger">- R$ {Number(item.amount || 0).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="chart-empty">{t('dashboard.noData')}</div>
+              <div className="chart-empty p-3 overflow-auto" style={{fontSize: '11px', whiteSpace: 'pre-wrap', textAlign: 'left'}}>
+                {topSpending && Object.keys(topSpending).length > 0 
+                  ? `Debug: Não há itens para listar.\n\nResposta recebida:\n${JSON.stringify(topSpending, null, 2)}` 
+                  : t('dashboard.noData')}
+              </div>
             )}
           </div>
         </div>
@@ -462,9 +466,14 @@ const DashboardPage: React.FC = () => {
         .chart-card { padding: 20px; }
         .chart-card:hover { box-shadow: var(--shadow-sm); }
         .chart-card .section-title { margin-bottom: 16px; }
-        .chart-wrapper { height: 280px; width: 100%; }
+        .chart-wrapper { height: 280px; width: 100%; overflow-y: auto; }
         .chart-full { grid-column: 1 / -1; }
         .chart-empty { height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 14px; }
+        .top-spending-list { display: flex; flex-direction: column; gap: 12px; padding-right: 8px; }
+        .top-spending-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); }
+        .top-spending-item:hover { border-color: var(--primary); }
+        .ts-name { font-weight: 600; font-size: 14px; color: var(--text); }
+        .ts-amount { font-weight: 700; font-size: 15px; }
 
         @media (max-width: 768px) {
           .dash-header-top { flex-direction: column; gap: 10px; }

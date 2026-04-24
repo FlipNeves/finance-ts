@@ -131,7 +131,9 @@
     "inCategory": "na categoria",
     "evolution": "Evolução dos últimos 3 meses",
     "pieChart": "Pizza",
-    "barChart": "Barras"
+    "barChart": "Barras",
+    "topFamilySpenders": "Top transações (Mais Gastos)",
+    "topSpendingDays": "Dias de Maiores Gastos"
   },
   "budget": {
     "title": "Orçamento Mensal",

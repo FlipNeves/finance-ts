@@ -62,4 +62,23 @@ export class ReportsController {
     const referenceDate = end ? new Date(end) : new Date();
     return this.reportsService.getEvolutionReport(familyId, req.user._id, referenceDate);
   }
+
+  @Get('top-spending')
+  async getTopSpending(
+    @Req() req: any,
+    @Query('startDate') start: string,
+    @Query('endDate') end: string,
+  ) {
+    const familyId = this.getFamilyId(req);
+    const startDate = start
+      ? new Date(start)
+      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endDate = end ? new Date(end) : new Date();
+    return this.reportsService.getTopSpendingInfo(
+      familyId,
+      req.user._id,
+      startDate,
+      endDate,
+    );
+  }
 }

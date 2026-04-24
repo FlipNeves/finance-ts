@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
 import { Budget } from '../schemas/budget.schema';
 
@@ -201,5 +201,50 @@ export class ReportsService {
     });
 
     return months;
+  }
+
+  async getTopSpendingInfo(
+    familyId: string | null,
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    const matchQuery: any = {
+      date: { $gte: startDate, $lte: endDate },
+      type: 'expense',
+    };
+
+    if (familyId) {
+      matchQuery.familyId = familyId;
+    } else {
+      matchQuery.userId = userId;
+      matchQuery.familyId = null;
+    }
+
+    const results = await this.transactionModel.aggregate([
+      { $match: matchQuery },
+      { $sort: { amount: -1 } },
+      { $limit: 7 },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          description: 1,
+          amount: 1,
+          date: 1,
+          userName: '$user.name',
+        }
+      }
+    ]).exec();
+
+    return { type: familyId ? 'family_transactions' : 'user_transactions', data: results };
   }
 }

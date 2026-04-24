@@ -131,7 +131,9 @@
     "inCategory": "in category",
     "evolution": "Last 3 Months Evolution",
     "pieChart": "Pie",
-    "barChart": "Bar"
+    "barChart": "Bar",
+    "topFamilySpenders": "Top Transactions (Most Spent)",
+    "topSpendingDays": "Top Spending Days"
   },
   "budget": {
     "title": "Monthly Budget",
