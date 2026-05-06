@@ -20,22 +20,24 @@ interface RegexPattern {
 @Injectable()
 export class MessageParserService {
   private readonly patterns: RegexPattern[] = [
-    // PT-BR: Expense patterns
+    // PT-BR: Expense patterns (Explicit)
     { regex: /(?:gastei|paguei|comprei)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(?:em|de|no|na|com|pro|pra|para)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
     { regex: /(?:gastei|paguei|comprei)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
-    { regex: /(.+?)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s*(?:reais)?$/i, type: 'expense', amountGroup: 2, descGroup: 1 },
 
-    // PT-BR: Income patterns
-    { regex: /(?:recebi|ganhei|entrou)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(?:de|do|da|com)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
-    { regex: /(?:recebi|ganhei|entrou)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+    // PT-BR: Income patterns (Explicit)
+    { regex: /(?:recebi|ganhei|entrou|vendi)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(?:de|do|da|com)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+    { regex: /(?:recebi|ganhei|entrou|vendi)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
 
-    // EN: Expense patterns
+    // EN: Expense patterns (Explicit)
     { regex: /(?:spent|paid|bought)\s+\$?(\d+[.,]?\d*)\s+(?:on|for|at)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
     { regex: /(?:spent|paid|bought)\s+\$?(\d+[.,]?\d*)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
 
-    // EN: Income patterns
-    { regex: /(?:received|earned|got)\s+\$?(\d+[.,]?\d*)\s+(?:from|for)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
-    { regex: /(?:received|earned|got)\s+\$?(\d+[.,]?\d*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+    // EN: Income patterns (Explicit)
+    { regex: /(?:received|earned|got|sold)\s+\$?(\d+[.,]?\d*)\s+(?:from|for)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+    { regex: /(?:received|earned|got|sold)\s+\$?(\d+[.,]?\d*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+
+    // Catch-all patterns (Implicit)
+    { regex: /(.+?)\s+(?:R\$\s*|\$)?(\d+[.,]?\d*)\s*(?:reais)?$/i, type: 'expense', amountGroup: 2, descGroup: 1 },
   ];
 
   private readonly datePatterns: { regex: RegExp; resolver: () => Date }[] = [

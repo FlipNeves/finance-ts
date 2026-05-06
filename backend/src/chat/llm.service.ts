@@ -176,6 +176,7 @@ RULES:
 - Today's date: ${today}
 - Available categories: ${JSON.stringify(categories)}
 - Available bank accounts: ${JSON.stringify(bankAccounts)}
+- Transaction type classification: use "income" for money received (e.g., "recebi", "ganhei", "vendi", "depositou", "salário"), and "expense" for money spent (e.g., "gastei", "paguei", "comprei", "custou").
 
 IMPORTANT - CONVERSATION CONTEXT:
 - You may receive previous messages for context.
