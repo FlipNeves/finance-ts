@@ -131,7 +131,15 @@
     "inCategory": "in category",
     "evolution": "Last 3 Months Evolution",
     "topFamilySpenders": "Top Transactions (Most Spent)",
-    "topSpendingDays": "Spending by day"
+    "topSpendingDays": "Spending by day",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "headerSummary": "You spent R${{spent}} of R${{budget}} this month",
+    "headerSummaryNoBudget": "You spent R${{spent}} this month",
+    "daysRemaining": "{{count}} day remaining this month",
+    "daysRemaining_plural": "{{count}} days remaining this month",
+    "budgetPercent": "{{percent}}% of budget"
   },
   "budget": {
     "title": "Monthly Budget",

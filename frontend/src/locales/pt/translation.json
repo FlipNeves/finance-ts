@@ -131,7 +131,15 @@
     "inCategory": "na categoria",
     "evolution": "Evolução dos últimos 3 meses",
     "topFamilySpenders": "Top transações (Mais Gastos)",
-    "topSpendingDays": "Gastos por dia"
+    "topSpendingDays": "Gastos por dia",
+    "greetingMorning": "Bom dia",
+    "greetingAfternoon": "Boa tarde",
+    "greetingEvening": "Boa noite",
+    "headerSummary": "Você gastou R${{spent}} de R${{budget}} este mês",
+    "headerSummaryNoBudget": "Você gastou R${{spent}} este mês",
+    "daysRemaining": "{{count}} dia restante no mês",
+    "daysRemaining_plural": "{{count}} dias restantes no mês",
+    "budgetPercent": "{{percent}}% do orçamento"
   },
   "budget": {
     "title": "Orçamento Mensal",

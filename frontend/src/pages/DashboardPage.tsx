@@ -107,13 +107,43 @@ const DashboardPage: React.FC = () => {
   const expenseDiff = summary?.totalExpense - (summary?.previousMonthExpense || 0);
   const incomeDiff = summary?.totalIncome - (summary?.previousMonthIncome || 0);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('dashboard.greetingMorning');
+    if (hour < 18) return t('dashboard.greetingAfternoon');
+    return t('dashboard.greetingEvening');
+  };
+
+  const now = new Date();
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+  const isCurrentMonth = now.getMonth() === currentMonth.getMonth() && now.getFullYear() === currentMonth.getFullYear();
+  const daysRemaining = isCurrentMonth ? daysInMonth - now.getDate() : 0;
+
+  const headerSummaryText = summary
+    ? summary.budgetLimit > 0
+      ? t('dashboard.headerSummary', { spent: summary.totalExpense.toFixed(2), budget: summary.budgetLimit.toFixed(2) })
+      : t('dashboard.headerSummaryNoBudget', { spent: summary.totalExpense.toFixed(2) })
+    : '';
+
   return (
     <div className="dash fade-in">
       <header className="dash-header">
         <div className="dash-header-top">
           <div>
-            <h1 className="dash-title">{t('dashboard.title')}</h1>
-            <p className="dash-subtitle">{t('dashboard.subtitle')}</p>
+            <h1 className="dash-title">{getGreeting()}, {user?.name?.split(' ')[0]} 👋</h1>
+            <p className="dash-subtitle">
+              {headerSummaryText}
+              {summary?.budgetLimit > 0 && (
+                <span className="dash-budget-pct" style={{ color: budgetPct > 90 ? 'var(--danger)' : budgetPct > 75 ? 'var(--warning)' : 'var(--primary)' }}>
+                  {' · '}{t('dashboard.budgetPercent', { percent: budgetPct.toFixed(0) })}
+                </span>
+              )}
+            </p>
+            {isCurrentMonth && (
+              <span className="dash-days-remaining">
+                {t('dashboard.daysRemaining', { count: daysRemaining })}
+              </span>
+            )}
           </div>
           <div className="dash-month-nav">
             <button className="month-arrow" onClick={handlePrevMonth}>&lt;</button>
@@ -416,6 +446,8 @@ const DashboardPage: React.FC = () => {
         .dash-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
         .dash-title { font-size: 26px; margin: 0; }
         .dash-subtitle { margin: 2px 0 0 0; font-size: 13px; color: var(--text-secondary); }
+        .dash-budget-pct { font-weight: 700; }
+        .dash-days-remaining { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); background: var(--bg); border: 1px solid var(--border); padding: 3px 10px; border-radius: 9999px; }
         .dash-month-nav { display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2px; flex-shrink: 0; }
         .month-arrow { background: transparent; border: none; padding: 6px 10px; border-radius: var(--radius); cursor: pointer; color: var(--text); font-weight: 700; transition: background 0.15s; }
         .month-arrow:hover { background: var(--bg); }
