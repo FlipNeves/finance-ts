@@ -1,0 +1,43 @@
+.month-nav {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.month-nav-arrow {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 700;
+  transition: background 0.15s;
+}
+
+.month-nav-arrow:hover {
+  background: var(--bg);
+}
+
+.month-nav-label {
+  font-weight: 600;
+  min-width: 120px;
+  text-align: center;
+  text-transform: capitalize;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .month-nav {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+  .month-nav-label {
+    min-width: 0;
+    flex: 1;
+  }
+}

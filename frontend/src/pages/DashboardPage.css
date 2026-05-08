@@ -7,10 +7,7 @@
 .dash-subtitle { margin: 2px 0 0 0; font-size: 13px; color: var(--text-secondary); }
 .dash-budget-pct { font-weight: 700; }
 .dash-days-remaining { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); background: var(--bg); border: 1px solid var(--border); padding: 3px 10px; border-radius: 9999px; }
-.dash-month-nav { display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2px; flex-shrink: 0; }
-.month-arrow { background: transparent; border: none; padding: 6px 10px; border-radius: var(--radius); cursor: pointer; color: var(--text); font-weight: 700; transition: background 0.15s; }
-.month-arrow:hover { background: var(--bg); }
-.month-label { font-weight: 600; min-width: 120px; text-align: center; text-transform: capitalize; font-size: 13px; }
+
 .dash-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .dash-filter { width: auto; padding: 8px 12px; font-size: 13px; }
 .income-btn { color: var(--primary); border-color: var(--primary); }
@@ -139,8 +136,7 @@
 @media (max-width: 768px) {
   .dash-header-top { flex-direction: column; gap: 10px; }
   .dash-title { font-size: 22px; }
-  .dash-month-nav { align-self: stretch; justify-content: space-between; }
-  .month-label { min-width: 0; flex: 1; }
+
   .dash-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .dash-filter { grid-column: 1 / -1; }
   .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }

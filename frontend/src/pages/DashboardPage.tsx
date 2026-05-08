@@ -8,6 +8,7 @@ import BudgetModal from '../components/BudgetModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
+import MonthNavigator from '../components/MonthNavigator';
 import './DashboardPage.css';
 
 const DashboardPage: React.FC = () => {
@@ -106,10 +107,7 @@ const DashboardPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  
-  const monthLabel = currentMonth.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
+
 
   if (loading) return <div className="text-center mt-3 text-muted">{t('common.loading')}</div>;
 
@@ -156,11 +154,7 @@ const DashboardPage: React.FC = () => {
               </span>
             )}
           </div>
-          <div className="dash-month-nav">
-            <button className="month-arrow" onClick={handlePrevMonth}>&lt;</button>
-            <span className="month-label">{monthLabel}</span>
-            <button className="month-arrow" onClick={handleNextMonth}>&gt;</button>
-          </div>
+          <MonthNavigator currentMonth={currentMonth} onChange={setCurrentMonth} />
         </div>
         <div className="dash-actions">
           <select 
