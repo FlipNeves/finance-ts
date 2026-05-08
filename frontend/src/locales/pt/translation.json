@@ -150,7 +150,12 @@
     "healthCritical": "Crítico",
     "paceOnTrack": "No ritmo",
     "paceAhead": "Abaixo do ritmo",
-    "paceBehind": "Acima do ritmo"
+    "paceBehind": "Acima do ritmo",
+    "categoryBudget": "Orçamento por Categoria",
+    "spent": "gasto",
+    "noLimit": "Sem limite",
+    "overBudget": "Estourou R${{amount}}",
+    "remaining": "Restam R${{amount}}"
   },
   "budget": {
     "title": "Orçamento Mensal",

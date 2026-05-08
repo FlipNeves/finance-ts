@@ -23,6 +23,7 @@ const DashboardPage: React.FC = () => {
   const [evolution, setEvolution] = useState<any[]>([]);
   const [dailySpending, setDailySpending] = useState<any[]>([]);
   const [topSpending, setTopSpending] = useState<any>({type: '', data: []});
+  const [categoryBudgets, setCategoryBudgets] = useState<{ category: string; limit: number }[]>([]);
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -68,6 +69,15 @@ const DashboardPage: React.FC = () => {
       setBankAccounts(familyRes.data.bankAccounts || []);
       setEvolution(evolutionRes.data);
       setTopSpending(topSpendingRes.data);
+
+      const m = currentMonth.getMonth() + 1;
+      const y = currentMonth.getFullYear();
+      try {
+        const budgetRes = await api.get('/budgets', { params: { month: m, year: y } });
+        setCategoryBudgets(budgetRes.data?.categoryLimits || []);
+      } catch {
+        setCategoryBudgets([]);
+      }
 
       const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
       const fullDailyData = Array.from({ length: daysInMonth }, (_, i) => {
@@ -328,6 +338,42 @@ const DashboardPage: React.FC = () => {
         <div className="biggest-expense-alert">
           <span>⚠️</span>
           <span>{t('dashboard.biggestExpense')}: {summary.biggestExpense.description === 'Income' ? t('transactions.income') : summary.biggestExpense.description === 'Expense' ? t('transactions.expense') : summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) {t('dashboard.inCategory')} {translateCategory(summary.biggestExpense.category)}.</span>
+        </div>
+      )}
+
+      {categoryBudgets.length > 0 && spending.length > 0 && (
+        <div className="card cat-budget-section">
+          <h3 className="section-title">{t('dashboard.categoryBudget')}</h3>
+          <div className="cat-budget-grid">
+            {categoryBudgets
+              .filter(cb => cb.limit > 0)
+              .map(cb => {
+                const spendItem = spending.find(s => s.category === cb.category);
+                const spent = spendItem ? spendItem.amount : 0;
+                const pct = cb.limit > 0 ? (spent / cb.limit) * 100 : 0;
+                const isOver = pct > 100;
+                const barColor = pct > 90 ? 'var(--danger)' : pct > 75 ? 'var(--warning)' : 'var(--primary)';
+                return (
+                  <div key={cb.category} className="cat-budget-item">
+                    <div className="cat-budget-header">
+                      <span className="category-badge">{translateCategory(cb.category)}</span>
+                      <span className="cat-budget-values" style={{ color: isOver ? 'var(--danger)' : 'var(--text-secondary)' }}>
+                        R$ {spent.toFixed(0)} / R$ {cb.limit.toFixed(0)}
+                      </span>
+                    </div>
+                    <div className="cat-budget-bar-track">
+                      <div className="cat-budget-bar-fill" style={{ width: Math.min(pct, 100) + '%', background: barColor }}></div>
+                    </div>
+                    <span className="cat-budget-status" style={{ color: isOver ? 'var(--danger)' : 'var(--primary)' }}>
+                      {isOver
+                        ? t('dashboard.overBudget', { amount: (spent - cb.limit).toFixed(2) })
+                        : t('dashboard.remaining', { amount: (cb.limit - spent).toFixed(2) })
+                      }
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
         </div>
       )}
 
@@ -615,6 +661,16 @@ const DashboardPage: React.FC = () => {
         .tx-card-amount.expense { color: var(--danger); }
         .empty-state-mobile { padding: 32px 16px; text-align: center; color: var(--text-secondary); font-size: 14px; }
 
+        .cat-budget-section { margin-bottom: 16px; }
+        .cat-budget-section .section-title { margin-bottom: 16px; }
+        .cat-budget-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .cat-budget-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+        .cat-budget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .cat-budget-values { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .cat-budget-bar-track { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .cat-budget-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .cat-budget-status { font-size: 10px; font-weight: 600; margin-top: 4px; display: block; }
+
         .health-card { padding: 20px; }
         .health-gauge-wrapper { display: flex; justify-content: center; margin: 8px 0 4px; }
         .health-gauge { position: relative; width: 120px; height: 64px; overflow: hidden; }
@@ -651,6 +707,7 @@ const DashboardPage: React.FC = () => {
           .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
           .health-card { grid-column: 1 / -1; }
           .health-gauge-wrapper { margin: 4px 0; }
+          .cat-budget-grid { grid-template-columns: 1fr 1fr; }
           .summary-card { padding: 16px; }
           .summary-value { font-size: 24px; }
           .summary-label { font-size: 11px; }

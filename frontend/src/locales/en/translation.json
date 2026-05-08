@@ -150,7 +150,12 @@
     "healthCritical": "Critical",
     "paceOnTrack": "On track",
     "paceAhead": "Under pace",
-    "paceBehind": "Over pace"
+    "paceBehind": "Over pace",
+    "categoryBudget": "Budget by Category",
+    "spent": "spent",
+    "noLimit": "No limit",
+    "overBudget": "Over by R${{amount}}",
+    "remaining": "R${{amount}} left"
   },
   "budget": {
     "title": "Monthly Budget",
