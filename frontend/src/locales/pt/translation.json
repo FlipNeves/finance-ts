@@ -139,7 +139,18 @@
     "headerSummaryNoBudget": "Você gastou R${{spent}} este mês",
     "daysRemaining": "{{count}} dia restante no mês",
     "daysRemaining_plural": "{{count}} dias restantes no mês",
-    "budgetPercent": "{{percent}}% do orçamento"
+    "budgetPercent": "{{percent}}% do orçamento",
+    "financialHealth": "Saúde Financeira",
+    "savingsRate": "Taxa de Economia",
+    "budgetPace": "Ritmo do Orçamento",
+    "trendVsPrev": "Tendência",
+    "healthExcellent": "Excelente",
+    "healthGood": "Bom",
+    "healthWarning": "Atenção",
+    "healthCritical": "Crítico",
+    "paceOnTrack": "No ritmo",
+    "paceAhead": "Abaixo do ritmo",
+    "paceBehind": "Acima do ritmo"
   },
   "budget": {
     "title": "Orçamento Mensal",

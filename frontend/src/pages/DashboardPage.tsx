@@ -220,6 +220,93 @@ const DashboardPage: React.FC = () => {
             </span>
           </div>
         </div>
+
+        {summary && (() => {
+          const savingsRate = summary.totalIncome > 0
+            ? ((summary.totalIncome - summary.totalExpense) / summary.totalIncome) * 100
+            : 0;
+          const monthProgress = isCurrentMonth ? (now.getDate() / daysInMonth) * 100 : 100;
+          const budgetPace = summary.budgetLimit > 0
+            ? (budgetPct / monthProgress) * 100
+            : 0;
+          const expenseTrend = summary.previousMonthExpense > 0
+            ? ((summary.totalExpense - summary.previousMonthExpense) / summary.previousMonthExpense) * 100
+            : 0;
+
+          let healthScore = 0;
+          if (savingsRate >= 20) healthScore += 40;
+          else if (savingsRate >= 10) healthScore += 25;
+          else if (savingsRate >= 0) healthScore += 10;
+
+          if (summary.budgetLimit > 0) {
+            if (budgetPace <= 100) healthScore += 35;
+            else if (budgetPace <= 120) healthScore += 20;
+            else healthScore += 5;
+          } else {
+            healthScore += 20;
+          }
+
+          if (expenseTrend <= 0) healthScore += 25;
+          else if (expenseTrend <= 10) healthScore += 15;
+          else healthScore += 5;
+
+          const healthColor = healthScore >= 75 ? 'var(--primary)' : healthScore >= 50 ? 'var(--warning)' : 'var(--danger)';
+          const healthLabel = healthScore >= 75
+            ? t('dashboard.healthExcellent')
+            : healthScore >= 50
+              ? t('dashboard.healthGood')
+              : healthScore >= 25
+                ? t('dashboard.healthWarning')
+                : t('dashboard.healthCritical');
+
+          const gaugeAngle = (healthScore / 100) * 180;
+
+          return (
+            <div className="card summary-card health-card">
+              <div className="summary-inner">
+                <span className="summary-label">
+                  <span className="dot" style={{ background: healthColor }}></span>
+                  <p style={{ color: healthColor }}>{t('dashboard.financialHealth')}</p>
+                </span>
+                <div className="health-gauge-wrapper">
+                  <div className="health-gauge">
+                    <div className="health-gauge-bg"></div>
+                    <div className="health-gauge-fill" style={{ 
+                      background: `conic-gradient(${healthColor} 0deg, ${healthColor} ${gaugeAngle}deg, transparent ${gaugeAngle}deg)`,
+                    }}></div>
+                    <div className="health-gauge-cover"></div>
+                    <div className="health-gauge-value">
+                      <span className="health-score" style={{ color: healthColor }}>{healthScore}</span>
+                      <span className="health-label">{healthLabel}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="health-details">
+                  <div className="health-detail-row">
+                    <span>{t('dashboard.savingsRate')}</span>
+                    <span style={{ color: savingsRate >= 20 ? 'var(--primary)' : savingsRate >= 0 ? 'var(--warning)' : 'var(--danger)', fontWeight: 700 }}>
+                      {savingsRate.toFixed(0)}%
+                    </span>
+                  </div>
+                  {summary.budgetLimit > 0 && (
+                    <div className="health-detail-row">
+                      <span>{t('dashboard.budgetPace')}</span>
+                      <span style={{ color: budgetPace <= 100 ? 'var(--primary)' : 'var(--danger)', fontWeight: 700 }}>
+                        {budgetPace <= 95 ? t('dashboard.paceAhead') : budgetPace <= 105 ? t('dashboard.paceOnTrack') : t('dashboard.paceBehind')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="health-detail-row">
+                    <span>{t('dashboard.trendVsPrev')}</span>
+                    <span style={{ color: expenseTrend <= 0 ? 'var(--primary)' : 'var(--danger)', fontWeight: 700 }}>
+                      {expenseTrend > 0 ? '↑' : '↓'} {Math.abs(expenseTrend).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {summary?.budgetLimit > 0 && (
@@ -459,7 +546,7 @@ const DashboardPage: React.FC = () => {
         .expense-btn { background-color: var(--danger) !important; }
         .expense-btn:hover { opacity: 0.9; }
 
-        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
         .summary-card { position: relative; overflow: hidden; padding: 20px; }
         .summary-card:hover { box-shadow: var(--shadow-sm); }
         .card-decoration { position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; border-radius: 50%; opacity: 0.1; filter: blur(20px); z-index: 0; }
@@ -528,6 +615,19 @@ const DashboardPage: React.FC = () => {
         .tx-card-amount.expense { color: var(--danger); }
         .empty-state-mobile { padding: 32px 16px; text-align: center; color: var(--text-secondary); font-size: 14px; }
 
+        .health-card { padding: 20px; }
+        .health-gauge-wrapper { display: flex; justify-content: center; margin: 8px 0 4px; }
+        .health-gauge { position: relative; width: 120px; height: 64px; overflow: hidden; }
+        .health-gauge-bg { position: absolute; width: 120px; height: 120px; border-radius: 50%; background: var(--border); opacity: 0.3; }
+        .health-gauge-fill { position: absolute; width: 120px; height: 120px; border-radius: 50%; transform: rotate(-90deg); transition: background 0.6s ease; }
+        .health-gauge-cover { position: absolute; top: 12px; left: 12px; width: 96px; height: 96px; border-radius: 50%; background: var(--bg-card); }
+        .health-gauge-value { position: absolute; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+        .health-score { font-size: 28px; font-weight: 800; }
+        .health-label { font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .health-details { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border); }
+        .health-detail-row { display: flex; justify-content: space-between; font-size: 11px; }
+        .health-detail-row > span:first-child { color: var(--text-secondary); }
+
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .chart-card { padding: 20px; }
         .chart-card:hover { box-shadow: var(--shadow-sm); }
@@ -548,7 +648,9 @@ const DashboardPage: React.FC = () => {
           .month-label { min-width: 0; flex: 1; }
           .dash-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
           .dash-filter { grid-column: 1 / -1; }
-          .summary-grid { grid-template-columns: 1fr; gap: 10px; }
+          .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+          .health-card { grid-column: 1 / -1; }
+          .health-gauge-wrapper { margin: 4px 0; }
           .summary-card { padding: 16px; }
           .summary-value { font-size: 24px; }
           .summary-label { font-size: 11px; }

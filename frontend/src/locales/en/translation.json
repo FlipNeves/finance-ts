@@ -139,7 +139,18 @@
     "headerSummaryNoBudget": "You spent R${{spent}} this month",
     "daysRemaining": "{{count}} day remaining this month",
     "daysRemaining_plural": "{{count}} days remaining this month",
-    "budgetPercent": "{{percent}}% of budget"
+    "budgetPercent": "{{percent}}% of budget",
+    "financialHealth": "Financial Health",
+    "savingsRate": "Savings Rate",
+    "budgetPace": "Budget Pace",
+    "trendVsPrev": "Trend",
+    "healthExcellent": "Excellent",
+    "healthGood": "Good",
+    "healthWarning": "Warning",
+    "healthCritical": "Critical",
+    "paceOnTrack": "On track",
+    "paceAhead": "Under pace",
+    "paceBehind": "Over pace"
   },
   "budget": {
     "title": "Monthly Budget",
