@@ -9,6 +9,8 @@ describe('UsersController', () => {
 
   const mockUsersService = {
     getProfile: jest.fn(),
+    generateTelegramLinkToken: jest.fn(),
+    unlinkTelegram: jest.fn(),
   };
 
   beforeEach(async () => {
