@@ -26,6 +26,15 @@ export class User extends Document {
 
   @Prop({ default: false })
   skipChatConfirmation: boolean;
+
+  @Prop({ type: Number, default: null })
+  telegramChatId: number | null;
+
+  @Prop({ type: String, default: null })
+  telegramLinkToken: string | null;
+
+  @Prop({ type: Date, default: null })
+  telegramLinkTokenExpiresAt: Date | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
