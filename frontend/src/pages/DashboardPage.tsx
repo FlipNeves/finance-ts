@@ -571,6 +571,49 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {dailySpending.length > 0 && (() => {
+        const maxAmount = Math.max(...dailySpending.map((d: any) => d.amount), 1);
+        const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        const startDow = (firstDayOfMonth.getDay() + 6) % 7;
+        const weekdays = i18n.language === 'pt'
+          ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+          : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const cells: React.ReactNode[] = [];
+        for (let i = 0; i < startDow; i++) {
+          cells.push(<div key={`empty-${i}`} className="cal-cell cal-empty"></div>);
+        }
+        dailySpending.forEach((day: any, idx: number) => {
+          const intensity = day.amount > 0 ? Math.max(0.15, day.amount / maxAmount) : 0;
+          const isToday = isCurrentMonth && idx + 1 === now.getDate();
+          cells.push(
+            <div
+              key={day.date}
+              className={`cal-cell ${isToday ? 'cal-today' : ''} ${day.amount === 0 ? 'cal-zero' : ''}`}
+              style={{
+                backgroundColor: day.amount > 0
+                  ? `color-mix(in srgb, var(--danger) ${Math.round(intensity * 100)}%, var(--bg))`
+                  : undefined,
+              }}
+              title={`${day.label}: R$ ${day.amount.toFixed(2)}`}
+            >
+              <span className="cal-day">{idx + 1}</span>
+              {day.amount > 0 && <span className="cal-amount">R${day.amount.toFixed(0)}</span>}
+            </div>
+          );
+        });
+        return (
+          <div className="card cal-section">
+            <h3 className="section-title">{t('dashboard.financialCalendar')}</h3>
+            <div className="cal-weekdays">
+              {weekdays.map(d => <span key={d} className="cal-weekday">{d}</span>)}
+            </div>
+            <div className="cal-grid">
+              {cells}
+            </div>
+          </div>
+        );
+      })()}
+
       <style>{`
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -660,6 +703,19 @@ const DashboardPage: React.FC = () => {
         .tx-card-amount.income { color: var(--primary); }
         .tx-card-amount.expense { color: var(--danger); }
         .empty-state-mobile { padding: 32px 16px; text-align: center; color: var(--text-secondary); font-size: 14px; }
+
+        .cal-section { margin-top: 16px; }
+        .cal-section .section-title { margin-bottom: 12px; }
+        .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+        .cal-weekday { text-align: center; font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-cell { aspect-ratio: 1; border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; transition: transform 0.15s, box-shadow 0.15s; cursor: default; background: var(--bg); border: 1px solid var(--border); }
+        .cal-cell:hover:not(.cal-empty) { transform: scale(1.08); box-shadow: var(--shadow); z-index: 1; }
+        .cal-cell.cal-empty { background: transparent; border: none; }
+        .cal-cell.cal-zero { opacity: 0.5; }
+        .cal-cell.cal-today { border: 2px solid var(--primary); }
+        .cal-day { font-size: 12px; font-weight: 700; color: var(--text); }
+        .cal-amount { font-size: 9px; font-weight: 600; color: var(--text-secondary); }
 
         .cat-budget-section { margin-bottom: 16px; }
         .cat-budget-section .section-title { margin-bottom: 16px; }

@@ -155,7 +155,9 @@
     "spent": "gasto",
     "noLimit": "Sem limite",
     "overBudget": "Estourou R${{amount}}",
-    "remaining": "Restam R${{amount}}"
+    "remaining": "Restam R${{amount}}",
+    "financialCalendar": "Calendário Financeiro",
+    "calendarTransactions": "{{count}} transações"
   },
   "budget": {
     "title": "Orçamento Mensal",

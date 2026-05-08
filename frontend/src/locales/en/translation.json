@@ -155,7 +155,9 @@
     "spent": "spent",
     "noLimit": "No limit",
     "overBudget": "Over by R${{amount}}",
-    "remaining": "R${{amount}} left"
+    "remaining": "R${{amount}} left",
+    "financialCalendar": "Financial Calendar",
+    "calendarTransactions": "{{count}} transactions"
   },
   "budget": {
     "title": "Monthly Budget",
