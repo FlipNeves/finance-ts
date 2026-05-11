@@ -9,6 +9,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
 import MonthNavigator from '../components/MonthNavigator';
+import AccountBalanceCard from '../components/AccountBalanceCard';
+import MemberSpendingCard from '../components/MemberSpendingCard';
+import InsightsPanel from '../components/InsightsPanel';
+import SavingsMasterCard from '../components/SavingsMasterCard';
 import './DashboardPage.css';
 
 const DashboardPage: React.FC = () => {
@@ -26,6 +30,10 @@ const DashboardPage: React.FC = () => {
   const [dailySpending, setDailySpending] = useState<any[]>([]);
   const [topSpending, setTopSpending] = useState<any>({type: '', data: []});
   const [categoryBudgets, setCategoryBudgets] = useState<{ category: string; limit: number }[]>([]);
+  const [accountsReport, setAccountsReport] = useState<any[]>([]);
+  const [membersReport, setMembersReport] = useState<any[]>([]);
+  const [insights, setInsights] = useState<any[]>([]);
+  const [totalAccumulated, setTotalAccumulated] = useState<any>(null);
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -54,7 +62,7 @@ const DashboardPage: React.FC = () => {
       const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
       const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes] = await Promise.all([
+      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes, accountsRes, membersRes, accumRes] = await Promise.all([
         api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
@@ -62,7 +70,10 @@ const DashboardPage: React.FC = () => {
         api.get('/family/details').catch(() => api.get('/users/profile').catch(() => ({ data: { bankAccounts: [] } }))),
         api.get('/reports/evolution', { params: { endDate: end } }),
         api.get('/reports/top-spending', { params: { startDate: start, endDate: end } }),
-        api.get('/reports/daily-spending', { params: { startDate: start, endDate: end, type: typeFilter } })
+        api.get('/reports/daily-spending', { params: { startDate: start, endDate: end, type: typeFilter } }),
+        api.get('/reports/balance-by-account', { params: { startDate: start, endDate: end } }),
+        api.get('/reports/spending-by-member', { params: { startDate: start, endDate: end } }),
+        api.get('/reports/total-accumulated')
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
@@ -71,6 +82,9 @@ const DashboardPage: React.FC = () => {
       setBankAccounts(familyRes.data.bankAccounts || []);
       setEvolution(evolutionRes.data);
       setTopSpending(topSpendingRes.data);
+      setAccountsReport(accountsRes.data);
+      setMembersReport(membersRes.data);
+      setTotalAccumulated(accumRes.data);
 
       const m = currentMonth.getMonth() + 1;
       const y = currentMonth.getFullYear();
@@ -82,19 +96,78 @@ const DashboardPage: React.FC = () => {
       }
 
       const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+      const nowDt = new Date();
+      const isCurrMonth = nowDt.getMonth() === currentMonth.getMonth() && nowDt.getFullYear() === currentMonth.getFullYear();
+      const daysPassed = isCurrMonth ? nowDt.getDate() : daysInMonth;
+
+      let runningTotal = 0;
       const fullDailyData = Array.from({ length: daysInMonth }, (_, i) => {
         const date = new Date(Date.UTC(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1));
         const dateStr = date.toISOString().split('T')[0];
         const found = dailyRes.data.find((d: any) => d.date === dateStr);
+        const dayAmount = found ? found.amount : 0;
+        runningTotal += dayAmount;
+        
         let label = date.toLocaleDateString(i18n.language, { day: '2-digit', weekday: 'short', timeZone: 'UTC' }).replace('.', '');
         label = label.charAt(0).toUpperCase() + label.slice(1);
         return {
           date: dateStr,
-          amount: found ? found.amount : 0,
-          label
+          amount: dayAmount,
+          accumulated: runningTotal,
+          label,
+          forecast: null as number | null,
+          budgetLimit: summaryRes.data.budgetLimit || null
         };
       });
+
+      const avgDailySpend = daysPassed > 0 ? (fullDailyData[daysPassed - 1].accumulated / daysPassed) : 0;
+      if (isCurrMonth) {
+        fullDailyData.forEach((d, i) => {
+          if (i + 1 > nowDt.getDate()) {
+            d.forecast = fullDailyData[nowDt.getDate() - 1].accumulated + (avgDailySpend * (i + 1 - nowDt.getDate()));
+          } else if (i + 1 === nowDt.getDate()) {
+            d.forecast = d.accumulated;
+          }
+        });
+      }
+
       setDailySpending(fullDailyData);
+
+      const newInsights: any[] = [];
+      const totalIncome = summaryRes.data.totalIncome || 0;
+      const totalExpense = summaryRes.data.totalExpense || 0;
+      
+      if (totalExpense > totalIncome && totalIncome > 0) {
+        newInsights.push({ id: 'neg_balance', type: 'warning', icon: '⚠️', message: `Atenção: Seus gastos excedem sua receita em R$ ${(totalExpense - totalIncome).toFixed(2)}.` });
+      }
+      
+      if (summaryRes.data.fixedExpense > 0 && totalIncome > 0) {
+        const fixedPct = summaryRes.data.fixedExpense / totalIncome;
+        if (fixedPct > 0.5) {
+          newInsights.push({ id: 'high_fixed', type: 'warning', icon: '📊', message: `Despesas fixas representam ${(fixedPct * 100).toFixed(0)}% da sua receita, acima do ideal (50%).` });
+        }
+      }
+
+      if (accountsRes.data && accountsRes.data.length > 0) {
+        const topAcc = accountsRes.data[0];
+        if (topAcc.expense > 0 && totalExpense > 0) {
+          const accPct = topAcc.expense / totalExpense;
+          if (accPct > 0.7) {
+            newInsights.push({ id: 'acc_concentrated', type: 'info', icon: '💳', message: `A conta '${topAcc.bankAccount}' concentra ${(accPct * 100).toFixed(0)}% dos seus gastos este mês.` });
+          }
+        }
+      }
+
+      if (dailyRes.data && dailyRes.data.length > 0) {
+        const maxDay = [...dailyRes.data].sort((a, b) => b.amount - a.amount)[0];
+        if (maxDay && maxDay.amount > 0) {
+          const dateStr = new Date(maxDay.date).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+          newInsights.push({ id: 'max_day', type: 'info', icon: '📅', message: `O dia ${dateStr} foi o mais caro do mês: R$ ${maxDay.amount.toFixed(2)}.` });
+        }
+      }
+      
+      setInsights(newInsights);
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -177,6 +250,12 @@ const DashboardPage: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {totalAccumulated && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <SavingsMasterCard savings={totalAccumulated} />
+        </div>
+      )}
       
       <div className="summary-grid">
         <div className="card summary-card">
@@ -313,6 +392,8 @@ const DashboardPage: React.FC = () => {
           );
         })()}
       </div>
+
+      <InsightsPanel insights={insights} />
 
       {summary?.budgetLimit > 0 && (
         <div className="card budget-progress">
@@ -456,6 +537,18 @@ const DashboardPage: React.FC = () => {
       />
 
       <div className="charts-grid">
+        {accountsReport && accountsReport.length > 0 && (
+          <div className="card chart-card">
+            <AccountBalanceCard accounts={accountsReport} />
+          </div>
+        )}
+
+        {membersReport && membersReport.length > 0 && (
+          <div className="card chart-card">
+            <MemberSpendingCard members={membersReport} />
+          </div>
+        )}
+
         <div className="card chart-card">
           <h3 className="section-title">
             {t('dashboard.biggestExpense')}
@@ -518,6 +611,10 @@ const DashboardPage: React.FC = () => {
                     <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
                     <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
                   </linearGradient>
+                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--text-secondary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--text-secondary)" stopOpacity={0}/>
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
@@ -525,10 +622,12 @@ const DashboardPage: React.FC = () => {
                 <Tooltip 
                   cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }} 
                   contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} 
-                  formatter={(val: any) => [`R$ ${Number(val || 0).toFixed(2)}`, t('transactions.amount')]}
+                  formatter={(val: any, name: string) => [`R$ ${Number(val || 0).toFixed(2)}`, name === 'accumulated' ? t('transactions.amount') : name === 'forecast' ? 'Projeção' : 'Orçamento']}
                   labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
                 />
-                <Area type="monotone" dataKey="amount" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
+                <Area type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
+                <Area type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
