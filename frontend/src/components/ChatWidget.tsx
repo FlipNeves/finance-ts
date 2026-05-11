@@ -62,7 +62,7 @@ const ChatWidget: React.FC = () => {
     const text = input.trim();
     if (!text || loading) return;
 
-    setMessages((prev) => 
+    setMessages((prev) =>
       prev.map(m => m.parsed && !m.confirmed ? { ...m, confirmed: true } : m)
     );
     setPendingParsed(null);
@@ -176,71 +176,74 @@ const ChatWidget: React.FC = () => {
         aria-label={isOpen ? t('chat.close') : t('chat.open')}
         id="chat-fab-button"
       >
-        {isOpen ? '✕' : '💬'}
+        <span className="chat-fab-glyph">{isOpen ? '×' : '?'}</span>
+        {!isOpen && <span className="chat-fab-label">Ask</span>}
       </button>
 
       <div className={`chat-window ${isOpen ? 'open' : ''}`} id="chat-window">
-        <div className="chat-header">
+        <header className="chat-header">
           <div className="chat-header-info">
-            <div className="chat-header-text">
-              <h4>{t('chat.title')}</h4>
-              <span>{t('chat.subtitle')}</span>
-            </div>
+            <span className="chat-eyebrow">VerdantCash · Assist</span>
+            <h4 className="chat-title">{t('chat.title')}</h4>
+            <span className="chat-subtitle">{t('chat.subtitle')}</span>
           </div>
           <button
             className="chat-header-close"
             onClick={() => setIsOpen(false)}
             aria-label={t('chat.close')}
           >
-            ✕
+            ×
           </button>
-        </div>
+        </header>
 
         <div className="chat-messages" id="chat-messages">
           {messages.length === 0 && (
             <div className="chat-welcome">
-              <div className="chat-welcome-icon">💰</div>
-              <p>{t('chat.welcomeMessage')}</p>
+              <span className="chat-welcome-eyebrow">Welcome</span>
+              <p className="chat-welcome-text">{t('chat.welcomeMessage')}</p>
             </div>
           )}
 
           {messages.map((msg) => (
-            <div key={msg.id}>
-              <div className={`chat-bubble ${msg.role}`}>
-                <span style={{ whiteSpace: 'pre-line' }}>{msg.text}</span>
+            <div key={msg.id} className="chat-row">
+              <div className={`chat-bubble chat-bubble-${msg.role}`}>
+                <span className="chat-bubble-text">{msg.text}</span>
 
                 {msg.source && msg.source !== 'none' && (
-                  <div className={`chat-source-badge ${msg.source}`}> </div>
+                  <span className={`chat-source-badge chat-source-${msg.source}`}>{msg.source}</span>
                 )}
 
                 {msg.parsed && !msg.confirmed && (
                   <div className="chat-confirm-actions">
                     <button
-                      className="chat-confirm-btn primary"
+                      className="btn btn-primary btn-sm"
                       onClick={() => handleConfirm(msg.parsed, msg.id)}
                       disabled={loading}
                     >
-                      ✅ {t('common.confirm')}
+                      {t('common.confirm')}
                     </button>
                     <button
-                      className="chat-confirm-btn danger"
+                      className="btn btn-outline btn-sm"
                       onClick={() => handleCancel(msg.id)}
                       disabled={loading}
                     >
-                      ❌ {t('common.cancel')}
+                      {t('common.cancel')}
                     </button>
                   </div>
                 )}
               </div>
 
               {msg.alert && (
-                <div className="chat-alert">⚠️ {msg.alert}</div>
+                <div className="chat-alert">
+                  <span className="chat-alert-glyph" aria-hidden="true">!</span>
+                  <span>{msg.alert}</span>
+                </div>
               )}
             </div>
           ))}
 
           {loading && (
-            <div className="chat-typing">
+            <div className="chat-typing" aria-label="typing">
               <span />
               <span />
               <span />
@@ -269,7 +272,7 @@ const ChatWidget: React.FC = () => {
             aria-label={t('chat.send')}
             id="chat-send-button"
           >
-            ➤
+            →
           </button>
         </div>
       </div>
