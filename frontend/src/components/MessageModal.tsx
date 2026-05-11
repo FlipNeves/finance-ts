@@ -19,34 +19,33 @@ const MessageModal: React.FC<MessageModalProps> = ({
   onClose,
   onConfirm,
   isConfirmRequired,
-  isDestructive
+  isDestructive,
 }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    if (isOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const accent = isDestructive ? 'var(--danger)' : 'var(--primary)';
+
   return createPortal(
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container alert-modal" onClick={(e) => e.stopPropagation()}>
-        <header className="modal-header">
-          <h2>{title}</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+    <div className="msg-overlay" onClick={onClose}>
+      <div className="msg-container" onClick={(e) => e.stopPropagation()}>
+        <div className="msg-accent" style={{ background: accent }} />
+        <header className="msg-header">
+          <span className="msg-eyebrow" style={{ color: accent }}>
+            {isDestructive ? '!  Attention' : '·  Notice'}
+          </span>
+          <button className="msg-close" onClick={onClose} aria-label="Close">×</button>
         </header>
-        <div className="modal-content">
-          <p>{message}</p>
-        </div>
-        <footer className="modal-footer">
+        <h2 className="msg-title">{title}</h2>
+        <p className="msg-text">{message}</p>
+        <footer className="msg-footer">
           {isConfirmRequired ? (
             <>
               <button className="btn btn-outline" onClick={onClose}>
@@ -65,108 +64,108 @@ const MessageModal: React.FC<MessageModalProps> = ({
       </div>
 
       <style>{`
-        .modal-overlay {
+        .msg-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(8px);
+          inset: 0;
+          background-color: rgba(0, 30, 43, 0.55);
+          backdrop-filter: blur(6px);
           display: flex;
           justify-content: center;
           align-items: center;
           z-index: 9999;
-          animation: fadeIn 0.3s ease-out;
+          animation: msgFadeIn 0.25s ease-out;
+          padding: 16px;
         }
 
-        .modal-container {
-          background-color: var(--bg-card);
-          width: 90%;
-          max-width: 440px;
-          border-radius: 20px;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-          overflow: hidden;
+        .msg-container {
           position: relative;
-          padding: 0;
-          animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          background-color: var(--bg-card);
+          width: 100%;
+          max-width: 460px;
+          border: 1px solid var(--text);
+          border-radius: 0;
+          padding: 32px 32px 28px;
+          animation: msgSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .alert-modal {
-          border-top: 6px solid ${isDestructive ? 'var(--danger)' : 'var(--primary)'};
+        .msg-accent {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
         }
 
-        .modal-header {
-          padding: 24px 24px 16px;
+        .msg-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          margin-bottom: 16px;
         }
-
-        .modal-header h2 {
-          margin: 0;
-          font-size: 20px;
+        .msg-eyebrow {
+          font-size: 10px;
           font-weight: 700;
-          color: var(--text);
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
         }
-
-        .close-btn {
-          background: var(--bg);
-          border: none;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
+        .msg-close {
+          background: transparent;
+          border: 1px solid var(--border);
+          width: 26px;
+          height: 26px;
+          border-radius: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 20px;
-          color: var(--text-muted);
+          font-size: 16px;
+          color: var(--text-secondary);
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.15s;
+          font-family: var(--sans);
+          line-height: 1;
         }
-
-        .close-btn:hover {
-          background-color: var(--border);
+        .msg-close:hover {
+          border-color: var(--text);
           color: var(--text);
         }
 
-        .modal-content {
-          padding: 0 24px 24px;
+        .msg-title {
+          margin: 0 0 12px 0;
+          font-size: clamp(22px, 3vw, 28px);
+          font-weight: 300;
+          letter-spacing: -0.8px;
+          line-height: 1.1;
+          color: var(--text);
+        }
+        .msg-title::first-letter { font-weight: 800; }
+
+        .msg-text {
+          margin: 0 0 24px 0;
+          color: var(--text-secondary);
+          font-size: 14px;
+          line-height: 1.55;
         }
 
-        .modal-content p {
-          margin: 0;
-          color: var(--text-muted);
-          font-size: 15px;
-          line-height: 1.6;
-        }
-
-        .modal-footer {
-          padding: 16px 24px 24px;
-          background-color: var(--bg);
+        .msg-footer {
           display: flex;
           justify-content: flex-end;
-          gap: 12px;
+          gap: 8px;
+          padding-top: 16px;
+          border-top: 1px solid var(--border);
         }
 
-        .btn-danger {
-          background-color: var(--danger);
-          color: white;
-        }
-
-        .btn-danger:hover {
-          filter: brightness(0.9);
-          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-        }
-
-        @keyframes fadeIn {
+        @keyframes msgFadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
-        @keyframes slideUp {
+        @keyframes msgSlideUp {
           from { transform: translateY(20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+          .msg-container { padding: 24px 20px 20px; }
+          .msg-title { font-size: 22px; }
         }
       `}</style>
     </div>,
