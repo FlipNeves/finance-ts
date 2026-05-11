@@ -77,9 +77,10 @@
 .member-expense {
   font-family: Georgia, serif;
   color: var(--danger);
-  font-weight: 400;
-  font-size: 18px;
+  font-weight: 500;
+  font-size: 22px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
 }
 
 .expand-icon {

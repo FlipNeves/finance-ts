@@ -77,12 +77,13 @@
 .reserve-amount {
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(48px, 9vw, 96px);
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: -3px;
   line-height: 0.95;
   font-variant-numeric: tabular-nums lining-nums;
-  color: var(--text);
+  color: var(--primary);
 }
+.reserve-amount.is-positive { color: var(--primary); }
 .reserve-amount.is-negative { color: var(--danger); }
 .reserve-mini-label {
   font-size: 10px;
@@ -122,14 +123,14 @@
 .reserve-stat dd {
   margin: 0;
   font-family: Georgia, serif;
-  font-size: 18px;
-  font-weight: 400;
+  font-size: 22px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--text);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
 }
-.reserve-stat dd.is-up { color: var(--primary); }
-.reserve-stat dd.is-down { color: var(--danger); }
+.reserve-stat dd.is-up { color: var(--primary); font-size: 22px; }
+.reserve-stat dd.is-down { color: var(--danger); font-size: 22px; }
 
 @media (max-width: 960px) {
   .reserve-block {

@@ -48,19 +48,21 @@
 
 .account-balance {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  font-weight: 400;
+  font-size: 22px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
 }
 
 .account-flow {
   display: flex;
-  gap: 18px;
-  font-size: 11px;
+  gap: 22px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  font-weight: 500;
 }
+.account-flow .text-green { color: var(--primary); }
+.account-flow .text-red { color: var(--danger); }
 
 .mt-1 { margin-top: 8px; }

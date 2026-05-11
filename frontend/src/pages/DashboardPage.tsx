@@ -310,28 +310,26 @@ const DashboardPage: React.FC = () => {
       )}
       
       <div className="summary-grid">
-        <div className="card summary-card">
-          <div className="card-decoration"></div>
+        <div className="card summary-card summary-income">
           <div className="summary-inner">
             <span className="summary-label">
               <span className="dot dot-green"></span>
               <p className="text-green">{t('dashboard.totalIncome')}</p>
             </span>
-            <span className="summary-value">{`R$${summary?.totalIncome.toFixed(2)}`}</span>
+            <span className="summary-value summary-value-income">{`R$${summary?.totalIncome.toFixed(2)}`}</span>
             <span className="summary-diff" style={{ color: incomeDiff >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
               {incomeDiff >= 0 ? '↑' : '↓'} R$ {Math.abs(incomeDiff).toFixed(2)} {t('dashboard.vsPrevMonth')}
             </span>
           </div>
         </div>
 
-        <div className="card summary-card">
-          <div className="card-decoration"></div>
+        <div className="card summary-card summary-expense">
           <div className="summary-inner">
             <span className="summary-label">
               <span className="dot dot-red"></span>
               <p className="text-red">{t('dashboard.totalExpense')}</p>
             </span>
-            <span className="summary-value">{`R$${summary?.totalExpense.toFixed(2)}`}</span>
+            <span className="summary-value summary-value-expense">{`R$${summary?.totalExpense.toFixed(2)}`}</span>
             <span className="summary-diff" style={{ color: expenseDiff <= 0 ? 'var(--primary)' : 'var(--danger)' }}>
               {expenseDiff > 0 ? '↑' : '↓'} R$ {Math.abs(expenseDiff).toFixed(2)} {t('dashboard.vsPrevMonth')}
             </span>
@@ -344,14 +342,13 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="card summary-card">
-          <div className="card-decoration"></div>
+        <div className="card summary-card summary-balance">
           <div className="summary-inner">
             <span className="summary-label">
               <span className="dot dot-blue"></span>
               <p className="text-blue">{t('dashboard.balance')}</p>
             </span>
-            <span className={`summary-value ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
+            <span className={`summary-value summary-value-balance ${summary && summary.balance < 0 ? 'negative' : 'positive'}`}>
               {`R$${summary?.balance.toFixed(2)}`}
             </span>
           </div>
@@ -398,7 +395,7 @@ const DashboardPage: React.FC = () => {
           const gaugeAngle = (healthScore / 100) * 180;
 
           return (
-            <div className="card summary-card health-card">
+            <div className="card summary-card health-card summary-health">
               <div className="summary-inner">
                 <span className="summary-label">
                   <span className="dot" style={{ background: healthColor }}></span>
