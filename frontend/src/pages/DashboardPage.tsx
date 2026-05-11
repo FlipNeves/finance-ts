@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart, Line } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import BudgetModal from '../components/BudgetModal';
@@ -602,10 +602,10 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card chart-card chart-full">
-          <h3 className="section-title">{t('dashboard.topSpendingDays')}</h3>
+          <h3 className="section-title">{t('dashboard.topSpendingDays') || 'Ritmo de Gastos e Projeção'}</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
@@ -618,17 +618,20 @@ const DashboardPage: React.FC = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                <YAxis yAxisId="right" orientation="right" hide />
                 <Tooltip 
-                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }} 
+                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }} 
                   contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} 
-                  formatter={(val: any, name: string) => [`R$ ${Number(val || 0).toFixed(2)}`, name === 'accumulated' ? t('transactions.amount') : name === 'forecast' ? 'Projeção' : 'Orçamento']}
+                  formatter={(val: any, name: string) => [`R$ ${Number(val || 0).toFixed(2)}`, name === 'accumulated' ? 'Acumulado' : name === 'forecast' ? 'Projeção' : name === 'budgetLimit' ? 'Orçamento' : 'Gasto no Dia']}
                   labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
                 />
-                <Area type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
-                <Area type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
-                <Area type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
-              </AreaChart>
+                
+                <Bar yAxisId="right" dataKey="amount" name="amount" fill="var(--danger)" opacity={0.3} radius={[2, 2, 0, 0]} />
+                <Area yAxisId="left" type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
+                <Area yAxisId="left" type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
+                <Area yAxisId="left" type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -664,52 +667,6 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {dailySpending.length > 0 && (() => {
-        const maxAmount = Math.max(...dailySpending.map((d: any) => d.amount), 1);
-        const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-        const startDow = (firstDayOfMonth.getDay() + 6) % 7;
-        const weekdays = i18n.language === 'pt'
-          ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-          : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const cells: React.ReactNode[] = [];
-        for (let i = 0; i < startDow; i++) {
-          cells.push(<div key={`empty-${i}`} className="cal-cell cal-empty"></div>);
-        }
-        dailySpending.forEach((day: any, idx: number) => {
-          const intensity = day.amount > 0 ? Math.max(0.15, day.amount / maxAmount) : 0;
-          const isToday = isCurrentMonth && idx + 1 === now.getDate();
-          cells.push(
-            <div
-              key={day.date}
-              className={`cal-cell ${isToday ? 'cal-today' : ''} ${day.amount === 0 ? 'cal-zero' : ''}`}
-              style={{
-                backgroundColor: day.amount > 0
-                  ? `color-mix(in srgb, var(--danger) ${Math.round(intensity * 100)}%, var(--bg))`
-                  : undefined,
-              }}
-              title={`${day.label}: R$ ${day.amount.toFixed(2)}`}
-            >
-              <span className="cal-day">{idx + 1}</span>
-              {day.amount > 0 && <span className="cal-amount">R${day.amount.toFixed(0)}</span>}
-            </div>
-          );
-        });
-        return (
-          <div className="card cal-section">
-            <h3 className="section-title">{t('dashboard.financialCalendar')}</h3>
-            <div className="cal-weekdays">
-              {weekdays.map(d => <span key={d} className="cal-weekday">{d}</span>)}
-            </div>
-            <div className="cal-grid">
-              {cells}
-            </div>
-          </div>
-        );
-      })()}
-
-
-
     </div>
   );
 };

@@ -157,7 +157,10 @@
     "overBudget": "Over by R${{amount}}",
     "remaining": "R${{amount}} left",
     "financialCalendar": "Financial Calendar",
-    "calendarTransactions": "{{count}} transactions"
+    "calendarTransactions": "{{count}} transactions",
+    "myReserve": "My Reserve (Net Worth)",
+    "accumulatedTotal": "Current Net Worth (Accumulated)",
+    "dynamic": "Dynamic"
   },
   "budget": {
     "title": "Monthly Budget",

@@ -157,7 +157,10 @@
     "overBudget": "Estourou R${{amount}}",
     "remaining": "Restam R${{amount}}",
     "financialCalendar": "Calendário Financeiro",
-    "calendarTransactions": "{{count}} transações"
+    "calendarTransactions": "{{count}} transações",
+    "myReserve": "Minha Reserva (Patrimônio)",
+    "accumulatedTotal": "Patrimônio Atual (Acumulado)",
+    "dynamic": "Dinâmico"
   },
   "budget": {
     "title": "Orçamento Mensal",
