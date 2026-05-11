@@ -140,13 +140,15 @@ export class ReportsService {
     return results;
   }
 
-  async getEvolutionReport(familyId: string | null, userId: string, referenceDate: Date): Promise<any> {
+  async getEvolutionReport(familyId: string | null, userId: string, referenceDate: Date, monthsCount = 3): Promise<any> {
+    const span = Math.max(1, monthsCount);
+
     const endDate = new Date(referenceDate);
     endDate.setHours(23, 59, 59, 999);
-    
+
     const startDate = new Date(referenceDate);
     startDate.setDate(1);
-    startDate.setMonth(startDate.getMonth() - 2);
+    startDate.setMonth(startDate.getMonth() - (span - 1));
     startDate.setHours(0, 0, 0, 0);
 
     const matchQuery: any = {
@@ -174,7 +176,7 @@ export class ReportsService {
     ]).exec();
 
     const months: any[] = [];
-    for (let i = 2; i >= 0; i--) {
+    for (let i = span - 1; i >= 0; i--) {
       const d = new Date(referenceDate);
       d.setDate(1);
       d.setMonth(d.getMonth() - i);

@@ -57,10 +57,12 @@ export class ReportsController {
   async getEvolution(
     @Req() req: any,
     @Query('endDate') end: string,
+    @Query('months') months: string,
   ) {
     const familyId = this.getFamilyId(req);
     const referenceDate = end ? new Date(end) : new Date();
-    return this.reportsService.getEvolutionReport(familyId, req.user._id, referenceDate);
+    const parsedMonths = months ? Math.max(1, Math.min(60, parseInt(months, 10) || 3)) : 3;
+    return this.reportsService.getEvolutionReport(familyId, req.user._id, referenceDate, parsedMonths);
   }
 
   @Get('top-spending')
