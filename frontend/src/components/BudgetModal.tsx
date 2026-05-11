@@ -139,26 +139,25 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('budget.title')}>
-      <div className="flex flex-col gap-3">
-        <div className="month-selector flex items-center justify-between" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '4px' }}>
-            <button className="btn-icon" onClick={handlePrevMonth}>&lt;</button>
-            <span style={{ fontWeight: 600, minWidth: '140px', textAlign: 'center', textTransform: 'capitalize', fontSize: '14px' }}>{monthLabel}</span>
-            <button className="btn-icon" onClick={handleNextMonth}>&gt;</button>
+      <div className="bm-body">
+        <div className="bm-month-nav">
+          <button className="bm-nav-arrow" onClick={handlePrevMonth} aria-label="Previous">&lt;</button>
+          <span className="bm-nav-label">{monthLabel}</span>
+          <button className="bm-nav-arrow" onClick={handleNextMonth} aria-label="Next">&gt;</button>
         </div>
 
         {loading ? (
-          <div className="text-center text-muted py-4">{t('common.loading')}</div>
+          <div className="bm-loading">{t('common.loading')}</div>
         ) : (
           <>
-            <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-muted">{t('budget.globalLimit')}</span>
+            <div className="bm-global-row">
+              <div className="bm-global-label">
+                <span className="eyebrow">{t('budget.globalLimit')}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>R$</span>
-                <NumericFormat 
-                  className="form-control" 
-                  style={{ fontSize: '20px', fontWeight: 700, width: '140px', textAlign: 'right' }}
+              <div className="bm-global-input">
+                <span className="bm-currency">R$</span>
+                <NumericFormat
+                  className="bm-global-field"
                   value={globalLimit}
                   onValueChange={(values) => setGlobalLimit(values.floatValue ?? '')}
                   thousandSeparator="."
@@ -170,26 +169,28 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
                 />
               </div>
             </div>
-            
-            <div className="flex justify-between items-center">
-               <h3 style={{ fontSize: '16px', margin: 0 }}>{t('budget.categoryLimits')}</h3>
-               {displayLimits.length === 0 && (
-                 <button className="btn btn-outline btn-sm" onClick={handleCopyPrevMonth}>{t('budget.copyPrevMonth')}</button>
-               )}
+
+            <div className="bm-section-head">
+              <h3 className="section-title">
+                <span className="section-numeral">01</span>
+                {t('budget.categoryLimits')}
+              </h3>
+              {displayLimits.length === 0 && (
+                <button className="btn btn-outline btn-sm" onClick={handleCopyPrevMonth}>{t('budget.copyPrevMonth')}</button>
+              )}
             </div>
 
-            <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+            <div className="bm-cat-list">
               {displayLimits.length === 0 ? (
-                <div className="text-center text-muted py-2 text-sm">{t('budget.noLimits')}</div>
+                <div className="bm-empty">{t('budget.noLimits')}</div>
               ) : (
                 displayLimits.map(cl => (
-                  <div key={cl.category} className="flex justify-between items-center bg-[var(--bg-card)] p-2 rounded border border-[var(--border)]">
-                    <span style={{ fontWeight: 500, fontSize: '14px' }}>{translateCategory(cl.category)}</span>
-                    <div className="flex items-center gap-1">
-                      <span style={{ color: 'var(--text-muted)' }}>R$</span>
-                      <NumericFormat 
-                        className="form-control"
-                        style={{ width: '120px', textAlign: 'right', padding: '6px 10px', fontSize: '14px' }}
+                  <div key={cl.category} className="bm-cat-row">
+                    <span className="bm-cat-name">{translateCategory(cl.category)}</span>
+                    <div className="bm-cat-input">
+                      <span className="bm-cat-currency">R$</span>
+                      <NumericFormat
+                        className="bm-cat-field"
                         value={cl.limit}
                         onValueChange={(values) => handleLimitChange(cl.category, values.floatValue ?? '')}
                         thousandSeparator="."
@@ -199,13 +200,13 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
                         allowNegative={false}
                         placeholder="0,00"
                       />
-                      <button 
-                        className="btn-icon" 
+                      <button
+                        className="bm-icon-btn"
                         onClick={() => handleDeleteLimit(cl.category)}
                         title={t('budget.deleteLimit')}
-                        style={{ color: '#ef4444', padding: '6px' }}
+                        aria-label={t('budget.deleteLimit')}
                       >
-                         ✕
+                        ×
                       </button>
                     </div>
                   </div>
@@ -214,18 +215,17 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
             </div>
 
             {availableCategories.length > 0 && (
-              <div className="flex gap-2 mt-2">
-                <select 
-                  className="form-control flex-1" 
-                  value={selectedNewCategory} 
+              <div className="bm-add-row">
+                <select
+                  className="form-control"
+                  value={selectedNewCategory}
                   onChange={(e) => setSelectedNewCategory(e.target.value)}
-                  style={{ fontSize: '14px', padding: '8px 12px' }}
                 >
                   <option value="">{t('budget.selectCategory')}</option>
                   {availableCategories.map(c => <option key={c} value={c}>{translateCategory(c)}</option>)}
                 </select>
-                <button 
-                  className="btn btn-outline" 
+                <button
+                  className="btn btn-outline"
                   onClick={handleAddNewCategoryLimit}
                   disabled={!selectedNewCategory}
                 >
@@ -234,23 +234,156 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
               </div>
             )}
 
-            <button className="btn btn-primary w-full mt-3" onClick={handleSave} disabled={saving}>
+            <button className="btn btn-primary bm-save-btn" onClick={handleSave} disabled={saving}>
               {saving ? t('budget.saving') : t('budget.save')}
             </button>
           </>
         )}
       </div>
       <style>{`
-        .btn-icon {
+        .bm-body { display: flex; flex-direction: column; gap: 20px; }
+        .bm-loading { text-align: center; padding: 30px; color: var(--text-secondary); font-style: italic; }
+
+        .bm-month-nav {
+          display: inline-flex;
+          align-items: stretch;
+          border: 1px solid var(--text);
+          align-self: stretch;
+        }
+        .bm-nav-arrow {
           background: transparent;
           border: none;
-          padding: 6px 12px;
-          border-radius: 6px;
-          transition: background 0.2s;
+          padding: 8px 14px;
+          font-size: 14px;
           cursor: pointer;
+          color: var(--text);
+          flex-shrink: 0;
+          transition: background 0.15s;
         }
-        .btn-icon:hover {
-          background: var(--bg);
+        .bm-nav-arrow:hover { background: var(--bg); }
+        .bm-nav-label {
+          flex: 1;
+          padding: 8px 12px;
+          text-align: center;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          border-left: 1px solid var(--text);
+          border-right: 1px solid var(--text);
+        }
+
+        .bm-global-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 18px 0;
+          border-top: 1px solid var(--text);
+          border-bottom: 1px solid var(--border);
+        }
+        .bm-global-label .eyebrow { display: block; }
+        .bm-global-input { display: flex; align-items: baseline; gap: 10px; }
+        .bm-currency {
+          font-family: var(--mono);
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--text-secondary);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .bm-global-field {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid var(--text);
+          padding: 4px 0;
+          font-family: var(--sans);
+          font-size: 28px;
+          font-weight: 500;
+          color: var(--primary);
+          letter-spacing: -0.8px;
+          font-variant-numeric: tabular-nums;
+          text-align: right;
+          width: 160px;
+          outline: none;
+        }
+
+        .bm-section-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          padding-bottom: 10px;
+          border-bottom: 1px solid var(--text);
+        }
+
+        .bm-cat-list { display: flex; flex-direction: column; max-height: 280px; overflow-y: auto; }
+        .bm-cat-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 0;
+          border-bottom: 1px solid var(--border);
+          gap: 10px;
+        }
+        .bm-cat-row:last-child { border-bottom: none; }
+        .bm-cat-name {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--text);
+        }
+        .bm-cat-input { display: flex; align-items: baseline; gap: 8px; }
+        .bm-cat-currency {
+          font-family: var(--mono);
+          font-size: 10px;
+          font-weight: 500;
+          color: var(--text-secondary);
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        .bm-cat-field {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid var(--border);
+          padding: 4px 0;
+          width: 110px;
+          font-family: var(--sans);
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--text);
+          font-variant-numeric: tabular-nums;
+          text-align: right;
+          outline: none;
+        }
+        .bm-cat-field:focus { border-bottom-color: var(--text); }
+        .bm-icon-btn {
+          background: transparent;
+          border: 1px solid var(--border);
+          width: 26px;
+          height: 26px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-secondary);
+          font-size: 14px;
+          line-height: 1;
+          cursor: pointer;
+          font-family: var(--sans);
+          transition: all 0.15s;
+        }
+        .bm-icon-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+        .bm-empty { padding: 24px 0; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 13px; }
+
+        .bm-add-row { display: flex; gap: 8px; padding-top: 8px; }
+        .bm-add-row .form-control { flex: 1; }
+
+        .bm-save-btn {
+          padding: 14px;
+          font-size: 12px;
+          letter-spacing: 0.14em;
+          margin-top: 8px;
         }
       `}</style>
     </Modal>

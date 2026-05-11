@@ -392,136 +392,122 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         .tm-modal {}
         .tm-steps-indicator {
           display: flex;
-          justify-content: center;
-          gap: 8px;
-          margin-bottom: 16px;
+          gap: 0;
+          margin-bottom: 22px;
+          border-bottom: 1px solid var(--border);
         }
         .tm-step-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
+          flex: 1;
+          height: 2px;
           background-color: var(--border);
-          transition: background-color 0.3s, transform 0.3s;
+          transition: background-color 0.3s;
         }
-        .tm-step-dot.active {
-          background-color: var(--primary);
-          transform: scale(1.2);
-        }
+        .tm-step-dot + .tm-step-dot { margin-left: 4px; }
+        .tm-step-dot.active { background-color: var(--primary); }
         .tm-step {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 20px;
         }
         .tm-step-title {
-          font-size: 15px;
-          color: var(--text-muted);
-          text-align: center;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--text-secondary);
+          text-align: left;
           margin: 0;
-          font-weight: 500;
         }
-        .tm-field {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
+        .tm-field { display: flex; flex-direction: column; gap: 8px; }
         .tm-label {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--text-secondary);
         }
-        .tm-inline-create {
-          display: flex;
-          gap: 6px;
-          align-items: center;
-        }
-        .tm-select-row {
-          display: flex;
-          gap: 6px;
-          align-items: center;
-        }
+        .tm-inline-create { display: flex; gap: 6px; align-items: stretch; }
+        .tm-select-row { display: flex; gap: 6px; align-items: stretch; }
         .tm-placeholder {
-          color: var(--text-muted);
+          color: var(--text-secondary);
           display: flex;
           align-items: center;
           font-size: 13px;
+          font-style: italic;
         }
-        .tm-checkbox {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
+        .tm-checkbox { display: flex; align-items: center; gap: 10px; padding-top: 4px; }
         .tm-checkbox label {
-          font-size: 14px;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.06em;
           cursor: pointer;
           color: var(--text);
         }
         .tm-checkbox input[type="checkbox"] {
-          width: 18px;
-          height: 18px;
+          width: 16px;
+          height: 16px;
           accent-color: var(--primary);
+          border-radius: 0;
         }
         .tm-amount-wrapper {
           display: flex;
-          align-items: center;
-          gap: 8px;
+          align-items: baseline;
+          gap: 14px;
+          padding: 22px 0 18px;
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--text);
         }
         .tm-currency {
-          font-size: 28px;
-          font-weight: 800;
-          color: var(--primary);
+          font-family: var(--mono);
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-secondary);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
           flex-shrink: 0;
         }
         .tm-amount-input {
-          font-size: 28px !important;
-          font-weight: 800 !important;
-          text-align: center;
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
+          font-family: var(--sans) !important;
+          font-size: 48px !important;
+          font-weight: 500 !important;
+          color: var(--text) !important;
+          letter-spacing: -1.5px !important;
+          font-variant-numeric: tabular-nums !important;
+          text-align: right;
           flex: 1;
           min-width: 0;
+          width: 100%;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        .tm-amount-input:focus {
+          box-shadow: none !important;
+          border: none !important;
         }
         .tm-nav-buttons {
           display: flex;
-          gap: 10px;
-          margin-top: 4px;
+          gap: 8px;
+          margin-top: 8px;
+          padding-top: 16px;
+          border-top: 1px solid var(--border);
         }
         .tm-next-btn {
           width: 100%;
           padding: 14px;
-          font-size: 15px;
-          margin-top: 4px;
-        }
-        .form-control {
-          padding: 12px;
-          border-radius: 8px;
-          border: 1px solid var(--border);
-          background-color: var(--bg);
-          color: var(--text);
-          font-size: 16px;
-          width: 100%;
-          transition: all 0.2s;
-        }
-        .form-control:focus {
-          outline: none;
-          border-color: var(--primary);
-          box-shadow: 0 0 0 3px var(--primary-light);
+          font-size: 12px;
+          letter-spacing: 0.12em;
+          margin-top: 8px;
         }
 
         @media (max-width: 768px) {
-          .tm-currency { font-size: 24px; }
-          .tm-amount-input { font-size: 24px !important; }
-          .tm-inline-create {
-            flex-wrap: wrap;
-          }
-          .tm-inline-create .form-control {
-            min-width: 0;
-          }
-          .tm-nav-buttons {
-            flex-direction: column;
-          }
-          .tm-nav-buttons .btn {
-            flex: unset;
-            width: 100%;
-            padding: 14px;
-          }
+          .tm-amount-input { font-size: 36px !important; }
+          .tm-inline-create { flex-wrap: wrap; }
+          .tm-inline-create .form-control { min-width: 0; }
+          .tm-nav-buttons { flex-direction: column; }
+          .tm-nav-buttons .btn { flex: unset; width: 100%; padding: 14px; }
         }
       `}</style>
     </Modal>
