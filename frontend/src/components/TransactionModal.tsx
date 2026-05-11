@@ -4,6 +4,7 @@ import { NumericFormat } from 'react-number-format';
 import Modal from './Modal';
 import api from '../services/api';
 import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
+import { useMessageModal } from '../contexts/MessageModalContext';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
+  const { showMessage } = useMessageModal();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -95,7 +97,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       setIsCreatingCategory(false);
     } catch (err) {
       console.error(err);
-      alert(t('transactions.categoryError') || 'Error creating category');
+      showMessage(t('common.error') || 'Error', t('transactions.categoryError') || 'Error creating category');
     } finally {
       setLoading(false);
     }
@@ -115,7 +117,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       setIsCreatingAccount(false);
     } catch (err) {
       console.error(err);
-      alert(t('transactions.accountError') || 'Error creating bank account');
+      showMessage(t('common.error') || 'Error', t('transactions.accountError') || 'Error creating bank account');
     } finally {
       setLoading(false);
     }
@@ -145,14 +147,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       }
       
       if (res.data?.alert) {
-        alert(res.data.alert);
+        showMessage(t('common.success') || 'Success', res.data.alert);
       }
 
       onSuccess();
       onClose();
     } catch (err) {
       console.error(err);
-      alert(t('transactions.addError') || 'Error adding transaction');
+      showMessage(t('common.error') || 'Error', t('transactions.addError') || 'Error adding transaction');
     } finally {
       setLoading(false);
     }

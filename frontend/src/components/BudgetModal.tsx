@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 import api from '../services/api';
 import { useCategoryTranslation } from '../hooks/useCategoryTranslation';
+import { useMessageModal } from '../contexts/MessageModalContext';
 
 interface BudgetModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface BudgetModalProps {
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { t, i18n } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
+  const { showMessage } = useMessageModal();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [globalLimit, setGlobalLimit] = useState<number | string>('');
   const [categoryLimits, setCategoryLimits] = useState<{ category: string; limit: number | string }[]>([]);
@@ -36,12 +38,12 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
         api.get('/transactions/categories'),
         api.get('/budgets', { params: { month: m, year: y } })
       ]);
-      
+
       const cats = catRes.data || [];
 
       const budget = budgetRes.data;
       setGlobalLimit(budget?.totalLimit || '');
-      
+
       const limits = budget?.categoryLimits || [];
       // Combine active limits with categories, only show those with limits > 0 by default, plus empty ones?
       // Wait, let's keep all categories for simplicity, or provide an option to "delete".
@@ -50,7 +52,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
         const existing = limits.find((l: any) => l.category === cat);
         return { category: cat, limit: existing && existing.limit > 0 ? existing.limit : '' };
       });
-      
+
       // Let's only list categories that are active OR the user explicitly added.
       // For a better UX, since they want to "apagar", let's make it a list of *active* limits
       // and provide an "adicionar" button. But for simplicity and backward compatibility with their request,
@@ -70,10 +72,10 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
       const y = currentMonth.getFullYear();
       await api.post('/budgets/copy', { month: m, year: y });
       await loadData();
-      alert(t('budget.copiedSuccess'));
+      showMessage(t('common.success') || 'Success', t('budget.copiedSuccess'));
     } catch (err) {
       console.error(err);
-      alert(t('budget.copyError'));
+      showMessage(t('common.error') || 'Error', t('budget.copyError'));
       setLoading(false);
     }
   };
@@ -83,9 +85,9 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
     try {
       const m = currentMonth.getMonth() + 1;
       const y = currentMonth.getFullYear();
-      
+
       const numGlobalLimit = typeof globalLimit === 'string' ? parseFloat(globalLimit.toString().replace(/,/g, '')) : globalLimit;
-      
+
       const parsedLimits = categoryLimits.map(c => {
         const val = typeof c.limit === 'string' ? parseFloat(c.limit.toString().replace(/,/g, '')) : c.limit;
         return { category: c.category, limit: val || 0 };
@@ -102,7 +104,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
       onClose();
     } catch (err) {
       console.error(err);
-      alert(t('budget.saveError'));
+      showMessage(t('common.error') || 'Error', t('budget.saveError'));
     } finally {
       setSaving(false);
     }
@@ -129,11 +131,6 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
   const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   const monthLabel = currentMonth.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
 
-  // Let's present the list as only the ACTIVE limits. That way they can "apagar" a field and it disappears.
-  // And they have a dropdown to add a new category limit.
-  // To initialize, active is any with limit > 0 or limit === 0 (but type is number not string). 
-  // Let's modify the above active logic:
-  
   const displayLimits = categoryLimits.filter(cl => cl.limit !== '');
   const availableCategories = categoryLimits.filter(cl => cl.limit === '').map(cl => cl.category);
 
@@ -316,7 +313,9 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess })
           border-bottom: 1px solid var(--text);
         }
 
-        .bm-cat-list { display: flex; flex-direction: column; max-height: 280px; overflow-y: auto; }
+        .bm-cat-list { display: flex; flex-direction: column; max-height: min(320px, 38vh); overflow-y: auto; padding-right: 4px; }
+        .bm-cat-list::-webkit-scrollbar { width: 4px; }
+        .bm-cat-list::-webkit-scrollbar-thumb { background: var(--border); }
         .bm-cat-row {
           display: flex;
           justify-content: space-between;
