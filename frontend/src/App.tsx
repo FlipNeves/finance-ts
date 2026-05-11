@@ -9,6 +9,7 @@ import RegisterPage from './pages/RegisterPage';
 import FamilyPage from './pages/FamilyPage';
 import TransactionsPage from './pages/TransactionsPage';
 import DashboardPage from './pages/DashboardPage';
+import LifetimePage from './pages/LifetimePage';
 import BudgetPage from './pages/BudgetPage';
 import ChatWidget from './components/ChatWidget';
 import './App.css';
@@ -56,6 +57,7 @@ const Navigation: React.FC = () => {
   const navItems = [
     { to: '/', label: t('dashboard.title'), icon: '📊' },
     { to: '/transactions', label: t('transactions.title'), icon: '💳' },
+    { to: '/lifetime', label: t('lifetime.title'), icon: '∞' },
     { to: '/family', label: t('family.title'), icon: '👥' },
   ];
 
@@ -191,6 +193,7 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+          <Route path="/lifetime" element={<PrivateRoute><LifetimePage /></PrivateRoute>} />
           <Route path="/family" element={<PrivateRoute><FamilyPage /></PrivateRoute>} />
           <Route path="/budget" element={<PrivateRoute><BudgetPage /></PrivateRoute>} />
           <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />

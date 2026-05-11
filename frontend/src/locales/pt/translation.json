@@ -186,6 +186,14 @@
     "topSpendingTitle": "Top 5 maiores saídas",
     "noTopSpending": "Sem despesas registradas neste período."
   },
+  "lifetime": {
+    "title": "Acumulado",
+    "subtitle": "Visão consolidada do seu histórico financeiro completo",
+    "monthsTracked": "Meses registrados",
+    "savingsRate": "Taxa de economia",
+    "activeAccounts": "Contas ativas",
+    "evolutionTitle": "Evolução receita vs despesa (12 meses)"
+  },
   "budget": {
     "title": "Orçamento Mensal",
     "description": "Defina seus limites de gastos por categoria para controlar o seu mês",

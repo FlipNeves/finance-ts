@@ -186,6 +186,14 @@
     "topSpendingTitle": "Top 5 outflows",
     "noTopSpending": "No expenses recorded in this period."
   },
+  "lifetime": {
+    "title": "Lifetime",
+    "subtitle": "Consolidated view of your full financial history",
+    "monthsTracked": "Months tracked",
+    "savingsRate": "Savings rate",
+    "activeAccounts": "Active accounts",
+    "evolutionTitle": "Income vs expense evolution (12 months)"
+  },
   "budget": {
     "title": "Monthly Budget",
     "description": "Set your spending limits by category to control your month",
