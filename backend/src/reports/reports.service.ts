@@ -285,4 +285,144 @@ export class ReportsService {
 
     return results.map(r => ({ date: r._id, amount: r.amount }));
   }
+
+  async getBalanceByAccount(
+    familyId: string | null,
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    const matchQuery: any = {
+      date: { $gte: startDate, $lte: endDate },
+    };
+
+    if (familyId) {
+      matchQuery.familyId = familyId;
+    } else {
+      matchQuery.userId = userId;
+      matchQuery.familyId = null;
+    }
+
+    const results = await this.transactionModel.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { bankAccount: '$bankAccount', type: '$type' },
+          total: { $sum: '$amount' },
+        },
+      },
+    ]).exec();
+
+    const accountsMap = new Map<string, { bankAccount: string, income: number, expense: number, balance: number }>();
+
+    results.forEach(res => {
+      const accName = res._id.bankAccount || 'Outros';
+      if (!accountsMap.has(accName)) {
+        accountsMap.set(accName, { bankAccount: accName, income: 0, expense: 0, balance: 0 });
+      }
+      const acc = accountsMap.get(accName)!;
+      if (res._id.type === 'income') acc.income += res.total;
+      if (res._id.type === 'expense') acc.expense += res.total;
+    });
+
+    const finalAccounts = Array.from(accountsMap.values()).map(acc => {
+      acc.balance = acc.income - acc.expense;
+      return acc;
+    });
+
+    return finalAccounts.sort((a, b) => b.balance - a.balance);
+  }
+
+  async getSpendingByMember(
+    familyId: string | null,
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    if (!familyId) {
+      return [];
+    }
+
+    const matchQuery: any = {
+      familyId: familyId,
+      date: { $gte: startDate, $lte: endDate },
+    };
+
+    const results = await this.transactionModel.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { userId: '$userId', type: '$type' },
+          total: { $sum: '$amount' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id.userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+    ]).exec();
+
+    const membersMap = new Map<string, { userId: string, userName: string, income: number, expense: number, balance: number }>();
+
+    results.forEach(res => {
+      const uid = res._id.userId ? res._id.userId.toString() : 'unknown';
+      if (!membersMap.has(uid)) {
+        membersMap.set(uid, {
+          userId: uid,
+          userName: res.user ? res.user.name : 'Unknown',
+          income: 0,
+          expense: 0,
+          balance: 0,
+        });
+      }
+      const member = membersMap.get(uid)!;
+      if (res._id.type === 'income') member.income += res.total;
+      if (res._id.type === 'expense') member.expense += res.total;
+    });
+
+    const finalMembers = Array.from(membersMap.values()).map(m => {
+      m.balance = m.income - m.expense;
+      return m;
+    });
+
+    return finalMembers.sort((a, b) => b.expense - a.expense);
+  }
+
+  async getTotalAccumulated(familyId: string | null, userId: string): Promise<any> {
+    const matchQuery: any = {};
+    if (familyId) {
+      matchQuery.familyId = familyId;
+    } else {
+      matchQuery.userId = userId;
+      matchQuery.familyId = null;
+    }
+    
+    const results = await this.transactionModel.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: '$type',
+          total: { $sum: '$amount' },
+        },
+      },
+    ]).exec();
+    
+    let totalIncome = 0;
+    let totalExpense = 0;
+    results.forEach(res => {
+      if (res._id === 'income') totalIncome += res.total;
+      if (res._id === 'expense') totalExpense += res.total;
+    });
+    
+    return {
+      totalAccumulated: totalIncome - totalExpense,
+      totalIncome,
+      totalExpense,
+    };
+  }
 }

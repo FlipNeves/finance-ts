@@ -102,4 +102,48 @@ export class ReportsController {
       type,
     );
   }
+
+  @Get('balance-by-account')
+  async getBalanceByAccount(
+    @Req() req: any,
+    @Query('startDate') start: string,
+    @Query('endDate') end: string,
+  ) {
+    const familyId = this.getFamilyId(req);
+    const startDate = start
+      ? new Date(start)
+      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endDate = end ? new Date(end) : new Date();
+    return this.reportsService.getBalanceByAccount(
+      familyId,
+      req.user._id,
+      startDate,
+      endDate,
+    );
+  }
+
+  @Get('spending-by-member')
+  async getSpendingByMember(
+    @Req() req: any,
+    @Query('startDate') start: string,
+    @Query('endDate') end: string,
+  ) {
+    const familyId = this.getFamilyId(req);
+    const startDate = start
+      ? new Date(start)
+      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endDate = end ? new Date(end) : new Date();
+    return this.reportsService.getSpendingByMember(
+      familyId,
+      req.user._id,
+      startDate,
+      endDate,
+    );
+  }
+
+  @Get('total-accumulated')
+  async getTotalAccumulated(@Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.reportsService.getTotalAccumulated(familyId, req.user._id);
+  }
 }
