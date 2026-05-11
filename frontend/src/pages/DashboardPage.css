@@ -11,9 +11,6 @@
 
 /* ----------------------------- HEADER ASIMÉTRICO ------------------------- */
 .dash-header {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: var(--hair-bold);
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 24px;
@@ -58,7 +55,7 @@
 
 /* ----------------------------- SECTION TITLES (editorial) ---------------- */
 .section-title {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -68,7 +65,7 @@
   gap: 12px;
 }
 .section-numeral {
-  font-family: ui-monospace, "JetBrains Mono", "SF Mono", Consolas, monospace;
+  font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 11px;
   font-weight: 400;
   color: var(--text-secondary);
@@ -81,7 +78,7 @@
   grid-template-columns: 1.4fr 1.4fr 1fr 1.6fr;
   gap: 0;
   margin-bottom: 32px;
-  border-top: var(--hair-bold);
+  border-top: var(--hair);
   border-bottom: var(--hair);
 }
 .summary-card {
@@ -97,7 +94,7 @@
 .summary-card:hover { background: var(--bg); box-shadow: none; }
 .card-decoration { display: none; }
 .summary-inner { display: flex; flex-direction: column; gap: 4px; }
-.summary-label { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.16em; margin-bottom: 12px; text-transform: uppercase; }
+.summary-label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.16em; margin-bottom: 12px; text-transform: uppercase; }
 .summary-label p { margin: 0; }
 .dot { width: 4px; height: 4px; border-radius: 0; flex-shrink: 0; }
 .dot-green { background: var(--primary); }
@@ -108,7 +105,7 @@
 .text-blue { color: var(--info); }
 /* Base — used for any summary value */
 .summary-value {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: clamp(28px, 3.5vw, 40px);
   font-weight: 400;
   letter-spacing: -1px;
@@ -117,7 +114,6 @@
   color: var(--text);
 }
 
-/* Colored, larger sizing for the three financial KPIs */
 .summary-value-income,
 .summary-value-expense,
 .summary-value-balance {
@@ -129,12 +125,6 @@
 .summary-value-expense { color: var(--danger); }
 .summary-value-balance.positive { color: var(--info); }
 .summary-value-balance.negative { color: var(--danger); }
-
-/* Left accent bar on the colored cards — restored financial signaling */
-.summary-card.summary-income { border-left: 3px solid var(--primary); }
-.summary-card.summary-expense { border-left: 3px solid var(--danger); }
-.summary-card.summary-balance { border-left: 3px solid var(--info); }
-.summary-card.summary-health { border-left: 3px solid var(--text); }
 
 .summary-diff {
   font-size: 12px;
@@ -166,7 +156,7 @@
 .health-gauge-fill { position: absolute; width: 150px; height: 150px; border-radius: 50%; transform: rotate(-90deg); transition: background 0.6s ease; }
 .health-gauge-cover { position: absolute; top: 14px; left: 14px; width: 122px; height: 122px; border-radius: 50%; background: var(--bg-card); }
 .health-gauge-value { position: absolute; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; line-height: 1; }
-.health-score { font-family: Georgia, serif; font-size: 44px; font-weight: 500; letter-spacing: -1.5px; }
+.health-score { font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 44px; font-weight: 500; letter-spacing: -1.5px; }
 .health-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.16em; margin-top: 4px; }
 .health-details { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; padding-top: 10px; border-top: var(--hair); }
 .health-detail-row { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.02em; }
@@ -177,7 +167,7 @@
 .budget-progress { padding: 16px 0; margin-bottom: 28px; background: transparent; border-radius: 0; border: none; border-top: var(--hair); border-bottom: var(--hair); box-shadow: none; }
 .budget-progress:hover { box-shadow: none; }
 .budget-progress-header { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: 600; margin-bottom: 10px; gap: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); }
-.budget-progress-header > span:last-child { font-family: Georgia, serif; font-size: 17px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; text-transform: none; font-variant-numeric: tabular-nums; }
+.budget-progress-header > span:last-child { font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 17px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; text-transform: none; font-variant-numeric: tabular-nums; }
 .budget-bar-track { width: 100%; height: 2px; background: var(--border); border-radius: 0; overflow: hidden; }
 .budget-bar-fill { height: 100%; transition: width 0.5s cubic-bezier(.2,.7,.2,1); border-radius: 0; }
 
@@ -197,14 +187,14 @@
 [data-theme='dark'] .view-all-link { color: var(--text); }
 .table-responsive { overflow-x: auto; }
 .tx-table { width: 100%; border-collapse: collapse; border-spacing: 0; }
-.tx-table th { text-align: left; padding: 10px 12px; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.14em; border-bottom: var(--hair); }
+.tx-table th { text-align: left; padding: 10px 12px; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.14em; border-bottom: var(--hair); }
 .tx-table td { padding: 14px 12px; font-size: 13px; background: transparent; border-bottom: var(--hair); }
 .tx-table td:first-child { border-radius: 0; padding-left: 0; }
 .tx-table td:last-child { border-radius: 0; padding-right: 0; }
 .tx-table tbody tr:hover td { background: var(--bg); }
 .tx-desc { font-weight: 500; color: var(--text); }
 .tx-bank { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.04em; }
-.tx-amount { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-family: Georgia, serif; font-size: 17px; letter-spacing: -0.3px; }
+.tx-amount { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 17px; letter-spacing: -0.3px; }
 .tx-amount.income { color: var(--primary); }
 .tx-amount.expense { color: var(--danger); }
 .text-right { text-align: right !important; }
@@ -223,7 +213,7 @@
 .category-badge-sm { background: transparent; color: var(--text-secondary); padding: 0; border: none; border-bottom: var(--hair); border-radius: 0; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 [data-theme='dark'] .category-badge-sm { color: var(--text-secondary); }
 .tx-card-date { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.04em; }
-.tx-card-amount { font-family: Georgia, serif; font-weight: 500; font-size: 20px; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; letter-spacing: -0.4px; }
+.tx-card-amount { font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; font-size: 20px; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; letter-spacing: -0.4px; }
 .tx-card-amount.income { color: var(--primary); }
 .tx-card-amount.expense { color: var(--danger); }
 .empty-state-mobile { padding: 40px 16px; text-align: center; color: var(--text-secondary); font-size: 14px; font-style: italic; }
@@ -236,7 +226,7 @@
 .cat-budget-item:last-child { border-right: none; }
 .cat-budget-item:first-child { padding-left: 0; }
 .cat-budget-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-.cat-budget-values { font-family: Georgia, serif; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
+.cat-budget-values { font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
 .cat-budget-bar-track { width: 100%; height: 2px; background: var(--border); border-radius: 0; overflow: hidden; }
 .cat-budget-bar-fill { height: 100%; border-radius: 0; transition: width 0.5s cubic-bezier(.2,.7,.2,1); }
 .cat-budget-status { font-size: 10px; font-weight: 700; margin-top: 6px; display: block; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -261,12 +251,11 @@
 .top-spending-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 14px 0; background: transparent; border-radius: 0; border: none; border-bottom: var(--hair); }
 .top-spending-item:last-child { border-bottom: none; }
 .top-spending-item:hover { border-color: var(--text); background: var(--bg); padding-left: 12px; padding-right: 12px; }
-.ts-rank { font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 11px; color: var(--text-secondary); font-weight: 400; letter-spacing: 0; }
+.ts-rank { font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; color: var(--text-secondary); font-weight: 400; letter-spacing: 0; }
 .ts-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ts-name { font-weight: 600; font-size: 13px; color: var(--text); letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; }
 .ts-meta { font-size: 10px; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
-.ts-amount { font-family: Georgia, serif; font-weight: 500; font-size: 19px; color: var(--danger); font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
-
+.ts-amount { font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; font-size: 19px; color: var(--danger); font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
 /* ----------------------------- RESPONSIVE -------------------------------- */
 @media (max-width: 960px) {
   .summary-grid { grid-template-columns: 1fr 1fr; }
