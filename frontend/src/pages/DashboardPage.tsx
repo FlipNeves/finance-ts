@@ -12,7 +12,6 @@ import MonthNavigator from '../components/MonthNavigator';
 import AccountBalanceCard from '../components/AccountBalanceCard';
 import MemberSpendingCard from '../components/MemberSpendingCard';
 import InsightsPanel from '../components/InsightsPanel';
-import SavingsMasterCard from '../components/SavingsMasterCard';
 import './DashboardPage.css';
 
 const DashboardPage: React.FC = () => {
@@ -33,8 +32,7 @@ const DashboardPage: React.FC = () => {
   const [accountsReport, setAccountsReport] = useState<any[]>([]);
   const [membersReport, setMembersReport] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
-  const [totalAccumulated, setTotalAccumulated] = useState<any>(null);
-  
+
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   
@@ -62,7 +60,7 @@ const DashboardPage: React.FC = () => {
       const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
       const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes, accountsRes, membersRes, accumRes] = await Promise.all([
+      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes, accountsRes, membersRes] = await Promise.all([
         api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
@@ -73,18 +71,16 @@ const DashboardPage: React.FC = () => {
         api.get('/reports/daily-spending', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/reports/balance-by-account', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-member', { params: { startDate: start, endDate: end } }),
-        api.get('/reports/total-accumulated')
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
-      setTransactions(transRes.data.slice(0, 5)); 
+      setTransactions(transRes.data.slice(0, 5));
       setCategories(catRes.data);
       setBankAccounts(familyRes.data.bankAccounts || []);
       setEvolution(evolutionRes.data);
       setTopSpending(topSpendingRes.data);
       setAccountsReport(accountsRes.data);
       setMembersReport(membersRes.data);
-      setTotalAccumulated(accumRes.data);
 
       const m = currentMonth.getMonth() + 1;
       const y = currentMonth.getFullYear();
@@ -301,14 +297,21 @@ const DashboardPage: React.FC = () => {
         </div>
       </header>
 
-      {totalAccumulated && (
-        <SavingsMasterCard
-          savings={totalAccumulated}
-          monthsTracked={evolution.length || 1}
-          currentMonthExpense={summary?.totalExpense || 0}
-        />
+      {summary?.budgetLimit > 0 && (
+        <div className="card budget-progress">
+          <div className="budget-progress-header">
+            <span>{t('dashboard.budgetProgress')}</span>
+            <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
+          </div>
+          <div className="budget-bar-track">
+            <div className="budget-bar-fill" style={{ 
+              background: budgetPct > 90 ? 'var(--danger)' : budgetPct > 75 ? 'var(--warning)' : 'var(--primary)',
+              width: Math.min(budgetPct, 100) + '%',
+            }}></div>
+          </div>
+        </div>
       )}
-      
+
       <div className="summary-grid">
         <div className="card summary-card summary-income">
           <div className="summary-inner">
@@ -463,23 +466,10 @@ const DashboardPage: React.FC = () => {
         })()}
       </div>
 
+      
+
       <InsightsPanel insights={insights} />
 
-      {summary?.budgetLimit > 0 && (
-        <div className="card budget-progress">
-          <div className="budget-progress-header">
-            <span>{t('dashboard.budgetProgress')}</span>
-            <span>R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} ({budgetPct.toFixed(0)}%)</span>
-          </div>
-          <div className="budget-bar-track">
-            <div className="budget-bar-fill" style={{ 
-              background: budgetPct > 90 ? 'var(--danger)' : budgetPct > 75 ? 'var(--warning)' : 'var(--primary)',
-              width: Math.min(budgetPct, 100) + '%',
-            }}></div>
-          </div>
-        </div>
-      )}
-      
       {summary?.biggestExpense && (
         <aside className="biggest-expense-alert" role="note">
           <span className="biggest-expense-glyph" aria-hidden="true">◆</span>
@@ -611,6 +601,54 @@ const DashboardPage: React.FC = () => {
         initialCategories={categories}
         initialBankAccounts={bankAccounts}
       />
+
+      <div className="card chart-card chart-full">
+          <h3 className="section-title"><span className="section-numeral">06</span>{t('dashboard.topSpendingDays')}</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--text-secondary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--text-secondary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                <YAxis yAxisId="right" orientation="right" hide />
+                <Tooltip
+                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }}
+                  contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
+                  formatter={(val: any, name: any) => {
+                    const key = typeof name === 'string' ? name : '';
+                    return [
+                      `R$ ${Number(val || 0).toFixed(2)}`,
+                      key === 'accumulated'
+                        ? t('dashboard.actualLabel')
+                        : key === 'forecast'
+                          ? t('dashboard.projectionLabel')
+                          : key === 'budgetLimit'
+                            ? t('dashboard.budgetLineLabel')
+                            : t('transactions.amount'),
+                    ];
+                  }}
+                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
+                />
+                
+                <Bar yAxisId="right" dataKey="amount" name="amount" fill="var(--danger)" opacity={0.3} radius={[2, 2, 0, 0]} />
+                <Area yAxisId="left" type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
+                <Area yAxisId="left" type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
+                <Area yAxisId="left" type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
       <BudgetModal 
         isOpen={isBudgetOpen}
         onClose={() => setIsBudgetOpen(false)}
@@ -698,52 +736,7 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="card chart-card chart-full">
-          <h3 className="section-title"><span className="section-numeral">06</span>{t('dashboard.topSpendingDays')}</h3>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--text-secondary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--text-secondary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
-                <YAxis yAxisId="right" orientation="right" hide />
-                <Tooltip
-                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }}
-                  contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
-                  formatter={(val: any, name: any) => {
-                    const key = typeof name === 'string' ? name : '';
-                    return [
-                      `R$ ${Number(val || 0).toFixed(2)}`,
-                      key === 'accumulated'
-                        ? t('dashboard.actualLabel')
-                        : key === 'forecast'
-                          ? t('dashboard.projectionLabel')
-                          : key === 'budgetLimit'
-                            ? t('dashboard.budgetLineLabel')
-                            : t('transactions.amount'),
-                    ];
-                  }}
-                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
-                />
-                
-                <Bar yAxisId="right" dataKey="amount" name="amount" fill="var(--danger)" opacity={0.3} radius={[2, 2, 0, 0]} />
-                <Area yAxisId="left" type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
-                <Area yAxisId="left" type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
-                <Area yAxisId="left" type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        
 
         <div className="card chart-card chart-full">
           <h3 className="section-title"><span className="section-numeral">07</span>{t('dashboard.evolution')}</h3>
