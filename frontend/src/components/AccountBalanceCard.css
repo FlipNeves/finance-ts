@@ -1,0 +1,38 @@
+.account-balance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.account-flow {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}

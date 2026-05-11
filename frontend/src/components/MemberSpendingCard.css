@@ -1,0 +1,96 @@
+.member-spending-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.member-item {
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.member-header:hover {
+  background-color: var(--bg-hover);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.member-name {
+  font-weight: 600;
+}
+
+.member-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.member-expense {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.expand-icon {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.member-details {
+  padding: 0 0.75rem 0.75rem 0.75rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.slide-down {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,67 @@
+.savings-master-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, var(--bg-card), color-mix(in srgb, var(--primary) 10%, var(--bg-card)));
+  border: 1px solid var(--border);
+}
+
+.savings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.savings-badge {
+  background-color: var(--bg);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+
+.savings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.savings-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.savings-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.savings-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.savings-value.positive {
+  color: var(--text);
+}
+
+.savings-value.negative {
+  color: var(--danger);
+}
+
+.savings-details {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+}
+
+.savings-detail-item {
+  display: flex;
+  flex-direction: column;
+}
