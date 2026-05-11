@@ -55,7 +55,7 @@ const FamilyPage: React.FC = () => {
     try {
       await api.post('/family/create', {});
       const token = localStorage.getItem('token');
-      if (token) await login(token); // Refresh user data
+      if (token) await login(token);
       showMessage(t('common.success') || 'Success', t('family.createSuccess') || 'Family created successfully!');
     } catch {
       showMessage(t('common.error') || 'Error', t('family.createError') || 'Failed to create family');
@@ -65,22 +65,19 @@ const FamilyPage: React.FC = () => {
   const handleJoinFamily = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
-
     showConfirm(
       t('family.joinWarningTitle') || 'Warning: Data Loss',
       t('family.joinWarningDesc') || 'By joining a family, ALL your current individual transactions and records will be permanently deleted once approved. Do you want to proceed?',
       async () => {
         try {
-          await api.post('/family/join', { 
-            familyCode: joinCode.trim(),
-          });
+          await api.post('/family/join', { familyCode: joinCode.trim() });
           showMessage(t('common.success') || 'Success', t('family.joinRequestSent') || 'Join request sent! Wait for owner approval.');
           setJoinCode('');
         } catch {
           showMessage(t('common.error') || 'Error', t('family.joinError') || 'Error joining family. Check the code and try again.');
         }
       },
-      true // isDestructive
+      true
     );
   };
 
@@ -120,313 +117,333 @@ const FamilyPage: React.FC = () => {
     );
   };
 
-  if (loading) return <div className="text-center mt-3" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</div>;
+  if (loading) return <div className="fp-loading">{t('common.loading')}</div>;
 
+  // ---------- No family yet: split-screen create/join ----------
   if (!user?.familyId) {
     return (
-      <div className="dashboard-container fade-in flex flex-col items-center gap-3 mt-3">
-        <div className="flex gap-3 flex-wrap justify-center w-full" style={{ maxWidth: '1024px' }}>
-          <div className="card w-full" style={{ flex: '1', minWidth: '300px' }}>
-            <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('family.create')}</h2>
-            <p className="text-muted mb-3">{t('family.createDesc') || 'Create a family group to start tracking together.'}</p>
-            <form onSubmit={handleCreateFamily} className="flex flex-col gap-2">
-              <button type="submit" className="btn btn-primary w-full" style={{ padding: '12px' }}>{t('family.create')}</button>
+      <div className="fp-page fade-in">
+        <header className="page-header">
+          <div>
+            <span className="eyebrow">03 · Family Setup</span>
+            <h1 className="page-title" style={{ marginTop: 10 }}>{t('family.title')}</h1>
+            <p className="page-subtitle">{t('family.createDesc')}</p>
+          </div>
+        </header>
+
+        <section className="fp-split">
+          <div className="fp-split-side">
+            <span className="numeral">01</span>
+            <h2 className="fp-side-title">{t('family.create')}</h2>
+            <p className="fp-side-text">{t('family.createDesc') || 'Create a family group to start tracking together.'}</p>
+            <form onSubmit={handleCreateFamily}>
+              <button type="submit" className="btn btn-primary w-full">{t('family.create')}</button>
             </form>
           </div>
 
-          <div className="card w-full" style={{ flex: '1', minWidth: '300px' }}>
-             <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{t('family.join')}</h2>
-            <p className="text-muted mb-3">{t('family.joinDesc') || 'Enter a family code to request to join.'}</p>
-            <form onSubmit={handleJoinFamily} className="flex flex-col gap-2 mt-auto">
-              <input 
-                type="text" 
+          <div className="fp-split-divider" aria-hidden="true">
+            <span>or</span>
+          </div>
+
+          <div className="fp-split-side">
+            <span className="numeral">02</span>
+            <h2 className="fp-side-title">{t('family.join')}</h2>
+            <p className="fp-side-text">{t('family.joinDesc') || 'Enter a family code to request to join.'}</p>
+            <form onSubmit={handleJoinFamily} className="fp-join-form">
+              <input
+                type="text"
                 className="form-control"
-                style={{ padding: '12px' }}
-                placeholder={t('family.code') || 'Family Code'} 
-                value={joinCode} 
-                onChange={(e) => setJoinCode(e.target.value)} 
-                required 
+                placeholder={t('family.code') || 'Family Code'}
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                required
               />
-              <button type="submit" className="btn btn-outline w-full" style={{ padding: '12px' }}>{t('family.join')}</button>
+              <button type="submit" className="btn btn-outline w-full">{t('family.join')}</button>
             </form>
           </div>
-        </div>
-        
+        </section>
+
         <style>{`
-          .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+          .fp-page { padding: 0; max-width: 1100px; margin: 0 auto; }
+          .fade-in { animation: fadeIn 0.35s cubic-bezier(.2,.7,.2,1) forwards; }
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+          .fp-loading { text-align: center; padding: 60px; color: var(--text-secondary); font-style: italic; }
+          .fp-split {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0;
+            border-top: 1px solid var(--text);
+            border-bottom: 1px solid var(--border);
+            min-height: 320px;
+          }
+          .fp-split-side {
+            padding: 40px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: center;
+          }
+          .fp-split-side .numeral { font-size: 11px; margin-bottom: 6px; }
+          .fp-side-title {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 300;
+            letter-spacing: -0.8px;
+            line-height: 1.05;
+            margin: 0;
+          }
+          .fp-side-title::first-letter { font-weight: 800; }
+          .fp-side-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 18px; max-width: 38ch; }
+          .fp-join-form { display: flex; flex-direction: column; gap: 10px; }
+          .fp-split-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            padding: 0 20px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+          }
+          @media (max-width: 768px) {
+            .fp-split { grid-template-columns: 1fr; }
+            .fp-split-side { padding: 28px 20px; }
+            .fp-split-divider { border-left: none; border-right: none; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px; }
+          }
         `}</style>
       </div>
     );
   }
 
+  // ---------- Has family ----------
   return (
-    <div className="dashboard-container fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      <header className="card mb-3" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: 'white', padding: '32px 40px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div className="flex flex-col">
-          <h1 style={{ color: 'white', margin: 0, fontSize: '32px' }}>{familyDetails?.name}</h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0 0', fontSize: '15px' }}>{t('family.manageMembersDesc')}</p>
+    <div className="fp-page fade-in">
+      <header className="page-header">
+        <div>
+          <span className="eyebrow">03 · Family</span>
+          <h1 className="page-title" style={{ marginTop: 10 }}>{familyDetails?.name || t('family.title')}</h1>
+          <p className="page-subtitle">{t('family.manageMembersDesc')}</p>
         </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          <span className="badge-dark" style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600 }}>{t('family.code')}: {familyDetails?.familyCode}</span>
+        <div className="fp-code-block">
+          <span className="eyebrow">{t('family.code')}</span>
+          <span className="fp-code-value">{familyDetails?.familyCode}</span>
         </div>
       </header>
 
       {isOwner && (
-        <section className="card mb-3 management-card">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="flex items-center gap-1">
-              <span className="icon-group">👥</span> {t('family.pendingRequests')}
-              {pendingMembers.length > 0 && <span className="badge-count">{pendingMembers.length}</span>}
+        <section className="fp-section">
+          <div className="fp-section-head">
+            <h3 className="section-title">
+              <span className="section-numeral">01</span>
+              {t('family.pendingRequests')}
+              {pendingMembers.length > 0 && <span className="fp-badge-count">{pendingMembers.length}</span>}
             </h3>
           </div>
-          
-          <div className="table-responsive">
-            {pendingMembers.length > 0 ? (
-              <table className="transaction-table">
-                <tbody>
-                  {pendingMembers.map((member) => (
-                    <tr key={member._id}>
-                      <td style={{ width: '100%' }}>
-                        <div className="flex items-center gap-2">
-                          <div className="avatar pending">{member.name.charAt(0).toUpperCase()}</div>
-                          <div className="flex flex-col">
-                            <span className="name" style={{ fontWeight: 600 }}>{member.name}</span>
-                            <span className="email" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{member.email}</span>
-                          </div>
+
+          {pendingMembers.length > 0 ? (
+            <table className="editorial-table fp-members-table">
+              <tbody>
+                {pendingMembers.map((member) => (
+                  <tr key={member._id}>
+                    <td style={{ width: '100%' }}>
+                      <div className="fp-member-cell">
+                        <div className="fp-avatar fp-avatar-pending">{member.name.charAt(0).toUpperCase()}</div>
+                        <div className="fp-member-info">
+                          <span className="fp-member-name">{member.name}</span>
+                          <span className="fp-member-email">{member.email}</span>
                         </div>
-                      </td>
-                      <td className="text-right" style={{ whiteSpace: 'nowrap' }}>
-                        <div className="flex gap-1 justify-end">
-                          <button 
-                            className="btn btn-primary btn-sm btn-approve" 
-                            onClick={() => handleApprove(member._id)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            {t('common.approve')}
-                          </button>
-                          <button 
-                            className="btn btn-outline btn-sm btn-reject" 
-                            onClick={() => handleReject(member._id)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            {t('common.reject')}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="empty-state">
-                <div className="empty-icon">✓</div>
-                <p>{t('family.noPendingRequests')}</p>
-              </div>
-            )}
-          </div>
+                      </div>
+                    </td>
+                    <td className="text-right" style={{ whiteSpace: 'nowrap' }}>
+                      <div className="fp-row-actions">
+                        <button className="btn btn-primary btn-sm" onClick={() => handleApprove(member._id)}>
+                          {t('common.approve')}
+                        </button>
+                        <button className="btn btn-outline btn-sm" onClick={() => handleReject(member._id)}>
+                          {t('common.reject')}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="fp-empty">
+              <span className="fp-empty-glyph" aria-hidden="true">✓</span>
+              <p>{t('family.noPendingRequests')}</p>
+            </div>
+          )}
         </section>
       )}
 
-      <section className="card mb-3 table-card">
-        <h3 style={{ marginBottom: '24px' }}>{t('family.members')}</h3>
-        <div className="table-responsive">
-          <table className="transaction-table">
-            <thead>
-              <tr>
-                <th>{t('family.memberName')}</th>
-                <th>{t('auth.email')}</th>
-                <th className="text-center">{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member) => (
-                <tr key={member._id}>
-                  <td>
-                    <div className="flex items-center gap-2">
-                       <div className="avatar">
-                         {member.name.charAt(0).toUpperCase()}
-                       </div>
-                       <div className="flex items-center gap-1">
-                          <span className="name" style={{ fontWeight: 600 }}>{member.name}</span>
-                          {familyDetails?.owner === member._id && <span className="owner-badge" title={t('family.owner')}>👑</span>}
-                       </div>
-                    </div>
-                  </td>
-                  <td style={{ color: 'var(--text-muted)' }}>{member.email}</td>
-                  <td className="text-center" style={{ width: '80px' }}>
-                    {isOwner && member._id !== user?._id && (
-                       <button className="btn-icon delete-btn-large" onClick={() => handleRemove(member._id)} title={t('family.removeMember')}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                              <line x1="10" y1="11" x2="10" y2="17"></line>
-                              <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                       </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <section className="fp-section">
+        <div className="fp-section-head">
+          <h3 className="section-title">
+            <span className="section-numeral">02</span>
+            {t('family.members')}
+          </h3>
         </div>
+        <table className="editorial-table fp-members-table">
+          <thead>
+            <tr>
+              <th>{t('family.memberName')}</th>
+              <th>{t('auth.email')}</th>
+              <th className="text-right">{t('common.actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {members.map((member) => (
+              <tr key={member._id}>
+                <td>
+                  <div className="fp-member-cell">
+                    <div className="fp-avatar">{member.name.charAt(0).toUpperCase()}</div>
+                    <div className="fp-member-info">
+                      <span className="fp-member-name">
+                        {member.name}
+                        {familyDetails?.owner === member._id && (
+                          <span className="fp-owner-tag" title={t('family.owner')}>Owner</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td className="fp-member-email-cell">{member.email}</td>
+                <td className="text-right">
+                  {isOwner && member._id !== user?._id && (
+                    <button
+                      className="fp-icon-btn fp-icon-danger"
+                      onClick={() => handleRemove(member._id)}
+                      title={t('family.removeMember')}
+                      aria-label={t('family.removeMember')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <style>{`
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .avatar {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background-color: var(--primary-light);
-          color: var(--primary-dark);
+        .fp-page { padding: 0; max-width: 1100px; margin: 0 auto; }
+        .fade-in { animation: fadeIn 0.35s cubic-bezier(.2,.7,.2,1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .fp-loading { text-align: center; padding: 60px; color: var(--text-secondary); font-style: italic; }
+
+        .fp-code-block {
           display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 14px;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 6px;
+          padding: 12px 18px;
+          border: 1px solid var(--text);
         }
-        .avatar.pending {
-          background-color: #fef3c7;
-          color: #d97706;
-        }
-
-        .owner-badge {
-          font-size: 14px;
-        }
-        
-        .notification-card {
-           border: 1px solid #fcd34d;
-           background-color: #fffbeb;
+        .fp-code-value {
+          font-family: var(--mono);
+          font-size: 18px;
+          font-weight: 500;
+          letter-spacing: 0.2em;
+          color: var(--text);
         }
 
-        .management-card {
-           border: 1px solid var(--border);
-           background-color: var(--bg-card);
+        .fp-section { margin-bottom: 36px; }
+        .fp-section-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          padding-bottom: 14px;
+          border-bottom: 1px solid var(--text);
+          margin-bottom: 0;
+        }
+        .fp-badge-count {
+          margin-left: 6px;
+          font-family: var(--mono);
+          font-size: 11px;
+          color: var(--primary);
+          font-weight: 500;
         }
 
-        .management-card h3 {
-           font-size: 18px;
-           margin: 0;
+        .fp-members-table { width: 100%; }
+        .fp-member-cell { display: flex; align-items: center; gap: 14px; }
+        .fp-avatar {
+          width: 34px; height: 34px;
+          border: 1px solid var(--text);
+          background: transparent;
+          color: var(--text);
+          display: flex; align-items: center; justify-content: center;
+          font-family: var(--sans);
+          font-weight: 400;
+          font-size: 16px;
         }
-
-        .badge-count {
-           background-color: var(--primary);
-           color: white;
-           font-size: 12px;
-           padding: 2px 8px;
-           border-radius: 12px;
-           margin-left: 4px;
-        }
-
-        .icon-group {
-           font-size: 20px;
-        }
-
-        .empty-state {
-           padding: 40px 20px;
-           text-align: center;
-           color: var(--text-muted);
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           gap: 12px;
-        }
-
-        .empty-icon {
-           width: 48px;
-           height: 48px;
-           background-color: var(--bg);
-           color: var(--primary);
-           border-radius: 50%;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           font-size: 24px;
-           border: 2px dashed var(--border);
-        }
-
-        .btn-approve {
-           background-color: #10b981;
-           color: white;
-        }
-        .btn-approve:hover {
-           background-color: #059669;
-        }
-
-        .btn-reject {
-           border-color: #ef4444;
-           color: #ef4444;
-        }
-        .btn-reject:hover {
-           background-color: #fef2f2;
-           border-color: #ef4444;
-           color: #ef4444;
-        }
-
-        .transaction-table {
-           width: 100%;
-           border-collapse: separate;
-           border-spacing: 0 8px;
-        }
-        
-        .transaction-table th {
-          text-align: left;
-          padding: 8px 16px;
-          color: var(--text-muted);
+        .fp-avatar-pending { border-color: var(--warning); color: var(--warning); }
+        .fp-member-info { display: flex; flex-direction: column; gap: 2px; }
+        .fp-member-name {
           font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
-          font-weight: 600;
-          letter-spacing: 0.5px;
-          border-bottom: 1px solid var(--border);
+          color: var(--text);
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
         }
+        .fp-owner-tag {
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          padding: 2px 6px;
+          border: 1px solid var(--primary);
+          color: var(--primary);
+        }
+        .fp-member-email { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.04em; }
+        .fp-member-email-cell { font-size: 12px; color: var(--text-secondary); }
 
-        .text-right { text-align: right !important; }
-        .text-center { text-align: center !important; }
-        
-        .transaction-table td {
-          padding: 16px;
+        .fp-row-actions { display: inline-flex; gap: 4px; }
+
+        .fp-icon-btn {
+          background: transparent;
+          border: 1px solid var(--border);
+          width: 30px; height: 30px;
+          display: inline-flex; align-items: center; justify-content: center;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.15s;
+          border-radius: 0;
+        }
+        .fp-icon-btn:hover { border-color: var(--text); color: var(--text); }
+        .fp-icon-btn.fp-icon-danger:hover { border-color: var(--danger); color: var(--danger); }
+
+        .fp-empty {
+          padding: 40px 0;
+          text-align: center;
+          color: var(--text-secondary);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+        }
+        .fp-empty-glyph {
+          width: 36px; height: 36px;
+          border: 1px solid var(--primary);
+          color: var(--primary);
+          display: inline-flex; align-items: center; justify-content: center;
           font-size: 14px;
-          background: var(--bg-card);
-          border-top: 1px solid var(--border);
-          border-bottom: 1px solid var(--border);
+          font-weight: 700;
         }
+        .fp-empty p { margin: 0; font-style: italic; font-size: 13px; }
 
-        .transaction-table td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        .transaction-table td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
-        
-        .transaction-table tbody tr {
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .transaction-table tbody tr:hover td {
-          background: var(--bg);
-        }
-
-        .btn-sm {
-           padding: 6px 14px;
-           font-size: 13px;
-        }
-        
-        .delete-btn-large {
-           padding: 12px;
-           color: var(--text-muted);
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           margin: 0 auto;
-           background: transparent;
-           border: none;
-           border-radius: 8px;
-           cursor: pointer;
-           transition: all 0.2s;
-        }
-        .delete-btn-large:hover {
-           color: #ef4444;
-           background-color: #fee2e2;
+        @media (max-width: 768px) {
+          .fp-code-block { align-items: flex-start; }
         }
       `}</style>
     </div>
