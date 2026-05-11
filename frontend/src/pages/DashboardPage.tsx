@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import BudgetModal from '../components/BudgetModal';
@@ -120,11 +120,22 @@ const DashboardPage: React.FC = () => {
         };
       });
 
-      const avgDailySpend = daysPassed > 0 ? (fullDailyData[daysPassed - 1].accumulated / daysPassed) : 0;
-      if (isCurrMonth) {
+      // Forecast: weighted moving average of last 7 days (more sensitive to recent behavior
+      // than a flat monthly mean). Falls back to global average when history is short.
+      if (isCurrMonth && daysPassed > 0) {
+        const accumToday = fullDailyData[daysPassed - 1].accumulated;
+        const window = Math.min(7, daysPassed);
+        const windowSum = fullDailyData
+          .slice(daysPassed - window, daysPassed)
+          .reduce((acc, d) => acc + d.amount, 0);
+        const recentAvg = window > 0 ? windowSum / window : 0;
+        const globalAvg = accumToday / daysPassed;
+        // Blend: 70% recent trend, 30% global mean — stabilizes against outlier days
+        const projectedDailySpend = recentAvg * 0.7 + globalAvg * 0.3;
+
         fullDailyData.forEach((d, i) => {
           if (i + 1 > nowDt.getDate()) {
-            d.forecast = fullDailyData[nowDt.getDate() - 1].accumulated + (avgDailySpend * (i + 1 - nowDt.getDate()));
+            d.forecast = accumToday + projectedDailySpend * (i + 1 - nowDt.getDate());
           } else if (i + 1 === nowDt.getDate()) {
             d.forecast = d.accumulated;
           }
@@ -136,15 +147,25 @@ const DashboardPage: React.FC = () => {
       const newInsights: any[] = [];
       const totalIncome = summaryRes.data.totalIncome || 0;
       const totalExpense = summaryRes.data.totalExpense || 0;
-      
+
       if (totalExpense > totalIncome && totalIncome > 0) {
-        newInsights.push({ id: 'neg_balance', type: 'warning', icon: '⚠️', message: `Atenção: Seus gastos excedem sua receita em R$ ${(totalExpense - totalIncome).toFixed(2)}.` });
+        newInsights.push({
+          id: 'neg_balance',
+          type: 'warning',
+          icon: '⚠',
+          message: t('dashboard.insightOverspend', { amount: (totalExpense - totalIncome).toFixed(2) }),
+        });
       }
-      
+
       if (summaryRes.data.fixedExpense > 0 && totalIncome > 0) {
         const fixedPct = summaryRes.data.fixedExpense / totalIncome;
         if (fixedPct > 0.5) {
-          newInsights.push({ id: 'high_fixed', type: 'warning', icon: '📊', message: `Despesas fixas representam ${(fixedPct * 100).toFixed(0)}% da sua receita, acima do ideal (50%).` });
+          newInsights.push({
+            id: 'high_fixed',
+            type: 'warning',
+            icon: '▲',
+            message: t('dashboard.insightHighFixed', { pct: (fixedPct * 100).toFixed(0) }),
+          });
         }
       }
 
@@ -153,7 +174,15 @@ const DashboardPage: React.FC = () => {
         if (topAcc.expense > 0 && totalExpense > 0) {
           const accPct = topAcc.expense / totalExpense;
           if (accPct > 0.7) {
-            newInsights.push({ id: 'acc_concentrated', type: 'info', icon: '💳', message: `A conta '${topAcc.bankAccount}' concentra ${(accPct * 100).toFixed(0)}% dos seus gastos este mês.` });
+            newInsights.push({
+              id: 'acc_concentrated',
+              type: 'info',
+              icon: '◐',
+              message: t('dashboard.insightAccountConcentrated', {
+                account: topAcc.bankAccount,
+                pct: (accPct * 100).toFixed(0),
+              }),
+            });
           }
         }
       }
@@ -161,11 +190,32 @@ const DashboardPage: React.FC = () => {
       if (dailyRes.data && dailyRes.data.length > 0) {
         const maxDay = [...dailyRes.data].sort((a, b) => b.amount - a.amount)[0];
         if (maxDay && maxDay.amount > 0) {
-          const dateStr = new Date(maxDay.date).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
-          newInsights.push({ id: 'max_day', type: 'info', icon: '📅', message: `O dia ${dateStr} foi o mais caro do mês: R$ ${maxDay.amount.toFixed(2)}.` });
+          const dateStr = new Date(maxDay.date).toLocaleDateString(i18n.language, {
+            day: '2-digit',
+            month: '2-digit',
+            timeZone: 'UTC',
+          });
+          newInsights.push({
+            id: 'max_day',
+            type: 'info',
+            icon: '·',
+            message: t('dashboard.insightMaxDay', { date: dateStr, amount: maxDay.amount.toFixed(2) }),
+          });
         }
       }
-      
+
+      if (totalIncome > 0) {
+        const savingsRatio = (totalIncome - totalExpense) / totalIncome;
+        if (savingsRatio >= 0.2 && newInsights.length === 0) {
+          newInsights.push({
+            id: 'healthy',
+            type: 'success',
+            icon: '✓',
+            message: t('dashboard.insightHealthy', { pct: (savingsRatio * 100).toFixed(0) }),
+          });
+        }
+      }
+
       setInsights(newInsights);
 
     } catch (err) {
@@ -252,9 +302,11 @@ const DashboardPage: React.FC = () => {
       </header>
 
       {totalAccumulated && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <SavingsMasterCard savings={totalAccumulated} />
-        </div>
+        <SavingsMasterCard
+          savings={totalAccumulated}
+          monthsTracked={evolution.length || 1}
+          currentMonthExpense={summary?.totalExpense || 0}
+        />
       )}
       
       <div className="summary-grid">
@@ -351,11 +403,18 @@ const DashboardPage: React.FC = () => {
                 <span className="summary-label">
                   <span className="dot" style={{ background: healthColor }}></span>
                   <p style={{ color: healthColor }}>{t('dashboard.financialHealth')}</p>
+                  <span
+                    className="health-info"
+                    title={t('dashboard.healthMethodology')}
+                    aria-label={t('dashboard.healthBreakdown')}
+                  >
+                    ⓘ
+                  </span>
                 </span>
                 <div className="health-gauge-wrapper">
                   <div className="health-gauge">
                     <div className="health-gauge-bg"></div>
-                    <div className="health-gauge-fill" style={{ 
+                    <div className="health-gauge-fill" style={{
                       background: `conic-gradient(${healthColor} 0deg, ${healthColor} ${gaugeAngle}deg, transparent ${gaugeAngle}deg)`,
                     }}></div>
                     <div className="health-gauge-cover"></div>
@@ -386,6 +445,17 @@ const DashboardPage: React.FC = () => {
                       {expenseTrend > 0 ? '↑' : '↓'} {Math.abs(expenseTrend).toFixed(0)}%
                     </span>
                   </div>
+                  {summary.totalIncome > 0 && (
+                    <div className="health-detail-row" title={t('dashboard.fixedRatioHelp')}>
+                      <span>{t('dashboard.fixedRatio')}</span>
+                      <span style={{
+                        color: (summary.fixedExpense / summary.totalIncome) <= 0.5 ? 'var(--primary)' : 'var(--danger)',
+                        fontWeight: 700,
+                      }}>
+                        {((summary.fixedExpense / summary.totalIncome) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -411,15 +481,26 @@ const DashboardPage: React.FC = () => {
       )}
       
       {summary?.biggestExpense && (
-        <div className="biggest-expense-alert">
-          <span>⚠️</span>
-          <span>{t('dashboard.biggestExpense')}: {summary.biggestExpense.description === 'Income' ? t('transactions.income') : summary.biggestExpense.description === 'Expense' ? t('transactions.expense') : summary.biggestExpense.description} (R$ {summary.biggestExpense.amount.toFixed(2)}) {t('dashboard.inCategory')} {translateCategory(summary.biggestExpense.category)}.</span>
-        </div>
+        <aside className="biggest-expense-alert" role="note">
+          <span className="biggest-expense-glyph" aria-hidden="true">◆</span>
+          <div className="biggest-expense-text">
+            <span className="biggest-expense-eyebrow">{t('dashboard.biggestExpenseAlertPrefix')}</span>
+            <span className="biggest-expense-body">
+              {summary.biggestExpense.description === 'Income'
+                ? t('transactions.income')
+                : summary.biggestExpense.description === 'Expense'
+                  ? t('transactions.expense')
+                  : summary.biggestExpense.description}
+              <strong> · R$ {summary.biggestExpense.amount.toFixed(2)} · </strong>
+              {translateCategory(summary.biggestExpense.category)}
+            </span>
+          </div>
+        </aside>
       )}
 
       {categoryBudgets.length > 0 && spending.length > 0 && (
         <div className="card cat-budget-section">
-          <h3 className="section-title">{t('dashboard.categoryBudget')}</h3>
+          <h3 className="section-title"><span className="section-numeral">01</span>{t('dashboard.categoryBudget')}</h3>
           <div className="cat-budget-grid">
             {categoryBudgets
               .filter(cb => cb.limit > 0)
@@ -455,7 +536,7 @@ const DashboardPage: React.FC = () => {
 
       <div className="card transactions-section">
         <div className="transactions-header">
-          <h2 className="section-title">{t('transactions.recent')}</h2>
+          <h2 className="section-title"><span className="section-numeral">02</span>{t('transactions.recent')}</h2>
           <Link to="/transactions" className="view-all-link">{t('dashboard.viewAll')} →</Link>
         </div>
 
@@ -551,35 +632,51 @@ const DashboardPage: React.FC = () => {
 
         <div className="card chart-card">
           <h3 className="section-title">
-            {t('dashboard.biggestExpense')}
+            <span className="section-numeral">04</span>
+            {t('dashboard.topSpendingTitle')}
           </h3>
           <div className="chart-wrapper">
             {topSpending.data && topSpending.data.length > 0 ? (
-              <div className="top-spending-list flex flex-col gap-3">
-                {Array.isArray(topSpending.data) && topSpending.data.map((item: any, idx: number) => (
-                  <div key={idx} className="top-spending-item">
-                    <span className="ts-name" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span>{item.description === 'Income' ? t('transactions.income') : item.description === 'Expense' ? t('transactions.expense') : (item.description || 'Despesa')}
-                        . {item.date ? new Date(item.date).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', weekday: 'short', timeZone: 'UTC'}).replace('.', '') : ''}
-                        {topSpending.type === 'family_transactions' && item.userName ? ` • ${item.userName}` : ''}
+              <ol className="top-spending-list">
+                {topSpending.data.map((item: any, idx: number) => (
+                  <li key={idx} className="top-spending-item">
+                    <span className="ts-rank">{String(idx + 1).padStart(2, '0')}</span>
+                    <div className="ts-body">
+                      <span className="ts-name">
+                        {item.description === 'Income'
+                          ? t('transactions.income')
+                          : item.description === 'Expense'
+                            ? t('transactions.expense')
+                            : item.description || t('transactions.expense')}
                       </span>
-                    </span>
-                    <span className="ts-amount text-danger">R$ {Number(item.amount || 0).toFixed(2)}</span>
-                  </div>
+                      <span className="ts-meta">
+                        {item.date
+                          ? new Date(item.date)
+                              .toLocaleDateString(i18n.language, {
+                                day: '2-digit',
+                                month: '2-digit',
+                                weekday: 'short',
+                                timeZone: 'UTC',
+                              })
+                              .replace('.', '')
+                          : ''}
+                        {topSpending.type === 'family_transactions' && item.userName
+                          ? ` · ${item.userName}`
+                          : ''}
+                      </span>
+                    </div>
+                    <span className="ts-amount">R$ {Number(item.amount || 0).toFixed(2)}</span>
+                  </li>
                 ))}
-              </div>
+              </ol>
             ) : (
-              <div className="chart-empty p-3 overflow-auto" style={{fontSize: '11px', whiteSpace: 'pre-wrap', textAlign: 'left'}}>
-                {topSpending && Object.keys(topSpending).length > 0 
-                  ? `Debug: Não há itens para listar.\n\nResposta recebida:\n${JSON.stringify(topSpending, null, 2)}` 
-                  : t('dashboard.noData')}
-              </div>
+              <div className="chart-empty">{t('dashboard.noTopSpending')}</div>
             )}
           </div>
         </div>
 
         <div className="card chart-card">
-          <h3 className="section-title">{t('dashboard.spendingByCategory')}</h3>
+          <h3 className="section-title"><span className="section-numeral">05</span>{t('dashboard.spendingByCategory')}</h3>
           <div className="chart-wrapper">
             {spending.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -602,7 +699,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card chart-card chart-full">
-          <h3 className="section-title">{t('dashboard.topSpendingDays') || 'Ritmo de Gastos e Projeção'}</h3>
+          <h3 className="section-title"><span className="section-numeral">06</span>{t('dashboard.topSpendingDays')}</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -620,10 +717,22 @@ const DashboardPage: React.FC = () => {
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
                 <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
                 <YAxis yAxisId="right" orientation="right" hide />
-                <Tooltip 
-                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }} 
-                  contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} 
-                  formatter={(val: any, name: string) => [`R$ ${Number(val || 0).toFixed(2)}`, name === 'accumulated' ? 'Acumulado' : name === 'forecast' ? 'Projeção' : name === 'budgetLimit' ? 'Orçamento' : 'Gasto no Dia']}
+                <Tooltip
+                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }}
+                  contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
+                  formatter={(val: any, name: any) => {
+                    const key = typeof name === 'string' ? name : '';
+                    return [
+                      `R$ ${Number(val || 0).toFixed(2)}`,
+                      key === 'accumulated'
+                        ? t('dashboard.actualLabel')
+                        : key === 'forecast'
+                          ? t('dashboard.projectionLabel')
+                          : key === 'budgetLimit'
+                            ? t('dashboard.budgetLineLabel')
+                            : t('transactions.amount'),
+                    ];
+                  }}
                   labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
                 />
                 
@@ -637,7 +746,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card chart-card chart-full">
-          <h3 className="section-title">{t('dashboard.evolution')}</h3>
+          <h3 className="section-title"><span className="section-numeral">07</span>{t('dashboard.evolution')}</h3>
           <div className="chart-wrapper">
             {evolution.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">

@@ -19,17 +19,17 @@ const InsightsPanel: React.FC<Props> = ({ insights }) => {
   if (!insights || insights.length === 0) return null;
 
   return (
-    <div className="card insights-panel">
-      <h3 className="section-title">✨ {t('dashboard.insights') || 'Insights Automáticos'}</h3>
+    <section className="insights-panel" aria-label={t('dashboard.insights') || 'Insights'}>
+      <h3 className="section-title">{t('dashboard.insights') || 'Insights'}</h3>
       <div className="insights-list">
         {insights.map(insight => (
           <div key={insight.id} className={`insight-card insight-${insight.type}`}>
-            <div className="insight-icon">{insight.icon}</div>
+            <div className="insight-icon" aria-hidden="true">{insight.icon}</div>
             <div className="insight-content">{insight.message}</div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -10,38 +10,65 @@ interface SavingsData {
 
 interface Props {
   savings: SavingsData | null;
+  monthsTracked?: number;
+  currentMonthExpense?: number;
 }
 
-const SavingsMasterCard: React.FC<Props> = ({ savings }) => {
+const formatBRL = (n: number) =>
+  n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const SavingsMasterCard: React.FC<Props> = ({ savings, monthsTracked = 1, currentMonthExpense = 0 }) => {
   const { t } = useTranslation();
 
   if (!savings) return null;
 
-  return (
-    <div className="card savings-master-card fade-in">
-      <div className="savings-header">
-        <h3 className="section-title">💰 {t('dashboard.myReserve') || 'Minha Reserva (Patrimônio)'}</h3>
-        <span className="savings-badge">{t('dashboard.dynamic') || 'Dinâmico'}</span>
-      </div>
-      
-      <div className="savings-content">
-        <div className="savings-main">
-          <span className="savings-label">{t('dashboard.accumulatedTotal') || 'Patrimônio Atual (Acumulado)'}</span>
-          <span className={`savings-value ${savings.totalAccumulated >= 0 ? 'positive' : 'negative'}`}>
-            R$ {savings.totalAccumulated.toFixed(2)}
-          </span>
-        </div>
+  const positive = savings.totalAccumulated >= 0;
+  const burn = monthsTracked > 0 ? savings.totalExpense / monthsTracked : 0;
+  const runway =
+    currentMonthExpense > 0 && savings.totalAccumulated > 0
+      ? savings.totalAccumulated / currentMonthExpense
+      : burn > 0 && savings.totalAccumulated > 0
+        ? savings.totalAccumulated / burn
+        : null;
 
-        <div className="savings-details">
-          <div className="savings-detail-item">
-            <span className="text-green text-sm">Total Receitas: R$ {savings.totalIncome.toFixed(2)}</span>
-          </div>
-          <div className="savings-detail-item">
-            <span className="text-red text-sm">Total Despesas: R$ {savings.totalExpense.toFixed(2)}</span>
-          </div>
+  return (
+    <section className="reserve-block" aria-label={t('dashboard.myReserve')}>
+      <div className="reserve-left">
+        <div className="reserve-eyebrow">
+          <span className="reserve-eyebrow-dot" aria-hidden="true" />
+          <span>{t('dashboard.dynamic')}</span>
         </div>
+        <h2 className="reserve-headline">{t('dashboard.myReserve')}</h2>
+        <p className="reserve-subhead">{t('dashboard.myReserveSubtitle')}</p>
       </div>
-    </div>
+
+      <div className="reserve-figure">
+        <span className="reserve-currency">R$</span>
+        <span className={`reserve-amount ${positive ? 'is-positive' : 'is-negative'}`}>
+          {formatBRL(savings.totalAccumulated)}
+        </span>
+        <span className="reserve-mini-label">{t('dashboard.accumulatedTotal')}</span>
+      </div>
+
+      <dl className="reserve-stats">
+        <div className="reserve-stat">
+          <dt>{t('dashboard.inflowAll')}</dt>
+          <dd className="is-up">+ R$ {formatBRL(savings.totalIncome)}</dd>
+        </div>
+        <div className="reserve-stat">
+          <dt>{t('dashboard.outflowAll')}</dt>
+          <dd className="is-down">− R$ {formatBRL(savings.totalExpense)}</dd>
+        </div>
+        <div className="reserve-stat">
+          <dt>{t('dashboard.burnRate')}</dt>
+          <dd>R$ {formatBRL(burn)}</dd>
+        </div>
+        <div className="reserve-stat">
+          <dt>{t('dashboard.runway')}</dt>
+          <dd>{runway === null ? t('dashboard.runwayInfinite') : `${runway.toFixed(1)}`}</dd>
+        </div>
+      </dl>
+    </section>
   );
 };
 
