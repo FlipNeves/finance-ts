@@ -23,7 +23,7 @@
   margin: 0 0 4px;
 }
 .insights-panel .section-title::before {
-  content: "00";
+  content: "01";
   font-family: ui-monospace, "JetBrains Mono", monospace;
   font-size: 11px;
   font-weight: 400;

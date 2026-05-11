@@ -178,11 +178,12 @@
     "insightAccountConcentrated": "The account '{{account}}' concentrates {{pct}}% of expenses this month.",
     "insightMaxDay": "{{date}} was the heaviest day: R$ {{amount}} in outflows.",
     "insightHealthy": "Good pace: you're saving {{pct}}% of your income.",
+    "insightBiggestExpense": "Biggest entry of the month: {{description}} · R$ {{amount}} · {{category}}",
+    "balanceSeriesLabel": "Net Balance",
     "projectionLabel": "End-of-month forecast",
     "actualLabel": "Actual",
     "budgetLineLabel": "Budget line",
     "outOfBudget": "No budget set",
-    "biggestExpenseAlertPrefix": "Biggest entry of the month",
     "topSpendingTitle": "Top 5 outflows",
     "noTopSpending": "No expenses recorded in this period."
   },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart, Line } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import BudgetModal from '../components/BudgetModal';
@@ -143,6 +143,25 @@ const DashboardPage: React.FC = () => {
       const newInsights: any[] = [];
       const totalIncome = summaryRes.data.totalIncome || 0;
       const totalExpense = summaryRes.data.totalExpense || 0;
+
+      if (summaryRes.data.biggestExpense) {
+        const be = summaryRes.data.biggestExpense;
+        const beDesc = be.description === 'Income'
+          ? t('transactions.income')
+          : be.description === 'Expense'
+            ? t('transactions.expense')
+            : be.description;
+        newInsights.push({
+          id: 'biggest_expense',
+          type: 'info',
+          icon: '◆',
+          message: t('dashboard.insightBiggestExpense', {
+            description: beDesc,
+            amount: be.amount.toFixed(2),
+            category: translateCategory(be.category),
+          }),
+        });
+      }
 
       if (totalExpense > totalIncome && totalIncome > 0) {
         newInsights.push({
@@ -468,29 +487,62 @@ const DashboardPage: React.FC = () => {
 
       
 
+      <div className="dash-divider-bold" role="presentation" />
+
       <InsightsPanel insights={insights} />
 
-      {summary?.biggestExpense && (
-        <aside className="biggest-expense-alert" role="note">
-          <span className="biggest-expense-glyph" aria-hidden="true">◆</span>
-          <div className="biggest-expense-text">
-            <span className="biggest-expense-eyebrow">{t('dashboard.biggestExpenseAlertPrefix')}</span>
-            <span className="biggest-expense-body">
-              {summary.biggestExpense.description === 'Income'
-                ? t('transactions.income')
-                : summary.biggestExpense.description === 'Expense'
-                  ? t('transactions.expense')
-                  : summary.biggestExpense.description}
-              <strong> · R$ {summary.biggestExpense.amount.toFixed(2)} · </strong>
-              {translateCategory(summary.biggestExpense.category)}
-            </span>
+      <div className="charts-grid">
+        <div className="card chart-card chart-full">
+          <h3 className="section-title"><span className="section-numeral">02</span>{t('dashboard.topSpendingDays')}</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--text-secondary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--text-secondary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                <YAxis yAxisId="right" orientation="right" hide />
+                <Tooltip
+                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }}
+                  contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
+                  formatter={(val: any, name: any) => {
+                    const key = typeof name === 'string' ? name : '';
+                    return [
+                      `R$ ${Number(val || 0).toFixed(2)}`,
+                      key === 'accumulated'
+                        ? t('dashboard.actualLabel')
+                        : key === 'forecast'
+                          ? t('dashboard.projectionLabel')
+                          : key === 'budgetLimit'
+                            ? t('dashboard.budgetLineLabel')
+                            : t('transactions.amount'),
+                    ];
+                  }}
+                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
+                />
+
+                <Bar yAxisId="right" dataKey="amount" name="amount" fill="var(--danger)" opacity={0.3} radius={[2, 2, 0, 0]} />
+                <Area yAxisId="left" type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
+                <Area yAxisId="left" type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
+                <Area yAxisId="left" type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
-        </aside>
-      )}
+        </div>
+      </div>
 
       {categoryBudgets.length > 0 && spending.length > 0 && (
         <div className="card cat-budget-section">
-          <h3 className="section-title"><span className="section-numeral">01</span>{t('dashboard.categoryBudget')}</h3>
+          <h3 className="section-title"><span className="section-numeral">03</span>{t('dashboard.categoryBudget')}</h3>
           <div className="cat-budget-grid">
             {categoryBudgets
               .filter(cb => cb.limit > 0)
@@ -524,9 +576,138 @@ const DashboardPage: React.FC = () => {
         </div>
       )}
 
+      <TransactionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadData}
+        type={modalType}
+        initialCategories={categories}
+        initialBankAccounts={bankAccounts}
+      />
+
+      <BudgetModal
+        isOpen={isBudgetOpen}
+        onClose={() => setIsBudgetOpen(false)}
+        onSuccess={loadData}
+      />
+
+      <div className="charts-grid">
+        <div className="card chart-card">
+          <h3 className="section-title"><span className="section-numeral">04</span>{t('dashboard.spendingByCategory')}</h3>
+          <div className="chart-wrapper">
+            {spending.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={spending.map(s => ({...s, name: translateCategory(s.category)}))} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`} />
+                  <Tooltip cursor={{ fill: 'var(--bg)', opacity: 0.5 }} contentStyle={{ borderRadius: 0, border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }} />
+                  <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                    {spending.map((_, index) => (
+                      <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="chart-empty">{t('dashboard.noData')}</div>
+            )}
+          </div>
+        </div>
+
+        <div className="card chart-card">
+          <h3 className="section-title">
+            <span className="section-numeral">05</span>
+            {t('dashboard.topSpendingTitle')}
+          </h3>
+          <div className="chart-wrapper">
+            {topSpending.data && topSpending.data.length > 0 ? (
+              <ol className="top-spending-list">
+                {topSpending.data.map((item: any, idx: number) => (
+                  <li key={idx} className="top-spending-item">
+                    <span className="ts-rank">{String(idx + 1).padStart(2, '0')}</span>
+                    <div className="ts-body">
+                      <span className="ts-name">
+                        {item.description === 'Income'
+                          ? t('transactions.income')
+                          : item.description === 'Expense'
+                            ? t('transactions.expense')
+                            : item.description || t('transactions.expense')}
+                      </span>
+                      <span className="ts-meta">
+                        {item.date
+                          ? new Date(item.date)
+                              .toLocaleDateString(i18n.language, {
+                                day: '2-digit',
+                                month: '2-digit',
+                                weekday: 'short',
+                                timeZone: 'UTC',
+                              })
+                              .replace('.', '')
+                          : ''}
+                        {topSpending.type === 'family_transactions' && item.userName
+                          ? ` · ${item.userName}`
+                          : ''}
+                      </span>
+                    </div>
+                    <span className="ts-amount">R$ {Number(item.amount || 0).toFixed(2)}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div className="chart-empty">{t('dashboard.noTopSpending')}</div>
+            )}
+          </div>
+        </div>
+
+        {accountsReport && accountsReport.length > 0 && (
+          <div className="card chart-card">
+            <AccountBalanceCard accounts={accountsReport} />
+          </div>
+        )}
+
+        {membersReport && membersReport.length > 0 && (
+          <div className="card chart-card">
+            <MemberSpendingCard members={membersReport} />
+          </div>
+        )}
+
+        <div className="card chart-card chart-full">
+          <h3 className="section-title"><span className="section-numeral">08</span>{t('dashboard.evolution')}</h3>
+          <div className="chart-wrapper">
+            {evolution.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--danger)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--danger)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                  <Tooltip contentStyle={{ borderRadius: 0, border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }} />
+                  <Legend iconType="square" wrapperStyle={{ paddingTop: '10px' }} />
+                  <Area type="monotone" dataKey="income" name={t('transactions.income')} stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" />
+                  <Area type="monotone" dataKey="expense" name={t('transactions.expense')} stroke="var(--danger)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpense)" />
+                  <Line type="monotone" dataKey="balance" name={t('dashboard.balanceSeriesLabel')} stroke="var(--text)" strokeWidth={2} dot={{ r: 3, fill: 'var(--text)' }} activeDot={{ r: 5, fill: 'var(--text)' }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="chart-empty">{t('dashboard.noData')}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="card transactions-section">
         <div className="transactions-header">
-          <h2 className="section-title"><span className="section-numeral">02</span>{t('transactions.recent')}</h2>
+          <h2 className="section-title"><span className="section-numeral">09</span>{t('transactions.recent')}</h2>
           <Link to="/transactions" className="view-all-link">{t('dashboard.viewAll')} →</Link>
         </div>
 
@@ -590,183 +771,6 @@ const DashboardPage: React.FC = () => {
               </div>
             ))
           )}
-        </div>
-      </div>
-      
-      <TransactionModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={loadData}
-        type={modalType}
-        initialCategories={categories}
-        initialBankAccounts={bankAccounts}
-      />
-
-      <div className="card chart-card chart-full">
-          <h3 className="section-title"><span className="section-numeral">06</span>{t('dashboard.topSpendingDays')}</h3>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--text-secondary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--text-secondary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
-                <YAxis yAxisId="right" orientation="right" hide />
-                <Tooltip
-                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }}
-                  contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
-                  formatter={(val: any, name: any) => {
-                    const key = typeof name === 'string' ? name : '';
-                    return [
-                      `R$ ${Number(val || 0).toFixed(2)}`,
-                      key === 'accumulated'
-                        ? t('dashboard.actualLabel')
-                        : key === 'forecast'
-                          ? t('dashboard.projectionLabel')
-                          : key === 'budgetLimit'
-                            ? t('dashboard.budgetLineLabel')
-                            : t('transactions.amount'),
-                    ];
-                  }}
-                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
-                />
-                
-                <Bar yAxisId="right" dataKey="amount" name="amount" fill="var(--danger)" opacity={0.3} radius={[2, 2, 0, 0]} />
-                <Area yAxisId="left" type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
-                <Area yAxisId="left" type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
-                <Area yAxisId="left" type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-      <BudgetModal 
-        isOpen={isBudgetOpen}
-        onClose={() => setIsBudgetOpen(false)}
-        onSuccess={loadData}
-      />
-
-      <div className="charts-grid">
-        {accountsReport && accountsReport.length > 0 && (
-          <div className="card chart-card">
-            <AccountBalanceCard accounts={accountsReport} />
-          </div>
-        )}
-
-        {membersReport && membersReport.length > 0 && (
-          <div className="card chart-card">
-            <MemberSpendingCard members={membersReport} />
-          </div>
-        )}
-
-        <div className="card chart-card">
-          <h3 className="section-title">
-            <span className="section-numeral">04</span>
-            {t('dashboard.topSpendingTitle')}
-          </h3>
-          <div className="chart-wrapper">
-            {topSpending.data && topSpending.data.length > 0 ? (
-              <ol className="top-spending-list">
-                {topSpending.data.map((item: any, idx: number) => (
-                  <li key={idx} className="top-spending-item">
-                    <span className="ts-rank">{String(idx + 1).padStart(2, '0')}</span>
-                    <div className="ts-body">
-                      <span className="ts-name">
-                        {item.description === 'Income'
-                          ? t('transactions.income')
-                          : item.description === 'Expense'
-                            ? t('transactions.expense')
-                            : item.description || t('transactions.expense')}
-                      </span>
-                      <span className="ts-meta">
-                        {item.date
-                          ? new Date(item.date)
-                              .toLocaleDateString(i18n.language, {
-                                day: '2-digit',
-                                month: '2-digit',
-                                weekday: 'short',
-                                timeZone: 'UTC',
-                              })
-                              .replace('.', '')
-                          : ''}
-                        {topSpending.type === 'family_transactions' && item.userName
-                          ? ` · ${item.userName}`
-                          : ''}
-                      </span>
-                    </div>
-                    <span className="ts-amount">R$ {Number(item.amount || 0).toFixed(2)}</span>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div className="chart-empty">{t('dashboard.noTopSpending')}</div>
-            )}
-          </div>
-        </div>
-
-        <div className="card chart-card">
-          <h3 className="section-title"><span className="section-numeral">05</span>{t('dashboard.spendingByCategory')}</h3>
-          <div className="chart-wrapper">
-            {spending.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={spending.map(s => ({...s, name: translateCategory(s.category)}))} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`} />
-                  <Tooltip cursor={{ fill: 'var(--bg)', opacity: 0.5 }} contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} />
-                  <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                    {spending.map((_, index) => (
-                      <Cell key={`cell-bar-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">{t('dashboard.noData')}</div>
-            )}
-          </div>
-        </div>
-
-        
-
-        <div className="card chart-card chart-full">
-          <h3 className="section-title"><span className="section-numeral">07</span>{t('dashboard.evolution')}</h3>
-          <div className="chart-wrapper">
-            {evolution.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--danger)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--danger)" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
-                  <Tooltip contentStyle={{ borderRadius: '6px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', background: 'var(--bg-card)', color: 'var(--text)' }} />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px' }} />
-                  <Area type="monotone" dataKey="income" name={t('transactions.income')} stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" />
-                  <Area type="monotone" dataKey="expense" name={t('transactions.expense')} stroke="var(--danger)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpense)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">{t('dashboard.noData')}</div>
-            )}
-          </div>
         </div>
       </div>
     </div>

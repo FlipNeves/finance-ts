@@ -178,11 +178,12 @@
     "insightAccountConcentrated": "A conta '{{account}}' concentra {{pct}}% das despesas deste mês.",
     "insightMaxDay": "{{date}} foi o dia mais intenso: R$ {{amount}} em saídas.",
     "insightHealthy": "Bom ritmo: você está economizando {{pct}}% da sua receita.",
+    "insightBiggestExpense": "Maior lançamento do mês: {{description}} · R$ {{amount}} · {{category}}",
+    "balanceSeriesLabel": "Saldo Líquido",
     "projectionLabel": "Projeção fim do mês",
     "actualLabel": "Realizado",
     "budgetLineLabel": "Linha do orçamento",
     "outOfBudget": "Sem orçamento definido",
-    "biggestExpenseAlertPrefix": "Maior lançamento do mês",
     "topSpendingTitle": "Top 5 maiores saídas",
     "noTopSpending": "Sem despesas registradas neste período."
   },

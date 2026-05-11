@@ -77,9 +77,15 @@
   display: grid;
   grid-template-columns: 1.4fr 1.4fr 1fr 1.6fr;
   gap: 0;
-  margin-bottom: 32px;
+  margin-bottom: 0;
   border-top: var(--hair);
   border-bottom: var(--hair);
+}
+
+.dash-divider-bold {
+  height: 0;
+  border-top: var(--hair-bold);
+  margin: 32px 0 28px;
 }
 .summary-card {
   position: relative;
@@ -172,11 +178,6 @@
 .budget-bar-fill { height: 100%; transition: width 0.5s cubic-bezier(.2,.7,.2,1); border-radius: 0; }
 
 /* ----------------------------- BIGGEST EXPENSE ALERT --------------------- */
-.biggest-expense-alert { background: var(--bg); color: var(--text); padding: 18px 20px; border-radius: 0; border: none; border-left: 3px solid var(--text); display: flex; align-items: center; gap: 16px; font-size: 13px; margin-bottom: 28px; line-height: 1.4; }
-.biggest-expense-glyph { font-size: 14px; color: var(--text-secondary); }
-.biggest-expense-text { display: flex; flex-direction: column; gap: 2px; }
-.biggest-expense-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-secondary); }
-.biggest-expense-body { font-size: 14px; font-weight: 500; }
 
 /* ----------------------------- TRANSACTIONS SECTION ---------------------- */
 .transactions-section { margin-bottom: 32px; padding: 0; background: transparent; border-radius: 0; box-shadow: none; border: none; }

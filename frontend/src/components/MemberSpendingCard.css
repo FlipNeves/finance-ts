@@ -4,7 +4,7 @@
   gap: 16px;
 }
 .member-spending-card .section-title::before {
-  content: "02";
+  content: "07";
   font-family: ui-monospace, "JetBrains Mono", monospace;
   font-size: 11px;
   font-weight: 400;
