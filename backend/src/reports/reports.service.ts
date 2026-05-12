@@ -368,10 +368,6 @@ export class ReportsService {
         },
       },
       {
-        // Defensive cast: legacy transactions (e.g., created via chat path that
-        // passed user._id.toString()) may have userId stored as a string instead
-        // of ObjectId, which makes the next $lookup miss. $convert with onError/
-        // onNull returns null on garbage and leaves valid ObjectIds untouched.
         $addFields: {
           _userIdObj: {
             $convert: {
@@ -384,10 +380,6 @@ export class ReportsService {
         },
       },
       {
-        // Pipeline-form $lookup so the joined user doc is projected to non-sensitive
-        // fields only. Aggregation results bypass schema toJSON transforms, so we
-        // must scrub at the query level to guarantee passwordHash never enters memory
-        // beyond this stage.
         $lookup: {
           from: 'users',
           let: { uid: '$_userIdObj' },
