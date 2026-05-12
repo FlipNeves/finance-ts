@@ -368,10 +368,33 @@ export class ReportsService {
         },
       },
       {
+        // Defensive cast: legacy transactions (e.g., created via chat path that
+        // passed user._id.toString()) may have userId stored as a string instead
+        // of ObjectId, which makes the next $lookup miss. $convert with onError/
+        // onNull returns null on garbage and leaves valid ObjectIds untouched.
+        $addFields: {
+          _userIdObj: {
+            $convert: {
+              input: '$_id.userId',
+              to: 'objectId',
+              onError: null,
+              onNull: null,
+            },
+          },
+        },
+      },
+      {
+        // Pipeline-form $lookup so the joined user doc is projected to non-sensitive
+        // fields only. Aggregation results bypass schema toJSON transforms, so we
+        // must scrub at the query level to guarantee passwordHash never enters memory
+        // beyond this stage.
         $lookup: {
           from: 'users',
-          localField: '_id.userId',
-          foreignField: '_id',
+          let: { uid: '$_userIdObj' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$uid'] } } },
+            { $project: { _id: 1, name: 1 } },
+          ],
           as: 'user',
         },
       },
@@ -379,7 +402,6 @@ export class ReportsService {
     ]).exec();
 
     const membersMap = new Map<string, { userId: string, userName: string, income: number, expense: number, balance: number }>();
-
     results.forEach(res => {
       const uid = res._id.userId ? res._id.userId.toString() : 'unknown';
       if (!membersMap.has(uid)) {

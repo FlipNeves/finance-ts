@@ -32,7 +32,6 @@ export class AuthService {
       passwordHash,
       name,
     });
-    console.log(newUser);
 
     return {
       email: newUser.email,

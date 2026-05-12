@@ -1,7 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-@Schema({ timestamps: true })
+const SENSITIVE_USER_FIELDS = [
+  'passwordHash',
+  'telegramLinkToken',
+  'telegramLinkTokenExpiresAt',
+] as const;
+
+const stripSensitive = (_doc: any, ret: Record<string, any>) => {
+  for (const k of SENSITIVE_USER_FIELDS) delete ret[k];
+  return ret;
+};
+
+@Schema({
+  timestamps: true,
+  toJSON: { transform: stripSensitive },
+  toObject: { transform: stripSensitive },
+})
 export class User extends Document {
   @Prop({ required: true, unique: true })
   email: string;
