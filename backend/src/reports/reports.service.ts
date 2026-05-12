@@ -279,13 +279,22 @@ export class ReportsService {
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-          amount: { $sum: '$amount' }
-        }
+          amount: { $sum: '$amount' },
+          variableAmount: {
+            $sum: {
+              $cond: [{ $eq: ['$isFixed', true] }, 0, '$amount'],
+            },
+          },
+        },
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]).exec();
 
-    return results.map(r => ({ date: r._id, amount: r.amount }));
+    return results.map(r => ({
+      date: r._id,
+      amount: r.amount,
+      variableAmount: r.variableAmount,
+    }));
   }
 
   async getBalanceByAccount(
@@ -393,6 +402,146 @@ export class ReportsService {
     });
 
     return finalMembers.sort((a, b) => b.expense - a.expense);
+  }
+
+  async getUpcomingFixed(
+    familyId: string | null,
+    userId: string,
+    referenceDate: Date,
+  ): Promise<any> {
+    const refYear = referenceDate.getUTCFullYear();
+    const refMonth = referenceDate.getUTCMonth();
+    const refDay = referenceDate.getUTCDate();
+
+    const prevStart = new Date(Date.UTC(refYear, refMonth - 1, 1));
+    const prevEnd = new Date(Date.UTC(refYear, refMonth, 1));
+    const currStart = new Date(Date.UTC(refYear, refMonth, 1));
+    const currEnd = new Date(Date.UTC(refYear, refMonth + 1, 1));
+    const lastDayCurrentMonth = new Date(Date.UTC(refYear, refMonth + 1, 0)).getUTCDate();
+
+    const baseQuery: any = { isFixed: true, type: 'expense' };
+    if (familyId) {
+      baseQuery.familyId = familyId;
+    } else {
+      baseQuery.userId = userId;
+      baseQuery.familyId = null;
+    }
+
+    const [prevFixed, currFixed] = await Promise.all([
+      this.transactionModel.find({ ...baseQuery, date: { $gte: prevStart, $lt: prevEnd } }).exec(),
+      this.transactionModel.find({ ...baseQuery, date: { $gte: currStart, $lt: currEnd } }).exec(),
+    ]);
+
+    const normalize = (s: string) => (s || '').trim().toLowerCase();
+
+    // Per-transaction matching: each prev tries to find an unused curr counterpart.
+    // Two transactions are considered "same recurrence" if either
+    //   (a) descriptions normalize equal, or
+    //   (b) same category AND amount within ±20%.
+    // This tolerates description drift ("Aluguel" vs "Aluguel Maio") that previously
+    // caused legitimate already-paid bills to leak into upcoming.
+    const usedCurr = new Set<string>();
+    const upcoming: { day: number; amount: number; description: string; category: string }[] = [];
+
+    for (const prev of prevFixed as any[]) {
+      const normPrev = normalize(prev.description);
+      const tol = prev.amount * 0.2;
+      const match = (currFixed as any[]).find((c: any) => {
+        if (usedCurr.has(c._id.toString())) return false;
+        if (normalize(c.description) === normPrev) return true;
+        if (c.category === prev.category && Math.abs(c.amount - prev.amount) <= tol) return true;
+        return false;
+      });
+      if (match) {
+        usedCurr.add(match._id.toString());
+        continue;
+      }
+      const day = Math.min((prev.date as Date).getUTCDate(), lastDayCurrentMonth);
+      if (day <= refDay) continue;
+      upcoming.push({
+        day,
+        amount: prev.amount,
+        description: prev.description,
+        category: prev.category,
+      });
+    }
+
+    return upcoming.sort((a, b) => a.day - b.day);
+  }
+
+  async getIncomeSummary(
+    familyId: string | null,
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    referenceDate: Date,
+  ): Promise<any> {
+    const refYear = referenceDate.getUTCFullYear();
+    const refMonth = referenceDate.getUTCMonth();
+    const refDay = referenceDate.getUTCDate();
+
+    const prevStart = new Date(Date.UTC(refYear, refMonth - 1, 1));
+    const prevEnd = new Date(Date.UTC(refYear, refMonth, 1));
+    const lastDayCurrentMonth = new Date(Date.UTC(refYear, refMonth + 1, 0)).getUTCDate();
+
+    const baseQuery: any = { type: 'income' };
+    if (familyId) {
+      baseQuery.familyId = familyId;
+    } else {
+      baseQuery.userId = userId;
+      baseQuery.familyId = null;
+    }
+
+    const [prevIncome, currIncome] = await Promise.all([
+      this.transactionModel.find({ ...baseQuery, date: { $gte: prevStart, $lt: prevEnd } }).exec(),
+      this.transactionModel.find({ ...baseQuery, date: { $gte: startDate, $lte: endDate } }).sort({ date: 1 }).exec(),
+    ]);
+
+    const normalize = (s: string) => (s || '').trim().toLowerCase();
+    const usedCurr = new Set<string>();
+    const upcoming: { day: number; amount: number; description: string; category: string }[] = [];
+    const missed: { day: number; amount: number; description: string; category: string }[] = [];
+
+    for (const prev of prevIncome as any[]) {
+      const normPrev = normalize(prev.description);
+      const tol = prev.amount * 0.2;
+      const match = (currIncome as any[]).find((c: any) => {
+        if (usedCurr.has(c._id.toString())) return false;
+        if (normalize(c.description) === normPrev) return true;
+        if (c.category === prev.category && Math.abs(c.amount - prev.amount) <= tol) return true;
+        return false;
+      });
+      if (match) {
+        usedCurr.add(match._id.toString());
+        continue;
+      }
+      const day = Math.min((prev.date as Date).getUTCDate(), lastDayCurrentMonth);
+      const item = {
+        day,
+        amount: prev.amount,
+        description: prev.description,
+        category: prev.category,
+      };
+      if (day > refDay) {
+        upcoming.push(item);
+      } else {
+        missed.push(item);
+      }
+    }
+
+    const events = (currIncome as any[]).map((t: any) => ({
+      date: (t.date as Date).toISOString().split('T')[0],
+      day: (t.date as Date).getUTCDate(),
+      amount: t.amount,
+      description: t.description,
+      category: t.category,
+    }));
+
+    return {
+      events,
+      upcoming: upcoming.sort((a, b) => a.day - b.day),
+      missed: missed.sort((a, b) => a.day - b.day),
+    };
   }
 
   async getTotalAccumulated(familyId: string | null, userId: string): Promise<any> {

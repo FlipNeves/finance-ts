@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, AreaChart, Area, ComposedChart, Line, ReferenceLine } from 'recharts';
 import api from '../services/api';
 import TransactionModal from '../components/TransactionModal';
 import BudgetModal from '../components/BudgetModal';
@@ -27,6 +27,8 @@ const DashboardPage: React.FC = () => {
   const [bankAccounts, setBankAccounts] = useState<string[]>([]);
   const [evolution, setEvolution] = useState<any[]>([]);
   const [dailySpending, setDailySpending] = useState<any[]>([]);
+  const [upcomingFixed, setUpcomingFixed] = useState<any[]>([]);
+  const [incomeSummary, setIncomeSummary] = useState<{ events: any[]; upcoming: any[]; missed: any[] }>({ events: [], upcoming: [], missed: [] });
   const [topSpending, setTopSpending] = useState<any>({type: '', data: []});
   const [categoryBudgets, setCategoryBudgets] = useState<{ category: string; limit: number }[]>([]);
   const [accountsReport, setAccountsReport] = useState<any[]>([]);
@@ -60,7 +62,7 @@ const DashboardPage: React.FC = () => {
       const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString();
       const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes, accountsRes, membersRes] = await Promise.all([
+      const [summaryRes, spendingRes, transRes, catRes, familyRes, evolutionRes, topSpendingRes, dailyRes, accountsRes, membersRes, upcomingFixedRes, incomeSummaryRes] = await Promise.all([
         api.get('/reports/summary', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-category', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/transactions', { params: { startDate: start, endDate: end, type: typeFilter } }),
@@ -71,6 +73,8 @@ const DashboardPage: React.FC = () => {
         api.get('/reports/daily-spending', { params: { startDate: start, endDate: end, type: typeFilter } }),
         api.get('/reports/balance-by-account', { params: { startDate: start, endDate: end } }),
         api.get('/reports/spending-by-member', { params: { startDate: start, endDate: end } }),
+        api.get('/reports/upcoming-fixed', { params: { referenceDate: new Date().toISOString() } }).catch(() => ({ data: [] })),
+        api.get('/reports/income-summary', { params: { startDate: start, endDate: end, referenceDate: new Date().toISOString() } }).catch(() => ({ data: { events: [], upcoming: [], missed: [] } })),
       ]);
       setSummary(summaryRes.data);
       setSpending(spendingRes.data);
@@ -96,49 +100,77 @@ const DashboardPage: React.FC = () => {
       const isCurrMonth = nowDt.getMonth() === currentMonth.getMonth() && nowDt.getFullYear() === currentMonth.getFullYear();
       const daysPassed = isCurrMonth ? nowDt.getDate() : daysInMonth;
 
-      let runningTotal = 0;
+      // Index upcoming fixed expenses by day-of-month and keep a list for the breakdown.
+      const upcomingFixedList: any[] = upcomingFixedRes.data || [];
+      const fixedByDay = new Map<number, number>();
+      for (const f of upcomingFixedList) {
+        fixedByDay.set(f.day, (fixedByDay.get(f.day) || 0) + Number(f.amount || 0));
+      }
+
+      let projectedVariableDaily = 0;
+      let projectionUnstable = true;
+      if (isCurrMonth && daysPassed > 1) {
+        const completedDays = daysPassed - 1;
+        const totalVariableThroughYesterday = (dailyRes.data || [])
+          .filter((d: any) => {
+            const dt = new Date(d.date + 'T00:00:00Z');
+            const dayNum = dt.getUTCDate();
+            return dt.getUTCMonth() === currentMonth.getMonth()
+              && dt.getUTCFullYear() === currentMonth.getFullYear()
+              && dayNum < daysPassed;
+          })
+          .reduce((acc: number, d: any) => acc + (Number(d.variableAmount ?? d.amount) || 0), 0);
+        projectedVariableDaily = totalVariableThroughYesterday / completedDays;
+        projectionUnstable = completedDays < 7;
+      }
+
       const fullDailyData = Array.from({ length: daysInMonth }, (_, i) => {
-        const date = new Date(Date.UTC(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1));
+        const dayNum = i + 1;
+        const isFuture = isCurrMonth && dayNum > daysPassed;
+        const isToday = isCurrMonth && dayNum === daysPassed;
+        const date = new Date(Date.UTC(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum));
         const dateStr = date.toISOString().split('T')[0];
-        const found = dailyRes.data.find((d: any) => d.date === dateStr);
-        const dayAmount = found ? found.amount : 0;
-        runningTotal += dayAmount;
-        
+        const found = (dailyRes.data || []).find((d: any) => d.date === dateStr);
+        const totalAmount = found ? Number(found.amount) || 0 : 0;
+        const variableAmount = found ? Number(found.variableAmount ?? found.amount) || 0 : 0;
+        const fixedAmount = Math.max(0, totalAmount - variableAmount);
+
         let label = date.toLocaleDateString(i18n.language, { day: '2-digit', weekday: 'short', timeZone: 'UTC' }).replace('.', '');
         label = label.charAt(0).toUpperCase() + label.slice(1);
+
+        if (isFuture) {
+          const projectedFixed = fixedByDay.get(dayNum) || 0;
+          const projectedVariable = projectionUnstable ? 0 : projectedVariableDaily;
+          return {
+            date: dateStr,
+            label,
+            actualVariable: null as number | null,
+            actualFixed: null as number | null,
+            projectedVariable,
+            projectedFixed,
+            isFuture: true,
+            isToday: false,
+          };
+        }
         return {
           date: dateStr,
-          amount: dayAmount,
-          accumulated: runningTotal,
           label,
-          forecast: null as number | null,
-          budgetLimit: summaryRes.data.budgetLimit || null
+          actualVariable: variableAmount,
+          actualFixed: fixedAmount,
+          projectedVariable: null as number | null,
+          projectedFixed: null as number | null,
+          isFuture: false,
+          isToday,
         };
       });
 
-      // Forecast: weighted moving average of last 7 days (more sensitive to recent behavior
-      // than a flat monthly mean). Falls back to global average when history is short.
-      if (isCurrMonth && daysPassed > 0) {
-        const accumToday = fullDailyData[daysPassed - 1].accumulated;
-        const window = Math.min(7, daysPassed);
-        const windowSum = fullDailyData
-          .slice(daysPassed - window, daysPassed)
-          .reduce((acc, d) => acc + d.amount, 0);
-        const recentAvg = window > 0 ? windowSum / window : 0;
-        const globalAvg = accumToday / daysPassed;
-        // Blend: 70% recent trend, 30% global mean — stabilizes against outlier days
-        const projectedDailySpend = recentAvg * 0.7 + globalAvg * 0.3;
-
-        fullDailyData.forEach((d, i) => {
-          if (i + 1 > nowDt.getDate()) {
-            d.forecast = accumToday + projectedDailySpend * (i + 1 - nowDt.getDate());
-          } else if (i + 1 === nowDt.getDate()) {
-            d.forecast = d.accumulated;
-          }
-        });
-      }
-
       setDailySpending(fullDailyData);
+      setUpcomingFixed(upcomingFixedList);
+      setIncomeSummary({
+        events: incomeSummaryRes.data?.events || [],
+        upcoming: incomeSummaryRes.data?.upcoming || [],
+        missed: incomeSummaryRes.data?.missed || [],
+      });
 
       const newInsights: any[] = [];
       const totalIncome = summaryRes.data.totalIncome || 0;
@@ -494,49 +526,223 @@ const DashboardPage: React.FC = () => {
       <div className="charts-grid">
         <div className="card chart-card chart-full">
           <h3 className="section-title"><span className="section-numeral">02</span>{t('dashboard.topSpendingDays')}</h3>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailySpending} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--text-secondary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--text-secondary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
-                <YAxis yAxisId="right" orientation="right" hide />
-                <Tooltip
-                  cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4', fill: 'var(--bg-card)', opacity: 0.1 }}
-                  contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
-                  formatter={(val: any, name: any) => {
-                    const key = typeof name === 'string' ? name : '';
-                    return [
-                      `R$ ${Number(val || 0).toFixed(2)}`,
-                      key === 'accumulated'
-                        ? t('dashboard.actualLabel')
-                        : key === 'forecast'
-                          ? t('dashboard.projectionLabel')
-                          : key === 'budgetLimit'
-                            ? t('dashboard.budgetLineLabel')
-                            : t('transactions.amount'),
-                    ];
-                  }}
-                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
-                />
+          {(() => {
+            const totalSpent = dailySpending.reduce((s: number, d: any) => s + (Number(d.actualVariable) || 0) + (Number(d.actualFixed) || 0), 0);
+            const totalProjected = dailySpending.reduce((s: number, d: any) => s + (Number(d.projectedVariable) || 0) + (Number(d.projectedFixed) || 0), 0);
+            const upcomingFixedTotal = upcomingFixed.reduce((s: number, f: any) => s + (Number(f.amount) || 0), 0);
+            const budgetTotal = summary?.budgetLimit || 0;
+            const endOfMonth = totalSpent + totalProjected;
+            const daysInMonth = dailySpending.length;
+            const dailyTarget = budgetTotal > 0 && daysInMonth > 0 ? budgetTotal / daysInMonth : null;
+            const todayLabel = dailySpending.find((d: any) => d.isToday)?.label;
+            const overBudget = budgetTotal > 0 && endOfMonth > budgetTotal;
+            const totalIncome = incomeSummary.events.reduce((s: number, e: any) => s + (Number(e.amount) || 0), 0);
+            const balance = totalIncome - totalSpent;
+            const balancePositive = balance >= 0;
+            const labelByDate: Record<string, string> = {};
+            for (const d of dailySpending as any[]) labelByDate[d.date] = d.label;
+            const eventsByDate = new Map<string, { total: number; count: number; date: string }>();
+            for (const e of incomeSummary.events as any[]) {
+              const cur = eventsByDate.get(e.date);
+              if (cur) {
+                cur.total += Number(e.amount) || 0;
+                cur.count += 1;
+              } else {
+                eventsByDate.set(e.date, { total: Number(e.amount) || 0, count: 1, date: e.date });
+              }
+            }
+            const missedDays = Array.from(new Set(incomeSummary.missed.map((m: any) => m.day)));
+            return (
+              <>
+                <div className="daily-header">
+                  
+                  {totalIncome > 0 && (
+                    <div className="dh-block">
+                      <span className="dh-label">{t('dashboard.incomeLabel')}</span>
+                      <span className="dh-value dh-income">+R$ {totalIncome.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="dh-block">
+                    <span className="dh-label">{t('dashboard.spentLabel')}</span>
+                    <span className="dh-value dh-spent">R$ {totalSpent.toFixed(2)}</span>
+                    {budgetTotal > 0 && (
+                      <span className="dh-sub">/ R$ {budgetTotal.toFixed(2)}</span>
+                    )}
+                  </div>
+                  {(totalIncome > 0 || totalSpent > 0) && (
+                    <div className="dh-block">
+                      <span className="dh-label">{t('dashboard.balanceLabel')}</span>
+                      <span className="dh-value dh-balance">
+                        {balancePositive ? '+' : '−'}R$ {Math.abs(balance).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {totalProjected > 0 && (
+                    <div className="dh-block dh-projection">
+                      <span className="dh-label">{t('dashboard.projectionLabel')}</span>
+                      <span className={`dh-value ${overBudget ? 'over' : ''}`}>
+                        R$ {endOfMonth.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {incomeSummary.missed.length > 0 && (
+                  <div className="daily-subheader">
+                    <span className="dh-missed">
+                      {t('dashboard.missedIncome', { count: incomeSummary.missed.length })}
+                    </span>
+                  </div>
+                )}
+                <div className="chart-wrapper">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={dailySpending} margin={{ top: 28, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={20} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(val) => `R$${val}`}/>
+                      <Tooltip
+                        cursor={{ fill: 'var(--bg-card)', opacity: 0.1 }}
+                        contentStyle={{ borderRadius: '0', border: '1px solid var(--text)', boxShadow: 'none', background: 'var(--bg-card)', color: 'var(--text)' }}
+                        formatter={(val: any, name: any) => {
+                          const key = typeof name === 'string' ? name : '';
+                          const map: Record<string, string> = {
+                            actualVariable: t('dashboard.actualVariableLabel'),
+                            actualFixed: t('dashboard.actualFixedLabel'),
+                            projectedVariable: t('dashboard.projectedVariableLabel'),
+                            projectedFixed: t('dashboard.projectedFixedLabel'),
+                          };
+                          return [`R$ ${Number(val || 0).toFixed(2)}`, map[key] || t('dashboard.actualLabel')];
+                        }}
+                        labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px', textTransform: 'capitalize' }}
+                      />
 
-                <Bar yAxisId="right" dataKey="amount" name="amount" fill="var(--danger)" opacity={0.3} radius={[2, 2, 0, 0]} />
-                <Area yAxisId="left" type="monotone" dataKey="budgetLimit" name="budgetLimit" stroke="var(--danger)" strokeDasharray="5 5" strokeWidth={1.5} fillOpacity={0} activeDot={false} />
-                <Area yAxisId="left" type="monotone" dataKey="forecast" name="forecast" stroke="var(--text-secondary)" strokeDasharray="3 3" strokeWidth={2.5} fillOpacity={1} fill="url(#colorForecast)" activeDot={false} />
-                <Area yAxisId="left" type="stepAfter" dataKey="accumulated" name="accumulated" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDaily)" activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--bg-card)', strokeWidth: 2 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
+                      <Bar dataKey="actualVariable" stackId="a" name="actualVariable" fill="var(--danger)" opacity={0.55} />
+                      <Bar dataKey="actualFixed" stackId="a" name="actualFixed" fill="var(--danger)" opacity={0.95} radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="projectedVariable" stackId="b" name="projectedVariable" fill="var(--text-secondary)" opacity={0.25} />
+                      <Bar dataKey="projectedFixed" stackId="b" name="projectedFixed" fill="var(--text-secondary)" opacity={0.55} radius={[2, 2, 0, 0]} />
+
+                      {dailyTarget !== null && (
+                        <ReferenceLine
+                          y={dailyTarget}
+                          stroke="var(--danger)"
+                          strokeDasharray="5 5"
+                          strokeWidth={1.5}
+                          label={{
+                            value: t('dashboard.dailyTargetLabel', { amount: dailyTarget.toFixed(0) }),
+                            position: 'insideTopRight',
+                            fill: 'var(--text-secondary)',
+                            fontSize: 10,
+                          }}
+                        />
+                      )}
+                      {todayLabel && (
+                        <ReferenceLine
+                          x={todayLabel}
+                          stroke="var(--text-secondary)"
+                          strokeDasharray="2 4"
+                          strokeWidth={1}
+                          opacity={0.6}
+                        />
+                      )}
+                      {Array.from(eventsByDate.values()).map((agg, i) => {
+                        const xLabel = labelByDate[agg.date];
+                        if (!xLabel) return null;
+                        const formatted = `+R$ ${Math.round(agg.total).toLocaleString('pt-BR')}`;
+                        const labelValue = agg.count > 1 ? `${formatted} (${agg.count})` : formatted;
+                        return (
+                          <ReferenceLine
+                            key={`inc-${i}`}
+                            x={xLabel}
+                            stroke="var(--primary)"
+                            strokeWidth={2}
+                            label={{
+                              value: labelValue,
+                              position: 'top',
+                              offset: 8,
+                              fill: 'var(--primary)',
+                              fontSize: 10,
+                              fontWeight: 500,
+                            }}
+                          />
+                        );
+                      })}
+                      {missedDays.map((day: number, i: number) => {
+                        const xLabel = dailySpending[day - 1]?.label;
+                        if (!xLabel) return null;
+                        return (
+                          <ReferenceLine
+                            key={`mis-${i}`}
+                            x={xLabel}
+                            stroke="var(--warning)"
+                            strokeDasharray="3 3"
+                            strokeWidth={1.5}
+                            label={{
+                              value: '!',
+                              position: 'top',
+                              offset: 8,
+                              fill: 'var(--warning)',
+                              fontSize: 12,
+                              fontWeight: 600,
+                            }}
+                          />
+                        );
+                      })}
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+                {(incomeSummary.events.length > 0 || incomeSummary.missed.length > 0) && (
+                  <details className="upcoming-fixed income-events">
+                    <summary>
+                      {t('dashboard.incomeEventsSummary', {
+                        count: incomeSummary.events.length,
+                        amount: totalIncome.toFixed(2),
+                      })}
+                      {incomeSummary.missed.length > 0 && (
+                        <span className="badge-warning"> · {t('dashboard.missedCount', { count: incomeSummary.missed.length })}</span>
+                      )}
+                    </summary>
+                    <ul className="upcoming-fixed-list">
+                      {incomeSummary.events.map((e: any, i: number) => (
+                        <li key={`e-${i}`}>
+                          <span className="uf-day">{t('dashboard.upcomingFixedDay', { day: e.day })}</span>
+                          <span className="uf-desc">{e.description}</span>
+                          <span className="uf-cat">{translateCategory(e.category)}</span>
+                          <span className="uf-amount income">+R$ {Number(e.amount).toFixed(2)}</span>
+                        </li>
+                      ))}
+                      {incomeSummary.missed.map((m: any, i: number) => (
+                        <li key={`m-${i}`} className="row-missed">
+                          <span className="uf-day">{t('dashboard.upcomingFixedDay', { day: m.day })}</span>
+                          <span className="uf-desc">{m.description} <span className="row-tag warning">{t('dashboard.missedTag')}</span></span>
+                          <span className="uf-cat">{translateCategory(m.category)}</span>
+                          <span className="uf-amount muted">+R$ {Number(m.amount).toFixed(2)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                {upcomingFixed.length > 0 && (
+                  <details className="upcoming-fixed">
+                    <summary>
+                      {t('dashboard.upcomingFixedSummary', {
+                        count: upcomingFixed.length,
+                        amount: upcomingFixedTotal.toFixed(2),
+                      })}
+                    </summary>
+                    <ul className="upcoming-fixed-list">
+                      {upcomingFixed.map((f, i) => (
+                        <li key={i}>
+                          <span className="uf-day">{t('dashboard.upcomingFixedDay', { day: f.day })}</span>
+                          <span className="uf-desc">{f.description}</span>
+                          <span className="uf-cat">{translateCategory(f.category)}</span>
+                          <span className="uf-amount">R$ {Number(f.amount).toFixed(2)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 

@@ -245,6 +245,36 @@
 .chart-card.chart-full { grid-column: 1 / -1; border-right: none; }
 .chart-card .section-title { margin-bottom: 20px; }
 .chart-wrapper { height: 280px; width: 100%; overflow-y: auto; }
+.daily-header { display: flex; align-items: flex-end; gap: 28px; margin: -8px 0 8px; font-family: "Outfit", system-ui, sans-serif; flex-wrap: wrap; }
+.dh-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dh-block.dh-projection { margin-left: auto; align-items: flex-end; }
+.dh-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); font-weight: 400; }
+.dh-value { font-size: 22px; line-height: 1.1; color: var(--text); font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.dh-value.dh-spent { color: var(--danger); }
+.dh-value.dh-income { color: var(--primary); }
+.dh-value.dh-balance { color: var(--info); }
+.dh-block.dh-projection .dh-value { font-size: 14px; font-weight: 400; color: var(--text-secondary); }
+.dh-block.dh-projection .dh-value.over { color: var(--danger); }
+.dh-sub { font-size: 12px; color: var(--text-secondary); letter-spacing: 0; margin-top: 2px; }
+.daily-subheader { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; font-family: "Outfit", system-ui, sans-serif; font-size: 11px; letter-spacing: 0.02em; color: var(--text-secondary); }
+.dh-next { color: var(--text-secondary); }
+.dh-missed { color: var(--warning); }
+.upcoming-fixed { margin-top: 16px; padding-top: 12px; border-top: var(--hair); font-family: "Outfit", system-ui, sans-serif; font-size: 12px; color: var(--text-secondary); }
+.upcoming-fixed summary { cursor: pointer; letter-spacing: 0.01em; padding: 4px 0; }
+.upcoming-fixed summary:hover { color: var(--text); }
+.upcoming-fixed-list { list-style: none; padding: 8px 0 0; margin: 0; display: flex; flex-direction: column; gap: 0; }
+.upcoming-fixed-list li { display: grid; grid-template-columns: 64px 1fr auto auto; gap: 12px; padding: 8px 0; border-bottom: var(--hair); align-items: baseline; }
+.upcoming-fixed-list li:last-child { border-bottom: none; }
+.uf-day { color: var(--text-secondary); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+.uf-desc { color: var(--text); font-size: 13px; }
+.uf-cat { color: var(--text-secondary); font-size: 11px; letter-spacing: 0.02em; }
+.uf-amount { color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
+.uf-amount.income { color: var(--primary); }
+.uf-amount.muted { color: var(--text-secondary); }
+.upcoming-fixed-list li.row-missed .uf-desc { color: var(--text-secondary); }
+.row-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--border); color: var(--text-secondary); }
+.row-tag.warning { border-color: var(--warning); color: var(--warning); }
+.badge-warning { color: var(--warning); }
 .chart-empty { height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 13px; font-style: italic; letter-spacing: 0.02em; }
 
 /* Top spending list — editorial rank list */

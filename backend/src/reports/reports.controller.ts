@@ -148,4 +148,40 @@ export class ReportsController {
     const familyId = this.getFamilyId(req);
     return this.reportsService.getTotalAccumulated(familyId, req.user._id);
   }
+
+  @Get('upcoming-fixed')
+  async getUpcomingFixed(
+    @Req() req: any,
+    @Query('referenceDate') ref: string,
+  ) {
+    const familyId = this.getFamilyId(req);
+    const referenceDate = ref ? new Date(ref) : new Date();
+    return this.reportsService.getUpcomingFixed(
+      familyId,
+      req.user._id,
+      referenceDate,
+    );
+  }
+
+  @Get('income-summary')
+  async getIncomeSummary(
+    @Req() req: any,
+    @Query('startDate') start: string,
+    @Query('endDate') end: string,
+    @Query('referenceDate') ref: string,
+  ) {
+    const familyId = this.getFamilyId(req);
+    const startDate = start
+      ? new Date(start)
+      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endDate = end ? new Date(end) : new Date();
+    const referenceDate = ref ? new Date(ref) : new Date();
+    return this.reportsService.getIncomeSummary(
+      familyId,
+      req.user._id,
+      startDate,
+      endDate,
+      referenceDate,
+    );
+  }
 }
