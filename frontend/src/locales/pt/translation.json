@@ -202,7 +202,9 @@
     "budgetLineLabel": "Linha do orçamento",
     "outOfBudget": "Sem orçamento definido",
     "topSpendingTitle": "Top 5 maiores saídas",
-    "noTopSpending": "Sem despesas registradas neste período."
+    "noTopSpending": "Sem despesas registradas neste período.",
+    "balanceByAccount": "Saldo por Conta",
+    "spendingByMember": "Gastos por Membro"
   },
   "lifetime": {
     "title": "Acumulado",

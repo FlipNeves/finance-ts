@@ -202,7 +202,9 @@
     "budgetLineLabel": "Budget line",
     "outOfBudget": "No budget set",
     "topSpendingTitle": "Top 5 outflows",
-    "noTopSpending": "No expenses recorded in this period."
+    "noTopSpending": "No expenses recorded in this period.",
+    "balanceByAccount": "Balance by Account",
+    "spendingByMember": "Spending by Member"
   },
   "lifetime": {
     "title": "Lifetime",

@@ -245,7 +245,7 @@
 .chart-card.chart-full { grid-column: 1 / -1; border-right: none; }
 .chart-card .section-title { margin-bottom: 20px; }
 .chart-wrapper { height: 280px; width: 100%; overflow-y: auto; }
-.daily-header { display: flex; align-items: flex-end; gap: 28px; margin: -8px 0 8px; font-family: "Outfit", system-ui, sans-serif; flex-wrap: wrap; }
+.daily-header { display: flex; align-items: flex-start; gap: 28px; margin: -8px 0 8px; font-family: "Outfit", system-ui, sans-serif; flex-wrap: wrap; }
 .dh-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dh-block.dh-projection { margin-left: auto; align-items: flex-end; }
 .dh-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); font-weight: 400; }
