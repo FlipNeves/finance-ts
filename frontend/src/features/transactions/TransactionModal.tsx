@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NumericFormat } from 'react-number-format';
+import { useQueryClient } from '@tanstack/react-query';
 import Modal from '../../components/Modal';
 import { familyApi } from '../../lib/api';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
+import { useCategories, categoriesQueryKey } from '../../hooks/useCategories';
+import { useBankAccounts, bankAccountsQueryKey } from '../../hooks/useBankAccounts';
 import { useMessageModal } from '../../contexts/MessageModalContext';
 import { useCreateTransaction, useUpdateTransaction } from './hooks/useTransactions';
 import type { Transaction, TransactionType } from '../../types/api';
@@ -14,8 +17,6 @@ interface TransactionModalProps {
   onClose: () => void;
   onSuccess: () => void;
   type: TransactionType;
-  initialCategories: string[];
-  initialBankAccounts: string[];
   editTransaction?: Transaction | null;
 }
 
@@ -24,15 +25,17 @@ export default function TransactionModal({
   onClose,
   onSuccess,
   type,
-  initialCategories,
-  initialBankAccounts,
   editTransaction,
 }: TransactionModalProps) {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
   const { showMessage } = useMessageModal();
+  const queryClient = useQueryClient();
   const createMutation = useCreateTransaction();
   const updateMutation = useUpdateTransaction();
+
+  const categories = useCategories().data ?? [];
+  const bankAccounts = useBankAccounts().data ?? [];
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -43,62 +46,49 @@ export default function TransactionModal({
   const [bankAccount, setBankAccount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const [categories, setCategories] = useState<string[]>(initialCategories);
-  const [bankAccounts, setBankAccounts] = useState<string[]>(initialBankAccounts);
-
   const [isFixed, setIsFixed] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [newBankAccount, setNewBankAccount] = useState('');
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
-  const resetForm = useCallback(() => {
+  useEffect(() => {
+    if (!isOpen) return;
     setStep(1);
-    setDescription('');
-    setAmount('');
-    setCategories(initialCategories);
-    setBankAccounts(initialBankAccounts);
-    setCategory(initialCategories.length > 0 ? initialCategories[0] : '');
-    setBankAccount(initialBankAccounts.length > 0 ? initialBankAccounts[0] : '');
     setIsCreatingCategory(false);
     setIsCreatingAccount(false);
     setNewCategory('');
     setNewBankAccount('');
-  }, [initialCategories, initialBankAccounts]);
-
-  useEffect(() => {
-    if (!isOpen) return;
     if (editTransaction) {
-      setStep(1);
       setDescription(editTransaction.description || '');
       setAmount(editTransaction.amount || '');
-      setCategories(initialCategories);
-      setBankAccounts(initialBankAccounts);
       setCategory(
-        editTransaction.category || (initialCategories.length > 0 ? initialCategories[0] : ''),
+        editTransaction.category || (categories.length > 0 ? categories[0] : ''),
       );
       setBankAccount(editTransaction.bankAccount || '');
-      setIsCreatingCategory(false);
-      setIsCreatingAccount(false);
-      setNewCategory('');
-      setNewBankAccount('');
       setDate(new Date(editTransaction.date).toISOString().split('T')[0]);
       setIsFixed(editTransaction.isFixed || false);
     } else {
-      resetForm();
+      setDescription('');
+      setAmount('');
+      setCategory(categories.length > 0 ? categories[0] : '');
+      setBankAccount(bankAccounts.length > 0 ? bankAccounts[0] : '');
+      setDate(new Date().toISOString().split('T')[0]);
+      setIsFixed(false);
     }
-  }, [isOpen, editTransaction, resetForm, initialCategories, initialBankAccounts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, editTransaction]);
 
   const handleCreateCategory = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!newCategory.trim()) return;
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
     try {
       setLoading(true);
-      await familyApi.addCategory(newCategory.trim());
-      const updatedCategories = [...categories, newCategory.trim()];
-      setCategories(updatedCategories);
-      setCategory(newCategory.trim());
+      await familyApi.addCategory(trimmed);
+      await queryClient.invalidateQueries({ queryKey: categoriesQueryKey });
+      setCategory(trimmed);
       setNewCategory('');
       setIsCreatingCategory(false);
     } catch (err) {
@@ -112,13 +102,13 @@ export default function TransactionModal({
   const handleCreateAccount = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!newBankAccount.trim()) return;
+    const trimmed = newBankAccount.trim();
+    if (!trimmed) return;
     try {
       setLoading(true);
-      await familyApi.addBankAccount(newBankAccount.trim());
-      const updatedAccounts = [...bankAccounts, newBankAccount.trim()];
-      setBankAccounts(updatedAccounts);
-      setBankAccount(newBankAccount.trim());
+      await familyApi.addBankAccount(trimmed);
+      await queryClient.invalidateQueries({ queryKey: bankAccountsQueryKey });
+      setBankAccount(trimmed);
       setNewBankAccount('');
       setIsCreatingAccount(false);
     } catch (err) {

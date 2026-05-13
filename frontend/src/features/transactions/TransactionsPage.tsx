@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../contexts/AuthContext';
 import { useMessageModal } from '../../contexts/MessageModalContext';
 import TransactionModal from './TransactionModal';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
-import { useCategories } from '../../hooks/useCategories';
-import { useFamilyDetails } from '../../hooks/useFamilyDetails';
 import { useDeleteTransaction, useTransactionsQuery } from './hooks/useTransactions';
 import type { Transaction, TransactionType, TypeFilter } from '../../types/api';
 import './TransactionsPage.css';
@@ -22,7 +19,6 @@ function defaultEnd() {
 export default function TransactionsPage() {
   const { t, i18n } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
-  const { user } = useAuth();
   const { showMessage, showConfirm } = useMessageModal();
 
   const [startDate, setStartDate] = useState(defaultStart());
@@ -45,8 +41,6 @@ export default function TransactionsPage() {
   }, [startDate, endDate, typeFilter]);
 
   const transactionsQuery = useTransactionsQuery(filter);
-  const categoriesQuery = useCategories();
-  const familyQuery = useFamilyDetails(Boolean(user?.familyId || user?._id));
   const deleteMutation = useDeleteTransaction();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,8 +48,6 @@ export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const transactions = transactionsQuery.data ?? [];
-  const categories = categoriesQuery.data ?? [];
-  const bankAccounts = familyQuery.data?.bankAccounts ?? [];
 
   const openModal = (type: TransactionType) => {
     setModalType(type);
@@ -252,8 +244,6 @@ export default function TransactionsPage() {
         }}
         onSuccess={() => transactionsQuery.refetch()}
         type={modalType}
-        initialCategories={categories}
-        initialBankAccounts={bankAccounts}
         editTransaction={selectedTransaction}
       />
     </div>

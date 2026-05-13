@@ -54,8 +54,6 @@ export default function DashboardPage() {
   const evolution = data.evolution.data ?? [];
   const topSpending = data.topSpending.data ?? { type: '', data: [] };
   const transactions = data.transactions.data ?? [];
-  const categories = data.categories.data ?? [];
-  const bankAccounts = data.family.data?.bankAccounts ?? [];
   const categoryBudgets = data.budget.data?.categoryLimits ?? [];
 
   const dailySpending = useMemo(() => {
@@ -161,8 +159,6 @@ export default function DashboardPage() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={invalidateDashboard}
         type={modalType}
-        initialCategories={categories}
-        initialBankAccounts={bankAccounts}
       />
 
       <BudgetModal

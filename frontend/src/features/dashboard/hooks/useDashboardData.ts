@@ -1,8 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { reportsApi, transactionsApi, budgetsApi } from '../../../lib/api';
-import { useFamilyDetails } from '../../../hooks/useFamilyDetails';
-import { useCategories } from '../../../hooks/useCategories';
 import { useMonthRange } from '../../../hooks/useMonthRange';
 import type { TypeFilter } from '../../../types/api';
 
@@ -38,9 +36,6 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
       }),
     select: (data) => data.slice(0, 5),
   });
-
-  const categories = useCategories();
-  const family = useFamilyDetails();
 
   const evolution = useQuery({
     queryKey: ['reports', 'evolution', { endISO }],
@@ -115,8 +110,6 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
     summary.isLoading ||
     spending.isLoading ||
     transactions.isLoading ||
-    categories.isLoading ||
-    family.isLoading ||
     evolution.isLoading ||
     topSpending.isLoading ||
     daily.isLoading ||
@@ -130,8 +123,6 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
       summary,
       spending,
       transactions,
-      categories,
-      family,
       evolution,
       topSpending,
       daily,
@@ -147,8 +138,6 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
       summary,
       spending,
       transactions,
-      categories,
-      family,
       evolution,
       topSpending,
       daily,

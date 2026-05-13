@@ -13,6 +13,8 @@ export const transactionsApi = {
       .then((r) => r.data),
   categories: () =>
     apiClient.get<string[]>('/transactions/categories').then((r) => r.data),
+  bankAccounts: () =>
+    apiClient.get<string[]>('/transactions/bank-accounts').then((r) => r.data),
   create: (payload: CreateTransactionDTO) =>
     apiClient
       .post<CreateTransactionResponse>('/transactions', payload)
