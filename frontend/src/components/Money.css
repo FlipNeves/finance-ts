@@ -1,0 +1,17 @@
+.money {
+  display: inline;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s ease;
+}
+
+.money.is-hidden {
+  color: var(--text-secondary);
+}
+
+.money-amount {
+  font-feature-settings: "tnum", "lnum";
+}
+
+.money.is-hidden .money-amount {
+  letter-spacing: 0.02em;
+}

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import Money from './Money';
 import type { AccountReport } from '../types/api';
 import './AccountBalanceCard.css';
 
@@ -22,13 +23,17 @@ export default function AccountBalanceCard({ accounts }: Props) {
             <div key={acc.bankAccount} className="account-item">
               <div className="account-header">
                 <span className="account-name">🏦 {acc.bankAccount}</span>
-                <span className="account-balance" style={{ color: acc.balance < 0 ? 'var(--danger)' : 'var(--primary)' }}>
-                  R$ {acc.balance.toFixed(2)}
+                <span className="account-balance">
+                  <Money value={acc.balance} tone="auto" />
                 </span>
               </div>
               <div className="account-flow">
-                <span className="text-green text-sm">↑ R$ {acc.income.toFixed(2)}</span>
-                <span className="text-red text-sm">↓ R$ {acc.expense.toFixed(2)}</span>
+                <span className="text-sm">
+                  <Money value={acc.income} sign="up" tone="income" />
+                </span>
+                <span className="text-sm">
+                  <Money value={acc.expense} sign="down" tone="expense" />
+                </span>
               </div>
               <div className="budget-bar-track mt-1">
                 <div 

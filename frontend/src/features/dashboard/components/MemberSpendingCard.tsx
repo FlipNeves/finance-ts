@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Money from '../../../components/Money';
 import type { MemberReport } from '../../../types/api';
 import './MemberSpendingCard.css';
 
@@ -34,7 +35,9 @@ export default function MemberSpendingCard({ members }: Props) {
                   <span className="member-name">{m.userName}</span>
                 </div>
                 <div className="member-summary">
-                  <span className="member-expense">R$ {m.expense.toFixed(2)}</span>
+                  <span className="member-expense">
+                    <Money value={m.expense} />
+                  </span>
                   <span className="expand-icon">{isExpanded ? '▲' : '▼'}</span>
                 </div>
               </div>
@@ -43,13 +46,11 @@ export default function MemberSpendingCard({ members }: Props) {
                 <div className="member-details slide-down">
                   <div className="detail-row">
                     <span>{t('transactions.income')}</span>
-                    <span className="text-green">R$ {m.income.toFixed(2)}</span>
+                    <Money value={m.income} tone="income" />
                   </div>
                   <div className="detail-row">
                     <span>{t('dashboard.balance')}</span>
-                    <span style={{ color: m.balance < 0 ? 'var(--danger)' : 'var(--primary)' }}>
-                      R$ {m.balance.toFixed(2)}
-                    </span>
+                    <Money value={m.balance} tone="auto" />
                   </div>
                   <div className="detail-row mt-2">
                     <span className="text-sm text-muted">

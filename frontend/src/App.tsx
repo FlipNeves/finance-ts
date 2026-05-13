@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } f
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { PrivacyProvider, usePrivacy } from './contexts/PrivacyContext';
 import { MessageModalProvider } from './contexts/MessageModalContext';
 import './App.css';
 
@@ -27,10 +28,27 @@ const VerdantLogo = () => (
   </svg>
 );
 
+const EyeIcon = ({ hidden }: { hidden: boolean }) => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    {hidden ? (
+      <>
+        <path d="M2 2L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+        <path d="M3 8C4.5 5.5 6 4.5 8 4.5C10 4.5 11.5 5.5 13 8C11.5 10.5 10 11.5 8 11.5C6 11.5 4.5 10.5 3 8Z" stroke="currentColor" strokeWidth="1.5" />
+      </>
+    ) : (
+      <>
+        <path d="M2 8C3.5 5.5 5.5 4 8 4C10.5 4 12.5 5.5 14 8C12.5 10.5 10.5 12 8 12C5.5 12 3.5 10.5 2 8Z" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
+      </>
+    )}
+  </svg>
+);
+
 function Navigation() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { valuesHidden, toggleValues } = usePrivacy();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -93,6 +111,17 @@ function Navigation() {
                 <button className="btn-icon" onClick={() => changeLanguage('pt')} title="Português">PT</button>
               </div>
               
+              {user && (
+                <button
+                  className="btn-icon"
+                  onClick={toggleValues}
+                  title={valuesHidden ? t('common.showValues') : t('common.hideValues')}
+                  aria-pressed={valuesHidden}
+                >
+                  <EyeIcon hidden={valuesHidden} />
+                </button>
+              )}
+
               <button className="btn-icon" onClick={toggleTheme} title={theme === 'light' ? t('common.darkMode') : t('common.lightMode')}>
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
@@ -155,6 +184,17 @@ function Navigation() {
 
         <div className="fab-section-divider" />
 
+        <button className="fab-item" onClick={toggleValues}>
+          <div className="fab-item-icon">
+            <EyeIcon hidden={valuesHidden} />
+          </div>
+          <div className="fab-item-content">
+            <span className="fab-item-label">
+              {valuesHidden ? t('common.showValues') : t('common.hideValues')}
+            </span>
+          </div>
+        </button>
+
         <button className="fab-item" onClick={toggleTheme}>
           <div className="fab-item-icon theme-icon">{theme === 'light' ? '🌙' : '☀️'}</div>
           <div className="fab-item-content">
@@ -215,9 +255,11 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <MessageModalProvider>
-          <AppContent />
-        </MessageModalProvider>
+        <PrivacyProvider>
+          <MessageModalProvider>
+            <AppContent />
+          </MessageModalProvider>
+        </PrivacyProvider>
       </AuthProvider>
     </ThemeProvider>
   );

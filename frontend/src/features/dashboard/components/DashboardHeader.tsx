@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import MonthNavigator from '../../../components/MonthNavigator';
+import Money from '../../../components/Money';
+import { usePrivacy } from '../../../contexts/PrivacyContext';
 import type { Summary, TypeFilter } from '../../../types/api';
 
 interface Props {
@@ -30,6 +32,7 @@ export function DashboardHeader({
   onOpenBudget,
 }: Props) {
   const { t } = useTranslation();
+  const { valuesHidden } = usePrivacy();
 
   const budgetPct =
     summary && summary.budgetLimit > 0
@@ -43,13 +46,15 @@ export function DashboardHeader({
         ? t('dashboard.greetingAfternoon')
         : t('dashboard.greetingEvening');
 
+  const maskMoney = (v: number) => (valuesHidden ? '•••.•••,••' : v.toFixed(2));
+
   const headerSummaryText = summary
     ? summary.budgetLimit > 0
       ? t('dashboard.headerSummary', {
-          spent: summary.totalExpense.toFixed(2),
-          budget: summary.budgetLimit.toFixed(2),
+          spent: maskMoney(summary.totalExpense),
+          budget: maskMoney(summary.budgetLimit),
         })
-      : t('dashboard.headerSummaryNoBudget', { spent: summary.totalExpense.toFixed(2) })
+      : t('dashboard.headerSummaryNoBudget', { spent: maskMoney(summary.totalExpense) })
     : '';
 
   return (
@@ -114,7 +119,7 @@ export function DashboardHeader({
           <div className="budget-progress-header">
             <span>{t('dashboard.budgetProgress')}</span>
             <span>
-              R$ {summary.totalExpense.toFixed(2)} / R$ {summary.budgetLimit.toFixed(2)} (
+              <Money value={summary.totalExpense} /> / <Money value={summary.budgetLimit} /> (
               {budgetPct.toFixed(0)}%)
             </span>
           </div>

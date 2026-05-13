@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import Money from '../../../components/Money';
 import type { Summary } from '../../../types/api';
 import { calculateHealthScore } from '../lib/healthScore';
 
@@ -43,13 +44,15 @@ export function SummaryGrid({ summary, isCurrentMonth, daysInMonth, daysPassed }
             <span className="dot dot-green"></span>
             <p className="text-green">{t('dashboard.totalIncome')}</p>
           </span>
-          <span className="currency">R$ </span>
-          <span className="summary-value summary-value-income">{summary.totalIncome.toFixed(2)}</span>
-          <span
-            className="summary-diff"
-            style={{ color: incomeDiff >= 0 ? 'var(--primary)' : 'var(--danger)' }}
-          >
-            {incomeDiff >= 0 ? '↑' : '↓'} R$ {Math.abs(incomeDiff).toFixed(2)}{' '}
+          <span className="summary-value summary-value-income">
+            <Money value={summary.totalIncome} />
+          </span>
+          <span className="summary-diff">
+            <Money
+              value={incomeDiff}
+              sign={incomeDiff >= 0 ? 'up' : 'down'}
+              tone={incomeDiff >= 0 ? 'income' : 'expense'}
+            />{' '}
             {t('dashboard.vsPrevMonth')}
           </span>
         </div>
@@ -61,25 +64,25 @@ export function SummaryGrid({ summary, isCurrentMonth, daysInMonth, daysPassed }
             <span className="dot dot-red"></span>
             <p className="text-red">{t('dashboard.totalExpense')}</p>
           </span>
-          <span className="currency">R$ </span>
           <span className="summary-value summary-value-expense">
-            {summary.totalExpense.toFixed(2)}
+            <Money value={summary.totalExpense} />
           </span>
-          <span
-            className="summary-diff"
-            style={{ color: expenseDiff <= 0 ? 'var(--primary)' : 'var(--danger)' }}
-          >
-            {expenseDiff > 0 ? '↑' : '↓'} R$ {Math.abs(expenseDiff).toFixed(2)}{' '}
+          <span className="summary-diff">
+            <Money
+              value={expenseDiff}
+              sign={expenseDiff > 0 ? 'up' : 'down'}
+              tone={expenseDiff <= 0 ? 'income' : 'expense'}
+            />{' '}
             {t('dashboard.vsPrevMonth')}
           </span>
           {summary.totalExpense > 0 && (
             <div className="summary-breakdown">
               <span>
-                {t('dashboard.fixed')}: R$ {summary.fixedExpense.toFixed(2)} (
+                {t('dashboard.fixed')}: <Money value={summary.fixedExpense} /> (
                 {((summary.fixedExpense / summary.totalExpense) * 100).toFixed(0)}%)
               </span>
               <span>
-                {t('dashboard.variable')}: R$ {summary.variableExpense.toFixed(2)}
+                {t('dashboard.variable')}: <Money value={summary.variableExpense} />
               </span>
             </div>
           )}
@@ -92,11 +95,10 @@ export function SummaryGrid({ summary, isCurrentMonth, daysInMonth, daysPassed }
             <span className="dot dot-blue"></span>
             <p className="text-blue">{t('dashboard.balance')}</p>
           </span>
-          <span className="currency">R$ </span>
           <span
             className={`summary-value summary-value-balance ${summary.balance < 0 ? 'negative' : 'positive'}`}
           >
-            {summary.balance.toFixed(2)}
+            <Money value={summary.balance} />
           </span>
         </div>
       </div>
