@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
 import TransactionModal from '../../components/TransactionModal';
-import BudgetModal from '../../components/BudgetModal';
+import BudgetModal from '../budget/BudgetModal';
 import InsightsPanel from '../../components/InsightsPanel';
 import AccountBalanceCard from '../../components/AccountBalanceCard';
 import MemberSpendingCard from '../../components/MemberSpendingCard';
