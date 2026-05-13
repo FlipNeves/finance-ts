@@ -6,8 +6,8 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { MessageModalProvider } from './contexts/MessageModalContext';
 import './App.css';
 
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const LoginPage = lazy(() => import('./features/auth/LoginPage'));
+const RegisterPage = lazy(() => import('./features/auth/RegisterPage'));
 const FamilyPage = lazy(() => import('./features/family/FamilyPage'));
 const TransactionsPage = lazy(() => import('./features/transactions/TransactionsPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
