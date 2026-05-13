@@ -47,6 +47,12 @@ export class TransactionsController {
     return this.transactionsService.getCategories(familyId, req.user._id);
   }
 
+  @Get('bank-accounts')
+  async getBankAccounts(@Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.transactionsService.getBankAccounts(familyId, req.user._id);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.transactionsService.findOne(id);

@@ -151,4 +151,13 @@ export class TransactionsService {
     }
     return [...new Set([...this.defaultCategories, ...customCategories])];
   }
+
+  async getBankAccounts(familyId: string | null, userId: string): Promise<string[]> {
+    if (familyId) {
+      const family = await this.familyModel.findById(familyId).exec();
+      return family?.bankAccounts || [];
+    }
+    const user = await this.userModel.findById(userId).exec();
+    return user?.bankAccounts || [];
+  }
 }
