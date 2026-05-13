@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FamilyPage from './pages/FamilyPage';
 import TransactionsPage from './pages/TransactionsPage';
-import DashboardPage from './pages/DashboardPage';
+import DashboardPage from './features/dashboard/DashboardPage';
 import LifetimePage from './pages/LifetimePage';
 import BudgetPage from './features/budget/BudgetPage';
 import ChatWidget from './components/ChatWidget';
