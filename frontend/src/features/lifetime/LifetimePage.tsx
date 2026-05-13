@@ -9,8 +9,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import SavingsMasterCard from '../../components/SavingsMasterCard';
 import AccountBalanceCard from '../../components/AccountBalanceCard';
+import SavingsMasterCard from './components/SavingsMasterCard';
 import { useLifetimeData } from './hooks/useLifetime';
 import './LifetimePage.css';
 
