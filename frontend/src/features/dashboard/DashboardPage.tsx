@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
-import TransactionModal from '../../components/TransactionModal';
+import TransactionModal from '../transactions/TransactionModal';
 import BudgetModal from '../budget/BudgetModal';
 import InsightsPanel from '../../components/InsightsPanel';
 import AccountBalanceCard from '../../components/AccountBalanceCard';

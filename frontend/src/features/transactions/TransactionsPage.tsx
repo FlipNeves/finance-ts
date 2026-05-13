@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMessageModal } from '../../contexts/MessageModalContext';
-import TransactionModal from '../../components/TransactionModal';
+import TransactionModal from './TransactionModal';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
 import { useCategories } from '../../hooks/useCategories';
 import { useFamilyDetails } from '../../hooks/useFamilyDetails';
