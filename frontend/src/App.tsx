@@ -19,13 +19,11 @@ function PageFallback() {
   return <div className="text-center mt-3 text-muted" style={{ padding: '60px 0' }} />;
 }
 
-/* Inline SVG logo */
 const VerdantLogo = () => (
-  <svg className="brand-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="32" height="32" rx="6" fill="#00684A"/>
-    <path d="M16 5C16 5 9 12 9 18c0 4 3.14 7 7 7s7-3 7-7c0-6-7-13-7-13z" fill="var(--primary-vivid)" opacity="0.9"/>
-    <path d="M15.5 14v8.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M13.5 18.5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"/>
+  <svg className="brand-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="32" height="32" fill="var(--primary)" />
+    <rect width="32" height="2" fill="#FFFFFF" fillOpacity="0.4" />
+    <path d="M6 7 L11 7 L16 17 L21 7 L26 7 L16 25 Z" fill="#FFFFFF" />
   </svg>
 );
 
