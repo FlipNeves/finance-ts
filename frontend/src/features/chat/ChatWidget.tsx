@@ -1,44 +1,41 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../contexts/AuthContext';
+import { chatApi } from '../../lib/api';
+import type {
+  ChatContextMessage,
+  ConfirmChatDTO,
+} from '../../lib/api/chat';
+import type { ParsedChatTransaction } from '../../types/api';
 import './ChatWidget.css';
-
-interface ParsedTransaction {
-  type: 'income' | 'expense';
-  amount: number;
-  description: string;
-  category?: string;
-  date?: string;
-  bankAccount?: string;
-  confidence: number;
-}
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'bot' | 'error';
   text: string;
-  parsed?: ParsedTransaction;
+  parsed?: ParsedChatTransaction;
   source?: 'regex' | 'llm' | 'none';
   confirmed?: boolean;
   alert?: string;
 }
 
-function buildContext(messages: ChatMessage[], limit = 10): { role: string; content: string }[] {
+function buildContext(messages: ChatMessage[], limit = 10): ChatContextMessage[] {
   return messages.slice(-limit).map((msg) => ({
     role: msg.role === 'user' ? 'user' : 'assistant',
     content: msg.text,
   }));
 }
 
-const ChatWidget: React.FC = () => {
+export default function ChatWidget() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pendingParsed, setPendingParsed] = useState<ParsedTransaction | null>(null);
+  const [pendingParsed, setPendingParsed] = useState<ParsedChatTransaction | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,12 +55,71 @@ const ChatWidget: React.FC = () => {
     setMessages((prev) => [...prev, { ...msg, id: genId() }]);
   }, []);
 
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    queryClient.invalidateQueries({ queryKey: ['reports'] });
+  }, [queryClient]);
+
+  const handleConfirm = useCallback(
+    async (parsed?: ParsedChatTransaction, msgId?: string) => {
+      const data = parsed || pendingParsed;
+      if (!data) return;
+
+      setLoading(true);
+      setPendingParsed(null);
+
+      if (msgId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msgId ? { ...m, confirmed: true } : m)),
+        );
+      }
+
+      try {
+        const payload: ConfirmChatDTO = {
+          type: data.type,
+          amount: data.amount,
+          description: data.description,
+          category: data.category || 'Other',
+          date: data.date || new Date().toISOString(),
+          bankAccount: data.bankAccount || undefined,
+          language: i18n.language,
+        };
+        const result = await chatApi.confirm(payload);
+
+        addMessage({
+          role: 'bot',
+          text: result.message,
+          confirmed: true,
+          alert: result.alert,
+        });
+
+        if (result.bankAccountCreated) {
+          addMessage({
+            role: 'bot',
+            text: t('chat.bankAccountCreated', { account: data.bankAccount }),
+          });
+        }
+        invalidate();
+      } catch {
+        if (msgId) {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === msgId ? { ...m, confirmed: false } : m)),
+          );
+        }
+        addMessage({ role: 'error', text: t('chat.saveError') });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [pendingParsed, i18n.language, addMessage, t, invalidate],
+  );
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || loading) return;
 
     setMessages((prev) =>
-      prev.map(m => m.parsed && !m.confirmed ? { ...m, confirmed: true } : m)
+      prev.map((m) => (m.parsed && !m.confirmed ? { ...m, confirmed: true } : m)),
     );
     setPendingParsed(null);
 
@@ -73,11 +129,7 @@ const ChatWidget: React.FC = () => {
 
     try {
       const context = buildContext(messages);
-      const { data } = await api.post('/chat/parse', {
-        message: text,
-        language: i18n.language,
-        context,
-      });
+      const data = await chatApi.parse({ message: text, language: i18n.language, context });
 
       if (data.success && data.parsed) {
         if (data.skipConfirmation) {
@@ -94,8 +146,11 @@ const ChatWidget: React.FC = () => {
       } else {
         addMessage({ role: 'error', text: data.message });
       }
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      const status =
+        typeof err === 'object' && err !== null && 'response' in err
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined;
       if (status === 429) {
         addMessage({ role: 'error', text: t('chat.rateLimitError') });
       } else {
@@ -106,55 +161,12 @@ const ChatWidget: React.FC = () => {
     }
   };
 
-  const handleConfirm = async (parsed?: ParsedTransaction, msgId?: string) => {
-    const data = parsed || pendingParsed;
-    if (!data) return;
-
-    setLoading(true);
-    setPendingParsed(null);
-
-    if (msgId) {
-      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: true } : m));
-    }
-
-    try {
-      const { data: result } = await api.post('/chat/confirm', {
-        type: data.type,
-        amount: data.amount,
-        description: data.description,
-        category: data.category || 'Other',
-        date: data.date || new Date().toISOString(),
-        bankAccount: data.bankAccount || undefined,
-        language: i18n.language,
-      });
-
-      addMessage({
-        role: 'bot',
-        text: result.message,
-        confirmed: true,
-        alert: result.alert,
-      });
-
-      if (result.bankAccountCreated) {
-        addMessage({
-          role: 'bot',
-          text: t('chat.bankAccountCreated', { account: data.bankAccount }),
-        });
-      }
-    } catch {
-      if (msgId) {
-        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: false } : m));
-      }
-      addMessage({ role: 'error', text: t('chat.saveError') });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCancel = (msgId?: string) => {
     setPendingParsed(null);
     if (msgId) {
-      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: true } : m));
+      setMessages((prev) =>
+        prev.map((m) => (m.id === msgId ? { ...m, confirmed: true } : m)),
+      );
     }
     addMessage({ role: 'bot', text: t('chat.cancelled') });
   };
@@ -210,7 +222,9 @@ const ChatWidget: React.FC = () => {
                 <span className="chat-bubble-text">{msg.text}</span>
 
                 {msg.source && msg.source !== 'none' && (
-                  <span className={`chat-source-badge chat-source-${msg.source}`}>{msg.source}</span>
+                  <span className={`chat-source-badge chat-source-${msg.source}`}>
+                    {msg.source}
+                  </span>
                 )}
 
                 {msg.parsed && !msg.confirmed && (
@@ -235,7 +249,9 @@ const ChatWidget: React.FC = () => {
 
               {msg.alert && (
                 <div className="chat-alert">
-                  <span className="chat-alert-glyph" aria-hidden="true">!</span>
+                  <span className="chat-alert-glyph" aria-hidden="true">
+                    !
+                  </span>
                   <span>{msg.alert}</span>
                 </div>
               )}
@@ -278,6 +294,4 @@ const ChatWidget: React.FC = () => {
       </div>
     </>
   );
-};
-
-export default ChatWidget;
+}

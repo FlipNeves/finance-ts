@@ -13,7 +13,7 @@ const TransactionsPage = lazy(() => import('./features/transactions/Transactions
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const LifetimePage = lazy(() => import('./features/lifetime/LifetimePage'));
 const BudgetPage = lazy(() => import('./features/budget/BudgetPage'));
-const ChatWidget = lazy(() => import('./components/ChatWidget'));
+const ChatWidget = lazy(() => import('./features/chat/ChatWidget'));
 
 function PageFallback() {
   return <div className="text-center mt-3 text-muted" style={{ padding: '60px 0' }} />;
