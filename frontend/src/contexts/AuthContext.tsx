@@ -1,13 +1,7 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
-
-interface User {
-  _id: string;
-  email: string;
-  name: string;
-  familyId?: string;
-  inviteCode?: string;
-}
+import { createContext, useState, useEffect, useContext } from 'react';
+import type { ReactNode } from 'react';
+import { usersApi } from '../lib/api';
+import type { User } from '../types/api';
 
 interface AuthContextData {
   user: User | null;
@@ -16,9 +10,9 @@ interface AuthContextData {
   logout(): void;
 }
 
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+const AuthContext = createContext<AuthContextData | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,8 +22,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (storedToken) {
         try {
-          const response = await api.get('/users/profile');
-          setUser(response.data);
+          const profile = await usersApi.profile();
+          setUser(profile);
         } catch {
           localStorage.removeItem('token');
         }
@@ -43,8 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (token: string) => {
     localStorage.setItem('token', token);
-    const response = await api.get('/users/profile');
-    setUser(response.data);
+    const profile = await usersApi.profile();
+    setUser(profile);
   };
 
   const logout = () => {
@@ -57,7 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

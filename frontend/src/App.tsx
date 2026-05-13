@@ -10,7 +10,7 @@ import FamilyPage from './pages/FamilyPage';
 import TransactionsPage from './pages/TransactionsPage';
 import DashboardPage from './pages/DashboardPage';
 import LifetimePage from './pages/LifetimePage';
-import BudgetPage from './pages/BudgetPage';
+import BudgetPage from './features/budget/BudgetPage';
 import ChatWidget from './components/ChatWidget';
 import './App.css';
 
