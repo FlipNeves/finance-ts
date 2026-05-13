@@ -1,18 +1,23 @@
-import { useState, useEffect } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { MessageModalProvider } from './contexts/MessageModalContext';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import FamilyPage from './pages/FamilyPage';
-import TransactionsPage from './pages/TransactionsPage';
-import DashboardPage from './features/dashboard/DashboardPage';
-import LifetimePage from './pages/LifetimePage';
-import BudgetPage from './features/budget/BudgetPage';
-import ChatWidget from './components/ChatWidget';
 import './App.css';
+
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const FamilyPage = lazy(() => import('./pages/FamilyPage'));
+const TransactionsPage = lazy(() => import('./pages/TransactionsPage'));
+const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
+const LifetimePage = lazy(() => import('./pages/LifetimePage'));
+const BudgetPage = lazy(() => import('./features/budget/BudgetPage'));
+const ChatWidget = lazy(() => import('./components/ChatWidget'));
+
+function PageFallback() {
+  return <div className="text-center mt-3 text-muted" style={{ padding: '60px 0' }} />;
+}
 
 /* Inline SVG logo */
 const VerdantLogo = () => (
@@ -189,17 +194,21 @@ function AppContent() {
     <Router>
       <Navigation />
       <main className="container mt-2" style={{ paddingBottom: '32px' }}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-          <Route path="/lifetime" element={<PrivateRoute><LifetimePage /></PrivateRoute>} />
-          <Route path="/family" element={<PrivateRoute><FamilyPage /></PrivateRoute>} />
-          <Route path="/budget" element={<PrivateRoute><BudgetPage /></PrivateRoute>} />
-          <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
-        </Routes>
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+            <Route path="/lifetime" element={<PrivateRoute><LifetimePage /></PrivateRoute>} />
+            <Route path="/family" element={<PrivateRoute><FamilyPage /></PrivateRoute>} />
+            <Route path="/budget" element={<PrivateRoute><BudgetPage /></PrivateRoute>} />
+            <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
+          </Routes>
+        </Suspense>
       </main>
-      <ChatWidget />
+      <Suspense fallback={null}>
+        <ChatWidget />
+      </Suspense>
     </Router>
   );
 }
