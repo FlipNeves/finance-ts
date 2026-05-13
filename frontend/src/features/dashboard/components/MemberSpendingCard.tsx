@@ -1,20 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { MemberReport } from '../../../types/api';
 import './MemberSpendingCard.css';
 
-interface MemberData {
-  userId: string;
-  userName: string;
-  income: number;
-  expense: number;
-  balance: number;
-}
-
 interface Props {
-  members: MemberData[];
+  members: MemberReport[];
 }
 
-const MemberSpendingCard: React.FC<Props> = ({ members }) => {
+export default function MemberSpendingCard({ members }: Props) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -23,14 +16,14 @@ const MemberSpendingCard: React.FC<Props> = ({ members }) => {
   const totalFamilyExpense = members.reduce((sum, m) => sum + m.expense, 0);
 
   const toggleExpand = (id: string) => {
-    setExpandedId(prev => prev === id ? null : id);
+    setExpandedId((prev) => (prev === id ? null : id));
   };
 
   return (
     <div className="card member-spending-card">
-      <h3 className="section-title">{t('dashboard.spendingByMember') || 'Gastos por Membro'}</h3>
+      <h3 className="section-title">{t('dashboard.spendingByMember')}</h3>
       <div className="member-list">
-        {members.map(m => {
+        {members.map((m) => {
           const isExpanded = expandedId === m.userId;
           const sharePct = totalFamilyExpense > 0 ? (m.expense / totalFamilyExpense) * 100 : 0;
           return (
@@ -45,28 +38,30 @@ const MemberSpendingCard: React.FC<Props> = ({ members }) => {
                   <span className="expand-icon">{isExpanded ? '▲' : '▼'}</span>
                 </div>
               </div>
-              
+
               {isExpanded && (
                 <div className="member-details slide-down">
                   <div className="detail-row">
-                    <span>{t('transactions.income') || 'Receita'}</span>
+                    <span>{t('transactions.income')}</span>
                     <span className="text-green">R$ {m.income.toFixed(2)}</span>
                   </div>
                   <div className="detail-row">
-                    <span>{t('dashboard.balance') || 'Saldo'}</span>
+                    <span>{t('dashboard.balance')}</span>
                     <span style={{ color: m.balance < 0 ? 'var(--danger)' : 'var(--primary)' }}>
                       R$ {m.balance.toFixed(2)}
                     </span>
                   </div>
                   <div className="detail-row mt-2">
-                    <span className="text-sm text-muted">{(sharePct).toFixed(0)}% das despesas da família</span>
+                    <span className="text-sm text-muted">
+                      {sharePct.toFixed(0)}% {t('dashboard.familyShareSuffix')}
+                    </span>
                   </div>
                   <div className="budget-bar-track mt-1">
-                    <div 
-                      className="budget-bar-fill" 
-                      style={{ 
+                    <div
+                      className="budget-bar-fill"
+                      style={{
                         width: `${sharePct}%`,
-                        background: 'var(--primary)'
+                        background: 'var(--primary)',
                       }}
                     ></div>
                   </div>
@@ -78,6 +73,4 @@ const MemberSpendingCard: React.FC<Props> = ({ members }) => {
       </div>
     </div>
   );
-};
-
-export default MemberSpendingCard;
+}

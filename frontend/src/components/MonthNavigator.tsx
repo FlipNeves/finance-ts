@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import './MonthNavigator.css';
 
@@ -7,7 +6,7 @@ interface MonthNavigatorProps {
   onChange: (date: Date) => void;
 }
 
-const MonthNavigator: React.FC<MonthNavigatorProps> = ({ currentMonth, onChange }) => {
+export default function MonthNavigator({ currentMonth, onChange }: MonthNavigatorProps) {
   const { i18n } = useTranslation();
 
   const handlePrev = () => onChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
@@ -22,6 +21,4 @@ const MonthNavigator: React.FC<MonthNavigatorProps> = ({ currentMonth, onChange 
       <button className="month-nav-arrow" onClick={handleNext}>&gt;</button>
     </div>
   );
-};
-
-export default MonthNavigator;
+}

@@ -1,23 +1,19 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatBRL } from '../../../lib/format';
+import type { TotalAccumulated } from '../../../types/api';
 import './SavingsMasterCard.css';
 
-interface SavingsData {
-  totalAccumulated: number;
-  totalIncome: number;
-  totalExpense: number;
-}
-
 interface Props {
-  savings: SavingsData | null;
+  savings: TotalAccumulated | null;
   monthsTracked?: number;
   currentMonthExpense?: number;
 }
 
-const formatBRL = (n: number) =>
-  n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-const SavingsMasterCard: React.FC<Props> = ({ savings, monthsTracked = 1, currentMonthExpense = 0 }) => {
+export default function SavingsMasterCard({
+  savings,
+  monthsTracked = 1,
+  currentMonthExpense = 0,
+}: Props) {
   const { t } = useTranslation();
 
   if (!savings) return null;
@@ -70,6 +66,4 @@ const SavingsMasterCard: React.FC<Props> = ({ savings, monthsTracked = 1, curren
       </dl>
     </section>
   );
-};
-
-export default SavingsMasterCard;
+}

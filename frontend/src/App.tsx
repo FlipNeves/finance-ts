@@ -29,7 +29,7 @@ const VerdantLogo = () => (
   </svg>
 );
 
-const Navigation: React.FC = () => {
+function Navigation() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -181,13 +181,13 @@ const Navigation: React.FC = () => {
       </div>
     </>
   );
-};
+}
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>{/* loading */}</div>;
   return user ? <>{children}</> : <Navigate to="/login" />;
-};
+}
 
 function AppContent() {
   return (

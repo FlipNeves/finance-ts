@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import MessageModal from '../components/MessageModal';
 
@@ -9,7 +9,7 @@ interface MessageModalContextType {
 
 const MessageModalContext = createContext<MessageModalContextType | undefined>(undefined);
 
-export const MessageModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export function MessageModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
@@ -58,12 +58,13 @@ export const MessageModalProvider: React.FC<{ children: ReactNode }> = ({ childr
       />
     </MessageModalContext.Provider>
   );
-};
+}
 
-export const useMessageModal = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useMessageModal() {
   const context = useContext(MessageModalContext);
   if (!context) {
     throw new Error('useMessageModal must be used within a MessageModalProvider');
   }
   return context;
-};
+}

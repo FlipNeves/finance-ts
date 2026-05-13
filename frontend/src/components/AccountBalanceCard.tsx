@@ -1,19 +1,12 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+import type { AccountReport } from '../types/api';
 import './AccountBalanceCard.css';
 
-interface AccountData {
-  bankAccount: string;
-  income: number;
-  expense: number;
-  balance: number;
-}
-
 interface Props {
-  accounts: AccountData[];
+  accounts: AccountReport[];
 }
 
-const AccountBalanceCard: React.FC<Props> = ({ accounts }) => {
+export default function AccountBalanceCard({ accounts }: Props) {
   const { t } = useTranslation();
 
   if (!accounts || accounts.length === 0) return null;
@@ -52,6 +45,4 @@ const AccountBalanceCard: React.FC<Props> = ({ accounts }) => {
       </div>
     </div>
   );
-};
-
-export default AccountBalanceCard;
+}
