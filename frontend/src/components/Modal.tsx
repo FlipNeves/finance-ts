@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import './Modal.css';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -27,126 +29,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <header className="modal-header">
           <span className="modal-eyebrow">VerdantCash</span>
-          <button className="close-btn" onClick={onClose} aria-label="Close">×</button>
+          <button className="close-btn" onClick={onClose} aria-label="Close">
+            ×
+          </button>
         </header>
         <h2 className="modal-title">{title}</h2>
-        <div className="modal-body">
-          {children}
-        </div>
+        <div className="modal-body">{children}</div>
       </div>
-
-      <style>{`
-        .modal-overlay {
-          position: fixed;
-          inset: 0;
-          background-color: rgba(0, 30, 43, 0.55);
-          backdrop-filter: blur(6px);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-          animation: modalFadeIn 0.25s ease-out;
-          padding: 16px;
-        }
-        .modal-content {
-          width: 100%;
-          max-width: 520px;
-          max-height: 90vh;
-          overflow-y: auto;
-          position: relative;
-          padding: 28px 32px 32px;
-          background-color: var(--bg-card);
-          border: 1px solid var(--text);
-          border-radius: 0;
-          box-shadow: none;
-          animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          -webkit-overflow-scrolling: touch;
-        }
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-bottom: 12px;
-          border-bottom: 1px solid var(--border);
-          margin-bottom: 18px;
-        }
-        .modal-eyebrow {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: var(--text-secondary);
-        }
-        .modal-title {
-          margin: 0 0 22px 0;
-          font-size: clamp(24px, 3.2vw, 32px);
-          font-weight: 300;
-          letter-spacing: -1px;
-          line-height: 1.05;
-          color: var(--text);
-        }
-        .modal-title::first-letter { font-weight: 800; }
-        .close-btn {
-          background: transparent;
-          border: 1px solid var(--border);
-          width: 28px;
-          height: 28px;
-          border-radius: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          color: var(--text-secondary);
-          cursor: pointer;
-          transition: all 0.15s;
-          flex-shrink: 0;
-          font-family: var(--sans);
-          line-height: 1;
-        }
-        .close-btn:hover {
-          background-color: transparent;
-          border-color: var(--text);
-          color: var(--text);
-        }
-        .modal-body { margin-top: 4px; }
-
-        @keyframes modalFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes modalSlideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* MOBILE: bottom-sheet, but still editorial */
-        @media (max-width: 768px) {
-          .modal-overlay {
-            align-items: flex-end;
-            padding: 0;
-          }
-          .modal-content {
-            max-width: 100%;
-            max-height: 92vh;
-            border-top: 1px solid var(--text);
-            border-left: none;
-            border-right: none;
-            border-bottom: none;
-            padding: 22px 20px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-            animation: modalSlideUpMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-          .modal-title { font-size: 24px; }
-        }
-
-        @keyframes modalSlideUpMobile {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-      `}</style>
     </div>,
-    document.body
+    document.body,
   );
-};
-
-export default Modal;
+}

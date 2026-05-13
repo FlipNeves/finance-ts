@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import './MessageModal.css';
 
 interface MessageModalProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ interface MessageModalProps {
   isDestructive?: boolean;
 }
 
-const MessageModal: React.FC<MessageModalProps> = ({
+export default function MessageModal({
   isOpen,
   title,
   message,
@@ -20,13 +21,15 @@ const MessageModal: React.FC<MessageModalProps> = ({
   onConfirm,
   isConfirmRequired,
   isDestructive,
-}) => {
+}: MessageModalProps) {
   const { t } = useTranslation();
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'unset';
-    return () => { document.body.style.overflow = 'unset'; };
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -41,7 +44,9 @@ const MessageModal: React.FC<MessageModalProps> = ({
           <span className="msg-eyebrow" style={{ color: accent }}>
             {isDestructive ? '!  Attention' : '·  Notice'}
           </span>
-          <button className="msg-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="msg-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
         </header>
         <h2 className="msg-title">{title}</h2>
         <p className="msg-text">{message}</p>
@@ -49,128 +54,23 @@ const MessageModal: React.FC<MessageModalProps> = ({
           {isConfirmRequired ? (
             <>
               <button className="btn btn-outline" onClick={onClose}>
-                {t('common.cancel') || 'Cancel'}
+                {t('common.cancel')}
               </button>
-              <button className={isDestructive ? 'btn btn-danger' : 'btn btn-primary'} onClick={onConfirm}>
-                {t('common.confirm') || 'Confirm'}
+              <button
+                className={isDestructive ? 'btn btn-danger' : 'btn btn-primary'}
+                onClick={onConfirm}
+              >
+                {t('common.confirm')}
               </button>
             </>
           ) : (
             <button className="btn btn-primary" onClick={onConfirm}>
-              {t('common.ok') || 'OK'}
+              {t('common.ok')}
             </button>
           )}
         </footer>
       </div>
-
-      <style>{`
-        .msg-overlay {
-          position: fixed;
-          inset: 0;
-          background-color: rgba(0, 30, 43, 0.55);
-          backdrop-filter: blur(6px);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 9999;
-          animation: msgFadeIn 0.25s ease-out;
-          padding: 16px;
-        }
-
-        .msg-container {
-          position: relative;
-          background-color: var(--bg-card);
-          width: 100%;
-          max-width: 460px;
-          border: 1px solid var(--text);
-          border-radius: 0;
-          padding: 32px 32px 28px;
-          animation: msgSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .msg-accent {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-        }
-
-        .msg-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-        .msg-eyebrow {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-        }
-        .msg-close {
-          background: transparent;
-          border: 1px solid var(--border);
-          width: 26px;
-          height: 26px;
-          border-radius: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-          color: var(--text-secondary);
-          cursor: pointer;
-          transition: all 0.15s;
-          font-family: var(--sans);
-          line-height: 1;
-        }
-        .msg-close:hover {
-          border-color: var(--text);
-          color: var(--text);
-        }
-
-        .msg-title {
-          margin: 0 0 12px 0;
-          font-size: clamp(22px, 3vw, 28px);
-          font-weight: 300;
-          letter-spacing: -0.8px;
-          line-height: 1.1;
-          color: var(--text);
-        }
-        .msg-title::first-letter { font-weight: 800; }
-
-        .msg-text {
-          margin: 0 0 24px 0;
-          color: var(--text-secondary);
-          font-size: 14px;
-          line-height: 1.55;
-        }
-
-        .msg-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 8px;
-          padding-top: 16px;
-          border-top: 1px solid var(--border);
-        }
-
-        @keyframes msgFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes msgSlideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        @media (max-width: 480px) {
-          .msg-container { padding: 24px 20px 20px; }
-          .msg-title { font-size: 22px; }
-        }
-      `}</style>
     </div>,
-    document.body
+    document.body,
   );
-};
-
-export default MessageModal;
+}
