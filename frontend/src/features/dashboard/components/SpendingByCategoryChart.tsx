@@ -10,6 +10,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useCategoryTranslation } from '../../../hooks/useCategoryTranslation';
+import { usePrivacy } from '../../../contexts/PrivacyContext';
 import type { SpendingByCategory } from '../../../types/api';
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 export function SpendingByCategoryChart({ spending, colors }: Props) {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
+  const { valuesHidden } = usePrivacy();
 
   return (
     <div className="card chart-card">
@@ -50,7 +52,7 @@ export function SpendingByCategoryChart({ spending, colors }: Props) {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-                tickFormatter={(val) => `R$${val}`}
+                tickFormatter={(val) => (valuesHidden ? 'R$•••' : `R$${val}`)}
               />
               <Tooltip
                 cursor={{ fill: 'var(--bg)', opacity: 0.5 }}
@@ -61,6 +63,7 @@ export function SpendingByCategoryChart({ spending, colors }: Props) {
                   background: 'var(--bg-card)',
                   color: 'var(--text)',
                 }}
+                formatter={(val) => (valuesHidden ? '•••.•••,••' : Number(val).toFixed(2))}
               />
               <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                 {spending.map((_, index) => (

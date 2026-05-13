@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
 import TransactionModal from '../transactions/TransactionModal';
 import BudgetModal from '../budget/BudgetModal';
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const { translateCategory } = useCategoryTranslation();
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { valuesHidden } = usePrivacy();
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
@@ -93,8 +95,9 @@ export default function DashboardPage() {
           : d === 'Expense'
             ? t('transactions.expense')
             : d,
+      formatMoney: (n) => (valuesHidden ? '•••.•••,••' : n.toFixed(2)),
     });
-  }, [summary, dailyRaw, accountsReport, i18n.language, t, translateCategory]);
+  }, [summary, dailyRaw, accountsReport, i18n.language, t, translateCategory, valuesHidden]);
 
   if (data.isLoading) {
     return <div className="text-center mt-3 text-muted">{t('common.loading')}</div>;

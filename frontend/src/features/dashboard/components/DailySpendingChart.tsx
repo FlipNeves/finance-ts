@@ -16,6 +16,8 @@ import type {
   UpcomingFixed,
 } from '../../../types/api';
 import { useCategoryTranslation } from '../../../hooks/useCategoryTranslation';
+import Money from '../../../components/Money';
+import { usePrivacy } from '../../../contexts/PrivacyContext';
 
 interface Props {
   daily: DailySpendingChartPoint[];
@@ -27,6 +29,10 @@ interface Props {
 export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summary }: Props) {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
+  const { valuesHidden } = usePrivacy();
+  const maskMoney = (v: number) => (valuesHidden ? '•••.•••,••' : v.toFixed(2));
+  const maskCompact = (v: number) =>
+    valuesHidden ? '•••.•••' : Math.round(v).toLocaleString('pt-BR');
 
   const totalSpent = daily.reduce(
     (s, d) => s + (Number(d.actualVariable) || 0) + (Number(d.actualFixed) || 0),
@@ -53,7 +59,6 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
     0,
   );
   const balance = totalIncome - totalSpent;
-  const balancePositive = balance >= 0;
 
   const labelByDate: Record<string, string> = {};
   for (const d of daily) labelByDate[d.date] = d.label;
@@ -85,27 +90,35 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
         {totalIncome > 0 && (
           <div className="dh-block">
             <span className="dh-label">{t('dashboard.incomeLabel')}</span>
-            <span className="dh-value dh-income">+R$ {totalIncome.toFixed(2)}</span>
+            <span className="dh-value dh-income">
+              <Money value={totalIncome} sign="positive" />
+            </span>
           </div>
         )}
         <div className="dh-block">
           <span className="dh-label">{t('dashboard.spentLabel')}</span>
-          <span className="dh-value dh-spent">R$ {totalSpent.toFixed(2)}</span>
-          {budgetTotal > 0 && <span className="dh-sub">/ R$ {budgetTotal.toFixed(2)}</span>}
+          <span className="dh-value dh-spent">
+            <Money value={totalSpent} />
+          </span>
+          {budgetTotal > 0 && (
+            <span className="dh-sub">
+              / <Money value={budgetTotal} />
+            </span>
+          )}
         </div>
         {(totalIncome > 0 || totalSpent > 0) && (
           <div className="dh-block">
             <span className="dh-label">{t('dashboard.balanceLabel')}</span>
             <span className="dh-value dh-balance">
-              {balancePositive ? '+' : '−'}R$ {Math.abs(balance).toFixed(2)}
+              <Money value={balance} sign="auto" />
             </span>
           </div>
         )}
         {totalProjected > 0 && (
           <div className="dh-block dh-projection">
             <span className="dh-label">{t('dashboard.projectionLabel')}</span>
-            <span className={`dh-value ${overBudget ? 'over' : ''}`}>
-              R$ {endOfMonth.toFixed(2)}
+            <span className={`dh-value ${valuesHidden ? '' : overBudget ? 'over' : ''}`}>
+              <Money value={endOfMonth} />
             </span>
           </div>
         )}
@@ -135,7 +148,7 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
               axisLine={false}
               tickLine={false}
               tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-              tickFormatter={(val) => `R$${val}`}
+              tickFormatter={(val) => (valuesHidden ? 'R$•••' : `R$${val}`)}
             />
             <Tooltip
               cursor={{ fill: 'var(--bg-card)', opacity: 0.1 }}
@@ -155,7 +168,7 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
                   projectedFixed: t('dashboard.projectedFixedLabel'),
                 };
                 return [
-                  `R$ ${Number(val || 0).toFixed(2)}`,
+                  `R$ ${maskMoney(Number(val || 0))}`,
                   map[key] || t('dashboard.actualLabel'),
                 ];
               }}
@@ -198,7 +211,9 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
                 strokeDasharray="5 5"
                 strokeWidth={1.5}
                 label={{
-                  value: t('dashboard.dailyTargetLabel', { amount: dailyTarget.toFixed(0) }),
+                  value: t('dashboard.dailyTargetLabel', {
+                    amount: valuesHidden ? '•••' : dailyTarget.toFixed(0),
+                  }),
                   position: 'insideTopRight',
                   fill: 'var(--text-secondary)',
                   fontSize: 10,
@@ -217,7 +232,7 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
             {Array.from(eventsByDate.values()).map((agg, i) => {
               const xLabel = labelByDate[agg.date];
               if (!xLabel) return null;
-              const formatted = `+R$ ${Math.round(agg.total).toLocaleString('pt-BR')}`;
+              const formatted = `+R$ ${maskCompact(agg.total)}`;
               const labelValue = agg.count > 1 ? `${formatted} (${agg.count})` : formatted;
               return (
                 <ReferenceLine
@@ -266,7 +281,7 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
           <summary>
             {t('dashboard.incomeEventsSummary', {
               count: incomeSummary.events.length,
-              amount: totalIncome.toFixed(2),
+              amount: maskMoney(totalIncome),
             })}
             {incomeSummary.missed.length > 0 && (
               <span className="badge-warning">
@@ -281,7 +296,9 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
                 <span className="uf-day">{t('dashboard.upcomingFixedDay', { day: e.day })}</span>
                 <span className="uf-desc">{e.description}</span>
                 <span className="uf-cat">{translateCategory(e.category)}</span>
-                <span className="uf-amount income">+R$ {Number(e.amount).toFixed(2)}</span>
+                <span className="uf-amount income">
+                  <Money value={Number(e.amount)} sign="positive" tone="income" />
+                </span>
               </li>
             ))}
             {incomeSummary.missed.map((m, i) => (
@@ -292,7 +309,9 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
                   <span className="row-tag warning">{t('dashboard.missedTag')}</span>
                 </span>
                 <span className="uf-cat">{translateCategory(m.category)}</span>
-                <span className="uf-amount muted">+R$ {Number(m.amount).toFixed(2)}</span>
+                <span className="uf-amount muted">
+                  <Money value={Number(m.amount)} sign="positive" />
+                </span>
               </li>
             ))}
           </ul>
@@ -304,7 +323,7 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
           <summary>
             {t('dashboard.upcomingFixedSummary', {
               count: upcomingFixed.length,
-              amount: upcomingFixedTotal.toFixed(2),
+              amount: maskMoney(upcomingFixedTotal),
             })}
           </summary>
           <ul className="upcoming-fixed-list">
@@ -313,7 +332,9 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
                 <span className="uf-day">{t('dashboard.upcomingFixedDay', { day: f.day })}</span>
                 <span className="uf-desc">{f.description}</span>
                 <span className="uf-cat">{translateCategory(f.category)}</span>
-                <span className="uf-amount">R$ {Number(f.amount).toFixed(2)}</span>
+                <span className="uf-amount">
+                  <Money value={Number(f.amount)} />
+                </span>
               </li>
             ))}
           </ul>

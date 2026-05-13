@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import Money from '../../../components/Money';
 import type { Transaction } from '../../../types/api';
 import { useCategoryTranslation } from '../../../hooks/useCategoryTranslation';
 
@@ -69,7 +70,11 @@ export function RecentTransactionsTable({ transactions }: Props) {
                     </span>
                   </td>
                   <td className={`tx-amount ${tr.type}`}>
-                    {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
+                    <Money
+                      value={tr.amount}
+                      sign={tr.type === 'income' ? 'positive' : 'negative'}
+                      tone={tr.type === 'income' ? 'income' : 'expense'}
+                    />
                   </td>
                 </tr>
               ))
@@ -95,7 +100,11 @@ export function RecentTransactionsTable({ transactions }: Props) {
                   </div>
                 </div>
                 <span className={`tx-card-amount ${tr.type}`}>
-                  {tr.type === 'income' ? '+' : '-'}R${tr.amount.toFixed(2)}
+                  <Money
+                    value={tr.amount}
+                    sign={tr.type === 'income' ? 'positive' : 'negative'}
+                    tone={tr.type === 'income' ? 'income' : 'expense'}
+                  />
                 </span>
               </div>
             </div>

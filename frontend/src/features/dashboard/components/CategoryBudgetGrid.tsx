@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import Money from '../../../components/Money';
+import { usePrivacy } from '../../../contexts/PrivacyContext';
 import type { BudgetLimit, SpendingByCategory } from '../../../types/api';
 import { useCategoryTranslation } from '../../../hooks/useCategoryTranslation';
 
@@ -10,9 +12,12 @@ interface Props {
 export function CategoryBudgetGrid({ categoryBudgets, spending }: Props) {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
+  const { valuesHidden } = usePrivacy();
 
   const active = categoryBudgets.filter((cb) => cb.limit > 0);
   if (active.length === 0 || spending.length === 0) return null;
+
+  const maskMoney = (v: number) => (valuesHidden ? '•••.•••,••' : v.toFixed(2));
 
   return (
     <div className="card cat-budget-section">
@@ -34,9 +39,9 @@ export function CategoryBudgetGrid({ categoryBudgets, spending }: Props) {
                 <span className="category-badge">{translateCategory(cb.category)}</span>
                 <span
                   className="cat-budget-values"
-                  style={{ color: isOver ? 'var(--danger)' : 'var(--text-secondary)' }}
+                  style={{ color: valuesHidden ? undefined : isOver ? 'var(--danger)' : 'var(--text-secondary)' }}
                 >
-                  R$ {spent.toFixed(0)} / R$ {cb.limit.toFixed(0)}
+                  <Money value={spent} decimals={0} /> / <Money value={cb.limit} decimals={0} />
                 </span>
               </div>
               <div className="cat-budget-bar-track">
@@ -47,11 +52,11 @@ export function CategoryBudgetGrid({ categoryBudgets, spending }: Props) {
               </div>
               <span
                 className="cat-budget-status"
-                style={{ color: isOver ? 'var(--danger)' : 'var(--primary)' }}
+                style={{ color: valuesHidden ? undefined : isOver ? 'var(--danger)' : 'var(--primary)' }}
               >
                 {isOver
-                  ? t('dashboard.overBudget', { amount: (spent - cb.limit).toFixed(2) })
-                  : t('dashboard.remaining', { amount: (cb.limit - spent).toFixed(2) })}
+                  ? t('dashboard.overBudget', { amount: maskMoney(spent - cb.limit) })
+                  : t('dashboard.remaining', { amount: maskMoney(cb.limit - spent) })}
               </span>
             </div>
           );

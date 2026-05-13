@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { usePrivacy } from '../../../contexts/PrivacyContext';
 import type { EvolutionPoint } from '../../../types/api';
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
 
 export function EvolutionChart({ evolution }: Props) {
   const { t } = useTranslation();
+  const { valuesHidden } = usePrivacy();
 
   return (
     <div className="card chart-card chart-full">
@@ -55,7 +57,7 @@ export function EvolutionChart({ evolution }: Props) {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
-                tickFormatter={(val) => `R$${val}`}
+                tickFormatter={(val) => (valuesHidden ? 'R$•••' : `R$${val}`)}
               />
               <Tooltip
                 contentStyle={{
@@ -65,6 +67,7 @@ export function EvolutionChart({ evolution }: Props) {
                   background: 'var(--bg-card)',
                   color: 'var(--text)',
                 }}
+                formatter={(val) => (valuesHidden ? '•••.•••,••' : Number(val).toFixed(2))}
               />
               <Legend iconType="square" wrapperStyle={{ paddingTop: '10px' }} />
               <Area

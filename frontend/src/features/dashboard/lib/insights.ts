@@ -13,6 +13,7 @@ export interface InsightDeps {
   t: (key: string, vars?: Record<string, unknown>) => string;
   translateCategory: (cat: string) => string;
   resolveDescription: (description: string) => string;
+  formatMoney: (amount: number) => string;
 }
 
 export function generateInsights({
@@ -23,6 +24,7 @@ export function generateInsights({
   t,
   translateCategory,
   resolveDescription,
+  formatMoney,
 }: InsightDeps): Insight[] {
   const out: Insight[] = [];
   const totalIncome = summary.totalIncome || 0;
@@ -36,7 +38,7 @@ export function generateInsights({
       icon: '◆',
       message: t('dashboard.insightBiggestExpense', {
         description: resolveDescription(be.description),
-        amount: be.amount.toFixed(2),
+        amount: formatMoney(be.amount),
         category: translateCategory(be.category),
       }),
     });
@@ -48,7 +50,7 @@ export function generateInsights({
       type: 'warning',
       icon: '⚠',
       message: t('dashboard.insightOverspend', {
-        amount: (totalExpense - totalIncome).toFixed(2),
+        amount: formatMoney(totalExpense - totalIncome),
       }),
     });
   }
@@ -97,7 +99,7 @@ export function generateInsights({
         icon: '·',
         message: t('dashboard.insightMaxDay', {
           date: dateStr,
-          amount: maxDay.amount.toFixed(2),
+          amount: formatMoney(maxDay.amount),
         }),
       });
     }

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import Money from '../../../components/Money';
 import type { TopSpending } from '../../../types/api';
 
 interface Props {
@@ -44,7 +45,9 @@ export function TopSpendingList({ topSpending }: Props) {
                       : ''}
                   </span>
                 </div>
-                <span className="ts-amount">R$ {Number(item.amount || 0).toFixed(2)}</span>
+                <span className="ts-amount">
+                  <Money value={Number(item.amount || 0)} />
+                </span>
               </li>
             ))}
           </ol>
