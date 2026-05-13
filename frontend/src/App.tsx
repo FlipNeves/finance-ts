@@ -8,7 +8,7 @@ import './App.css';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const FamilyPage = lazy(() => import('./pages/FamilyPage'));
+const FamilyPage = lazy(() => import('./features/family/FamilyPage'));
 const TransactionsPage = lazy(() => import('./features/transactions/TransactionsPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const LifetimePage = lazy(() => import('./pages/LifetimePage'));
