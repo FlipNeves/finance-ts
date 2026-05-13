@@ -129,6 +129,18 @@
 .summary-value-balance.positive { color: var(--info); }
 .summary-value-balance.negative { color: var(--danger); }
 
+.summary-value .money {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.summary-value .money-currency {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
 .summary-diff {
   font-size: 12px;
   margin-top: 12px;
