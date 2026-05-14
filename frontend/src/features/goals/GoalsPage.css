@@ -75,10 +75,16 @@
   color: inherit;
   text-decoration: none;
   transition: color 160ms ease;
+  border: 1px solid var(--border);
+  padding: 0 6px;
 }
 
 .gp-strip-link:hover {
-  color: var(--primary);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.8s ease;
+  background: var(--bg-card);
+  border: 1px solid var(--text);
 }
 
 .gp-strip-target {

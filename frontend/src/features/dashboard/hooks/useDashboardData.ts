@@ -156,5 +156,6 @@ export function useDashboardInvalidation() {
     queryClient.invalidateQueries({ queryKey: ['reports'] });
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
     queryClient.invalidateQueries({ queryKey: ['budget'] });
+    queryClient.invalidateQueries({ queryKey: ['goals'] });
   };
 }

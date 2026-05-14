@@ -92,96 +92,98 @@ export default function GoalsPage() {
             const pct = progressPercent(goal);
             const status = STATUS_LABEL[goal.projection.status];
             return (
-              <article key={goal._id} className="gp-strip">
-                <div className="gp-strip-head">
-                  <div className="gp-strip-title-block">
-                    {goal.category && (
-                      <span className="eyebrow">{goal.category}</span>
-                    )}
-                    <h2 className="gp-strip-title">
-                      <Link to={`/goals/${goal._id}`} className="gp-strip-link">
-                        {goal.title}
-                      </Link>
-                    </h2>
+              <Link to={`/goals/${goal._id}`} className="gp-strip-link">
+                <article key={goal._id} className="gp-strip">
+                  <div className="gp-strip-head">
+                    <div className="gp-strip-title-block">
+                      {goal.category && (
+                        <span className="eyebrow">{goal.category}</span>
+                      )}
+                      <h2 className="gp-strip-title">
+                          {goal.title}
+                      </h2>
+                    </div>
+                    <div className="gp-strip-target">
+                      <span className="eyebrow">{t('goals.target')}</span>
+                      <Money value={goal.targetAmount} />
+                    </div>
                   </div>
-                  <div className="gp-strip-target">
-                    <span className="eyebrow">{t('goals.target')}</span>
-                    <Money value={goal.targetAmount} />
-                  </div>
-                </div>
 
-                <div className="gp-strip-progress" aria-hidden="true">
-                  <div
-                    className={`gp-strip-progress-fill ${status.tone}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <div className="gp-strip-progress-label">
-                  <span className="eyebrow">
-                    {t('goals.saved')} ·{' '}
-                    <Money value={goal.projection.currentAmount} />
-                  </span>
-                  <span className="eyebrow gp-progress-pct">
-                    {pct.toFixed(0)}%
-                  </span>
-                </div>
 
-                <div className="gp-strip-meta">
-                  <div className="gp-meta-item">
-                    <span className="eyebrow">{t('goals.statusLabel')}</span>
-                    <span className={`gp-status ${status.tone}`}>
-                      {t(status.key)}
+                  <div className="gp-strip-progress" aria-hidden="true">
+                    <div
+                      className={`gp-strip-progress-fill ${status.tone}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="gp-strip-progress-label">
+                    <span className="eyebrow">
+                      {t('goals.saved')} ·{' '}
+                      <Money value={goal.projection.currentAmount} />
+                    </span>
+                    <span className="eyebrow gp-progress-pct">
+                      {pct.toFixed(0)}%
                     </span>
                   </div>
-                  <div className="gp-meta-item">
-                    <span className="eyebrow">{t('goals.eta')}</span>
-                    <span className="gp-meta-value">
-                      {goal.projection.etaMonths === null
-                        ? '—'
-                        : goal.projection.etaMonths === 0
-                          ? t('goals.etaAchieved')
-                          : t('goals.etaMonths', {
-                              count: goal.projection.etaMonths,
-                            })}
-                    </span>
-                  </div>
-                  <div className="gp-meta-item">
-                    <span className="eyebrow">{t('goals.monthlyReserve')}</span>
-                    <span className="gp-meta-value">
-                      <Money value={goal.projection.monthlyReserve} />
-                    </span>
-                  </div>
-                  {goal.targetDate && (
+
+                  <div className="gp-strip-meta">
                     <div className="gp-meta-item">
-                      <span className="eyebrow">{t('goals.deadline')}</span>
-                      <span className="gp-meta-value">
-                        {new Date(goal.targetDate).toLocaleDateString()}
+                      <span className="eyebrow">{t('goals.statusLabel')}</span>
+                      <span className={`gp-status ${status.tone}`}>
+                        {t(status.key)}
                       </span>
                     </div>
-                  )}
-                </div>
+                    <div className="gp-meta-item">
+                      <span className="eyebrow">{t('goals.eta')}</span>
+                      <span className="gp-meta-value">
+                        {goal.projection.etaMonths === null
+                          ? '—'
+                          : goal.projection.etaMonths === 0
+                            ? t('goals.etaAchieved')
+                            : t('goals.etaMonths', {
+                                count: goal.projection.etaMonths,
+                              })}
+                      </span>
+                    </div>
+                    <div className="gp-meta-item">
+                      <span className="eyebrow">{t('goals.monthlyReserve')}</span>
+                      <span className="gp-meta-value">
+                        <Money value={goal.projection.monthlyReserve} />
+                      </span>
+                    </div>
+                    {goal.targetDate && (
+                      <div className="gp-meta-item">
+                        <span className="eyebrow">{t('goals.deadline')}</span>
+                        <span className="gp-meta-value">
+                          {new Date(goal.targetDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="gp-strip-actions">
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setContributingGoal(goal)}
-                  >
-                    + {t('goals.addContribution')}
-                  </button>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => handleEdit(goal)}
-                  >
-                    {t('common.edit')}
-                  </button>
-                  <button
-                    className="btn btn-outline btn-sm gp-danger-btn"
-                    onClick={() => handleDelete(goal)}
-                  >
-                    {t('common.delete')}
-                  </button>
-                </div>
-              </article>
+                  <div className="gp-strip-actions">
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setContributingGoal(goal)}
+                    >
+                      + {t('goals.addContribution')}
+                    </button>
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={() => handleEdit(goal)}
+                    >
+                      {t('common.edit')}
+                    </button>
+                    <button
+                      className="btn btn-outline btn-sm gp-danger-btn"
+                      onClick={() => handleDelete(goal)}
+                    >
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                </article>
+              </Link>
+
             );
           })}
         </section>

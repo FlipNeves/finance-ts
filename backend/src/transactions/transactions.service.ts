@@ -5,6 +5,7 @@ import { Transaction } from '../schemas/transaction.schema';
 import { Family } from '../schemas/family.schema';
 import { Budget } from '../schemas/budget.schema';
 import { User } from '../schemas/user.schema';
+import { GoalContribution } from '../schemas/goal-contribution.schema';
 
 @Injectable()
 export class TransactionsService {
@@ -27,6 +28,8 @@ export class TransactionsService {
     @InjectModel(Family.name) private familyModel: Model<Family>,
     @InjectModel(Budget.name) private budgetModel: Model<Budget>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(GoalContribution.name)
+    private contributionModel: Model<GoalContribution>,
   ) {}
 
   async create(
@@ -130,6 +133,13 @@ export class TransactionsService {
     if (!transaction) {
       throw new NotFoundException('Transaction not found');
     }
+    const txObjectId = new Types.ObjectId(id);
+    await this.contributionModel
+      .updateMany(
+        { transactionId: { $in: [id, txObjectId] } },
+        { $set: { amount: transaction.amount, date: transaction.date } },
+      )
+      .exec();
     return transaction;
   }
 
@@ -138,6 +148,8 @@ export class TransactionsService {
     if (!result) {
       throw new NotFoundException('Transaction not found');
     }
+    const txObjectId = new Types.ObjectId(id);
+    await this.contributionModel.deleteMany({ transactionId: { $in: [id, txObjectId] } }).exec();
   }
 
   async getCategories(familyId: string | null, userId: string): Promise<string[]> {

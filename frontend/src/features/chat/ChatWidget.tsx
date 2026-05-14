@@ -58,6 +58,7 @@ export default function ChatWidget() {
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
     queryClient.invalidateQueries({ queryKey: ['reports'] });
+    queryClient.invalidateQueries({ queryKey: ['goals'] });
   }, [queryClient]);
 
   const handleConfirm = useCallback(

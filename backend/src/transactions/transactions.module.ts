@@ -6,6 +6,10 @@ import { Transaction, TransactionSchema } from '../schemas/transaction.schema';
 import { Family, FamilySchema } from '../schemas/family.schema';
 import { Budget, BudgetSchema } from '../schemas/budget.schema';
 import { User, UserSchema } from '../schemas/user.schema';
+import {
+  GoalContribution,
+  GoalContributionSchema,
+} from '../schemas/goal-contribution.schema';
 
 @Module({
   imports: [
@@ -13,7 +17,8 @@ import { User, UserSchema } from '../schemas/user.schema';
       { name: Transaction.name, schema: TransactionSchema },
       { name: Family.name, schema: FamilySchema },
       { name: Budget.name, schema: BudgetSchema },
-      { name: User.name, schema: UserSchema }
+      { name: User.name, schema: UserSchema },
+      { name: GoalContribution.name, schema: GoalContributionSchema },
     ]),
   ],
   controllers: [TransactionsController],
