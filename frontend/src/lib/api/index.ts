@@ -6,3 +6,4 @@ export { budgetsApi } from './budgets';
 export { familyApi } from './family';
 export { reportsApi } from './reports';
 export { chatApi } from './chat';
+export { goalsApi } from './goals';

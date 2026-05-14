@@ -184,6 +184,52 @@ export interface TransactionsFilter {
   type?: TransactionType;
 }
 
+export type GoalStatus = 'on-track' | 'off-track' | 'achieved' | 'blocked';
+
+export interface GoalProjection {
+  currentAmount: number;
+  remaining: number;
+  monthlyReserve: number;
+  etaMonths: number | null;
+  monthsToTarget: number | null;
+  status: GoalStatus;
+}
+
+export interface Goal {
+  _id: string;
+  title: string;
+  targetAmount: number;
+  targetDate?: string | null;
+  category?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  projection: GoalProjection;
+}
+
+export interface CreateGoalDTO {
+  title: string;
+  targetAmount: number;
+  targetDate?: string | null;
+  category?: string | null;
+}
+
+export interface UpdateGoalDTO extends Partial<CreateGoalDTO> {}
+
+export interface GoalContribution {
+  _id: string;
+  goalId: string;
+  amount: number;
+  date: string;
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface CreateContributionDTO {
+  amount: number;
+  date?: string;
+  note?: string | null;
+}
+
 export interface ParsedChatTransaction {
   type: TransactionType;
   amount: number;
