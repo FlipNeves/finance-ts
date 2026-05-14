@@ -131,9 +131,21 @@ export class GoalsService {
       .findOneAndDelete({ _id: id, ...this.buildScope(familyId, userId) })
       .exec();
     if (!goal) throw new NotFoundException('Goal not found');
-    await this.contributionModel
-      .deleteMany({ goalId: { $in: [id, new Types.ObjectId(id)] } })
+
+    const goalIdFilter = { goalId: { $in: [id, new Types.ObjectId(id)] } };
+    const contributions = await this.contributionModel
+      .find(goalIdFilter)
+      .select('transactionId')
       .exec();
+    const transactionIds = contributions
+      .map((c) => c.transactionId)
+      .filter((t): t is Types.ObjectId => Boolean(t));
+    if (transactionIds.length > 0) {
+      await this.transactionModel
+        .deleteMany({ _id: { $in: transactionIds } })
+        .exec();
+    }
+    await this.contributionModel.deleteMany(goalIdFilter).exec();
   }
 
   async listContributions(
@@ -155,15 +167,35 @@ export class GoalsService {
     userId: string,
     familyId: string | null,
   ): Promise<GoalContribution> {
-    await this.assertGoalAccess(goalId, familyId, userId);
-    return this.contributionModel.create({
-      goalId: new Types.ObjectId(goalId),
-      amount: dto.amount,
-      date: dto.date ? new Date(dto.date) : new Date(),
-      note: dto.note || null,
+    const goal = await this.assertGoalAccess(goalId, familyId, userId);
+    const date = dto.date ? new Date(dto.date) : new Date();
+    const amount = dto.amount;
+
+    const transaction = await this.transactionModel.create({
+      description: `Aporte: ${goal.title}`,
+      amount,
+      type: 'expense',
+      category: 'Aporte',
+      date,
       userId,
       familyId,
+      isFixed: false,
     });
+
+    try {
+      return await this.contributionModel.create({
+        goalId: new Types.ObjectId(goalId),
+        amount,
+        date,
+        note: dto.note || null,
+        userId,
+        familyId,
+        transactionId: transaction._id,
+      });
+    } catch (err) {
+      await this.transactionModel.findByIdAndDelete(transaction._id).exec();
+      throw err;
+    }
   }
 
   async removeContribution(
@@ -181,6 +213,11 @@ export class GoalsService {
       })
       .exec();
     if (!result) throw new NotFoundException('Contribution not found');
+    if (result.transactionId) {
+      await this.transactionModel
+        .findByIdAndDelete(result.transactionId)
+        .exec();
+    }
   }
 
   private buildScope(familyId: string | null, userId: string): any {

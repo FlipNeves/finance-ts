@@ -222,6 +222,7 @@ export interface GoalContribution {
   date: string;
   note?: string | null;
   createdAt: string;
+  transactionId?: string | null;
 }
 
 export interface CreateContributionDTO {

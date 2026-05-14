@@ -20,6 +20,9 @@ export class GoalContribution extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'Family', default: null })
   familyId: Types.ObjectId | null;
+
+  @Prop({ type: Types.ObjectId, ref: 'Transaction', default: null })
+  transactionId: Types.ObjectId | null;
 }
 
 export const GoalContributionSchema =
