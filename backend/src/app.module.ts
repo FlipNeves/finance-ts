@@ -10,6 +10,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { ReportsModule } from './reports/reports.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { ChatModule } from './chat/chat.module';
+import { GoalsModule } from './goals/goals.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ChatModule } from './chat/chat.module';
     ReportsModule,
     BudgetsModule,
     ChatModule,
+    GoalsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
