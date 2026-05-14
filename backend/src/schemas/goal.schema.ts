@@ -12,7 +12,7 @@ export class Goal extends Document {
   @Prop({ type: Date, default: null })
   targetDate: Date | null;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   category: string | null;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })

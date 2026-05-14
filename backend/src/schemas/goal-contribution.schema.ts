@@ -12,7 +12,7 @@ export class GoalContribution extends Document {
   @Prop({ required: true })
   date: Date;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   note: string | null;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
