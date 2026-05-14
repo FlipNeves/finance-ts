@@ -42,18 +42,25 @@ export class GoalsController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateGoalDto: any) {
-    return this.goalsService.update(id, updateGoalDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateGoalDto: any,
+    @Req() req: any,
+  ) {
+    const familyId = this.getFamilyId(req);
+    return this.goalsService.update(id, updateGoalDto, familyId, req.user._id);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.goalsService.remove(id);
+  async remove(@Param('id') id: string, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.goalsService.remove(id, familyId, req.user._id);
   }
 
   @Get(':id/contributions')
-  async listContributions(@Param('id') id: string) {
-    return this.goalsService.listContributions(id);
+  async listContributions(@Param('id') id: string, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.goalsService.listContributions(id, familyId, req.user._id);
   }
 
   @Post(':id/contributions')
@@ -75,7 +82,14 @@ export class GoalsController {
   async removeContribution(
     @Param('id') id: string,
     @Param('contributionId') contributionId: string,
+    @Req() req: any,
   ) {
-    return this.goalsService.removeContribution(id, contributionId);
+    const familyId = this.getFamilyId(req);
+    return this.goalsService.removeContribution(
+      id,
+      contributionId,
+      familyId,
+      req.user._id,
+    );
   }
 }

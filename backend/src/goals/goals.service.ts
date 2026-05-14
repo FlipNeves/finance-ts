@@ -82,7 +82,9 @@ export class GoalsService {
     familyId: string | null,
     userId: string,
   ): Promise<any> {
-    const goal = await this.goalModel.findById(id).exec();
+    const goal = await this.goalModel
+      .findOne({ _id: id, ...this.buildScope(familyId, userId) })
+      .exec();
     if (!goal) throw new NotFoundException('Goal not found');
 
     const monthlyReserve = await this.calculateMonthlyReserve(
@@ -103,23 +105,46 @@ export class GoalsService {
     };
   }
 
-  async update(id: string, updateGoalDto: any): Promise<Goal> {
+  async update(
+    id: string,
+    updateGoalDto: any,
+    familyId: string | null,
+    userId: string,
+  ): Promise<Goal> {
     const goal = await this.goalModel
-      .findByIdAndUpdate(id, updateGoalDto, { new: true })
+      .findOneAndUpdate(
+        { _id: id, ...this.buildScope(familyId, userId) },
+        updateGoalDto,
+        { new: true },
+      )
       .exec();
     if (!goal) throw new NotFoundException('Goal not found');
     return goal;
   }
 
-  async remove(id: string): Promise<void> {
-    const goal = await this.goalModel.findByIdAndDelete(id).exec();
+  async remove(
+    id: string,
+    familyId: string | null,
+    userId: string,
+  ): Promise<void> {
+    const goal = await this.goalModel
+      .findOneAndDelete({ _id: id, ...this.buildScope(familyId, userId) })
+      .exec();
     if (!goal) throw new NotFoundException('Goal not found');
-    await this.contributionModel.deleteMany({ goalId: id }).exec();
+    await this.contributionModel
+      .deleteMany({ goalId: { $in: [id, new Types.ObjectId(id)] } })
+      .exec();
   }
 
-  async listContributions(goalId: string): Promise<GoalContribution[]> {
+  async listContributions(
+    goalId: string,
+    familyId: string | null,
+    userId: string,
+  ): Promise<GoalContribution[]> {
+    await this.assertGoalAccess(goalId, familyId, userId);
+    const objectId = new Types.ObjectId(goalId);
     return this.contributionModel
-      .find({ goalId })
+      .find({ goalId: { $in: [goalId, objectId] } })
       .sort({ date: -1 })
       .exec();
   }
@@ -130,10 +155,9 @@ export class GoalsService {
     userId: string,
     familyId: string | null,
   ): Promise<GoalContribution> {
-    const goal = await this.goalModel.findById(goalId).exec();
-    if (!goal) throw new NotFoundException('Goal not found');
+    await this.assertGoalAccess(goalId, familyId, userId);
     return this.contributionModel.create({
-      goalId,
+      goalId: new Types.ObjectId(goalId),
       amount: dto.amount,
       date: dto.date ? new Date(dto.date) : new Date(),
       note: dto.note || null,
@@ -145,20 +169,57 @@ export class GoalsService {
   async removeContribution(
     goalId: string,
     contributionId: string,
+    familyId: string | null,
+    userId: string,
   ): Promise<void> {
+    await this.assertGoalAccess(goalId, familyId, userId);
+    const objectId = new Types.ObjectId(goalId);
     const result = await this.contributionModel
-      .findOneAndDelete({ _id: contributionId, goalId })
+      .findOneAndDelete({
+        _id: contributionId,
+        goalId: { $in: [goalId, objectId] },
+      })
       .exec();
     if (!result) throw new NotFoundException('Contribution not found');
   }
 
+  private buildScope(familyId: string | null, userId: string): any {
+    if (familyId) return { familyId };
+    return { userId, familyId: null };
+  }
+
+  private async assertGoalAccess(
+    goalId: string,
+    familyId: string | null,
+    userId: string,
+  ): Promise<Goal> {
+    const goal = await this.goalModel
+      .findOne({ _id: goalId, ...this.buildScope(familyId, userId) })
+      .exec();
+    if (!goal) throw new NotFoundException('Goal not found');
+    return goal;
+  }
+
   private async contributionTotals(
-    goalIds: Types.ObjectId[],
+    goalIds: any[],
   ): Promise<Map<string, number>> {
+    const mixed: any[] = [];
+    for (const id of goalIds) {
+      const str = String(id);
+      mixed.push(str);
+      mixed.push(
+        id instanceof Types.ObjectId ? id : new Types.ObjectId(str),
+      );
+    }
     const aggregated = await this.contributionModel
       .aggregate([
-        { $match: { goalId: { $in: goalIds } } },
-        { $group: { _id: '$goalId', total: { $sum: '$amount' } } },
+        { $match: { goalId: { $in: mixed } } },
+        {
+          $group: {
+            _id: { $toString: '$goalId' },
+            total: { $sum: '$amount' },
+          },
+        },
       ])
       .exec();
     const map = new Map<string, number>();
