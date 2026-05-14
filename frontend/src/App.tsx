@@ -14,6 +14,7 @@ const TransactionsPage = lazy(() => import('./features/transactions/Transactions
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const LifetimePage = lazy(() => import('./features/lifetime/LifetimePage'));
 const BudgetPage = lazy(() => import('./features/budget/BudgetPage'));
+const GoalsPage = lazy(() => import('./features/goals/GoalsPage'));
 const ChatWidget = lazy(() => import('./features/chat/ChatWidget'));
 
 function PageFallback() {
@@ -78,6 +79,7 @@ function Navigation() {
   const navItems = [
     { to: '/', label: t('dashboard.title'), icon: '📊' },
     { to: '/transactions', label: t('transactions.title'), icon: '💳' },
+    { to: '/goals', label: t('goals.title'), icon: '🎯' },
     { to: '/lifetime', label: t('lifetime.title'), icon: '∞' },
     { to: '/family', label: t('family.title'), icon: '👥' },
   ];
@@ -241,6 +243,7 @@ function AppContent() {
             <Route path="/family" element={<PrivateRoute><FamilyPage /></PrivateRoute>} />
             <Route path="/budget" element={<PrivateRoute><BudgetPage /></PrivateRoute>} />
             <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
+            <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
           </Routes>
         </Suspense>
       </main>
