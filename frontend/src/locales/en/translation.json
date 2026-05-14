@@ -264,9 +264,21 @@
     "contributionNote": "Note",
     "notePlaceholder": "e.g. Bonus received",
     "contributionError": "Error saving contribution.",
+    "contributionDeleteConfirm": "Delete this contribution?",
     "deleteConfirm": "Are you sure you want to delete this goal and all contributions?",
     "deleteError": "Error deleting goal.",
-    "saveError": "Error saving goal."
+    "saveError": "Error saving goal.",
+    "notFound": "Goal not found.",
+    "backToList": "Back to goals",
+    "deadlineLine": "Deadline {{date}}",
+    "noDeadline": "No deadline set",
+    "projectionTitle": "Projection",
+    "reserveHelp": "Average of the last 3 closed months (income − expense).",
+    "remaining": "Remaining",
+    "targetMonths_one": "You have {{count}} month until the deadline",
+    "targetMonths_other": "You have {{count}} months until the deadline",
+    "contributionsTitle": "Contribution history",
+    "noContributions": "No contributions registered yet."
   },
   "categoryNames": {
     "Alimentação": "Food",

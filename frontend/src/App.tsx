@@ -15,6 +15,7 @@ const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const LifetimePage = lazy(() => import('./features/lifetime/LifetimePage'));
 const BudgetPage = lazy(() => import('./features/budget/BudgetPage'));
 const GoalsPage = lazy(() => import('./features/goals/GoalsPage'));
+const GoalDetailPage = lazy(() => import('./features/goals/GoalDetailPage'));
 const ChatWidget = lazy(() => import('./features/chat/ChatWidget'));
 
 function PageFallback() {
@@ -244,6 +245,7 @@ function AppContent() {
             <Route path="/budget" element={<PrivateRoute><BudgetPage /></PrivateRoute>} />
             <Route path="/transactions" element={<PrivateRoute><TransactionsPage /></PrivateRoute>} />
             <Route path="/goals" element={<PrivateRoute><GoalsPage /></PrivateRoute>} />
+            <Route path="/goals/:id" element={<PrivateRoute><GoalDetailPage /></PrivateRoute>} />
           </Routes>
         </Suspense>
       </main>

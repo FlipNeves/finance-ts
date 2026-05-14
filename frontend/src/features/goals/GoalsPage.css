@@ -71,6 +71,16 @@
   color: var(--text);
 }
 
+.gp-strip-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.gp-strip-link:hover {
+  color: var(--primary);
+}
+
 .gp-strip-target {
   display: flex;
   flex-direction: column;

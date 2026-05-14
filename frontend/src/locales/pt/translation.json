@@ -264,9 +264,21 @@
     "contributionNote": "Nota",
     "notePlaceholder": "Ex: Bônus recebido",
     "contributionError": "Erro ao registrar aporte.",
+    "contributionDeleteConfirm": "Excluir este aporte?",
     "deleteConfirm": "Tem certeza que deseja excluir este objetivo e todos os aportes?",
     "deleteError": "Erro ao excluir objetivo.",
-    "saveError": "Erro ao salvar objetivo."
+    "saveError": "Erro ao salvar objetivo.",
+    "notFound": "Objetivo não encontrado.",
+    "backToList": "Voltar para objetivos",
+    "deadlineLine": "Prazo final em {{date}}",
+    "noDeadline": "Sem prazo definido",
+    "projectionTitle": "Projeção",
+    "reserveHelp": "Média dos últimos 3 meses fechados (receita − despesa).",
+    "remaining": "Falta guardar",
+    "targetMonths_one": "Você tem {{count}} mês até o prazo",
+    "targetMonths_other": "Você tem {{count}} meses até o prazo",
+    "contributionsTitle": "Histórico de aportes",
+    "noContributions": "Nenhum aporte registrado ainda."
   },
   "categoryNames": {
     "Alimentação": "Alimentação",

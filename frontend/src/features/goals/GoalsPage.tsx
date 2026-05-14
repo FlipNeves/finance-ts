@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Money from '../../components/Money';
 import { useMessageModal } from '../../contexts/MessageModalContext';
@@ -97,7 +98,11 @@ export default function GoalsPage() {
                     {goal.category && (
                       <span className="eyebrow">{goal.category}</span>
                     )}
-                    <h2 className="gp-strip-title">{goal.title}</h2>
+                    <h2 className="gp-strip-title">
+                      <Link to={`/goals/${goal._id}`} className="gp-strip-link">
+                        {goal.title}
+                      </Link>
+                    </h2>
                   </div>
                   <div className="gp-strip-target">
                     <span className="eyebrow">{t('goals.target')}</span>
