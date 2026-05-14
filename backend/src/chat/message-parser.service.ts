@@ -15,29 +15,42 @@ interface RegexPattern {
   type: 'income' | 'expense';
   amountGroup: number;
   descGroup: number;
+  confidence: number;
+  defaultDescription?: string;
 }
 
 @Injectable()
 export class MessageParserService {
   private readonly patterns: RegexPattern[] = [
-    // PT-BR: Expense patterns (Explicit)
-    { regex: /(?:gastei|paguei|comprei)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(?:em|de|no|na|com|pro|pra|para)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
-    { regex: /(?:gastei|paguei|comprei)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
+    // PT-BR: Expense (verb + preposition) — highest confidence
+    { regex: /(?:gastei|paguei|comprei|torrei|desembolsei|transferi|enviei|mandei)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s+(?:em|de|no|na|com|pro|pra|para)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2, confidence: 0.95 },
+    { regex: /(?:gastei|paguei|comprei|torrei|desembolsei|transferi|enviei|mandei)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2, confidence: 0.85 },
 
-    // PT-BR: Income patterns (Explicit)
-    { regex: /(?:recebi|ganhei|entrou|vendi)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(?:de|do|da|com)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
-    { regex: /(?:recebi|ganhei|entrou|vendi)\s+(?:R\$\s*)?(\d+[.,]?\d*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+    // PT-BR: Income (verb + preposition)
+    { regex: /(?:recebi|ganhei|entrou|vendi|faturei|lucrei|embolsei|caiu|depositaram)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s+(?:de|do|da|com|pelo|pela|via)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2, confidence: 0.95 },
+    { regex: /(?:recebi|ganhei|entrou|vendi|faturei|lucrei|embolsei|caiu|depositaram)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2, confidence: 0.85 },
 
-    // EN: Expense patterns (Explicit)
-    { regex: /(?:spent|paid|bought)\s+\$?(\d+[.,]?\d*)\s+(?:on|for|at)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
-    { regex: /(?:spent|paid|bought)\s+\$?(\d+[.,]?\d*)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2 },
+    // EN: Expense (verb + preposition)
+    { regex: /(?:spent|paid|bought|sent|transferred)\s+\$?(\d+(?:[.,]\d+)*)\s+(?:on|for|at|to)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2, confidence: 0.95 },
+    { regex: /(?:spent|paid|bought|sent|transferred)\s+\$?(\d+(?:[.,]\d+)*)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2, confidence: 0.85 },
 
-    // EN: Income patterns (Explicit)
-    { regex: /(?:received|earned|got|sold)\s+\$?(\d+[.,]?\d*)\s+(?:from|for)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
-    { regex: /(?:received|earned|got|sold)\s+\$?(\d+[.,]?\d*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2 },
+    // EN: Income (verb + preposition)
+    { regex: /(?:received|earned|got|sold|deposited)\s+\$?(\d+(?:[.,]\d+)*)\s+(?:from|for|via)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2, confidence: 0.95 },
+    { regex: /(?:received|earned|got|sold|deposited)\s+\$?(\d+(?:[.,]\d+)*)\s+(.+)/i, type: 'income', amountGroup: 1, descGroup: 2, confidence: 0.85 },
 
-    // Catch-all patterns (Implicit)
-    { regex: /(.+?)\s+(?:R\$\s*|\$)?(\d+[.,]?\d*)\s*(?:reais)?$/i, type: 'expense', amountGroup: 2, descGroup: 1 },
+    // Verb-only (no description) — uses default description per type/language
+    { regex: /^(?:gastei|paguei|comprei|torrei|desembolsei|transferi|enviei|mandei)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s*$/i, type: 'expense', amountGroup: 1, descGroup: 0, confidence: 0.80, defaultDescription: 'Gasto' },
+    { regex: /^(?:recebi|ganhei|entrou|vendi|faturei|lucrei|embolsei|caiu|depositaram)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s*$/i, type: 'income', amountGroup: 1, descGroup: 0, confidence: 0.80, defaultDescription: 'Recebimento' },
+    { regex: /^(?:spent|paid|bought|sent|transferred)\s+\$?(\d+(?:[.,]\d+)*)\s*$/i, type: 'expense', amountGroup: 1, descGroup: 0, confidence: 0.80, defaultDescription: 'Expense' },
+    { regex: /^(?:received|earned|got|sold|deposited)\s+\$?(\d+(?:[.,]\d+)*)\s*$/i, type: 'income', amountGroup: 1, descGroup: 0, confidence: 0.80, defaultDescription: 'Income' },
+
+    // Signed shortcuts: "+500 freela" → income, "-50 mercado" → expense
+    { regex: /^\+\s*(?:R\$\s*|\$)?(\d+(?:[.,]\d+)*)\s+(?:de|do|da|com|from)?\s*(.+)/i, type: 'income', amountGroup: 1, descGroup: 2, confidence: 0.75 },
+    { regex: /^-\s*(?:R\$\s*|\$)?(\d+(?:[.,]\d+)*)\s+(?:em|de|no|na|com|pro|pra|para|on|for|at)?\s*(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2, confidence: 0.75 },
+
+    // Catch-all (Implicit) — REQUIRES explicit currency marker to avoid false positives
+    { regex: /^(.+?)\s+(?:R\$\s*|\$)(\d+(?:[.,]\d+)*)$/i, type: 'expense', amountGroup: 2, descGroup: 1, confidence: 0.65 },
+    { regex: /^(.+?)\s+(\d+(?:[.,]\d+)*)\s+(?:reais|real|dollars?|bucks?)$/i, type: 'expense', amountGroup: 2, descGroup: 1, confidence: 0.65 },
   ];
 
   private readonly datePatterns: { regex: RegExp; resolver: () => Date }[] = [
@@ -73,12 +86,9 @@ export class MessageParserService {
     for (const pattern of this.patterns) {
       const match = trimmed.match(pattern.regex);
       if (match) {
-        const rawAmount = match[pattern.amountGroup].replace(',', '.');
-        const amount = parseFloat(rawAmount);
+        const amount = this.normalizeAmount(match[pattern.amountGroup]);
 
         if (isNaN(amount) || amount <= 0) continue;
-
-        let description = match[pattern.descGroup].trim();
 
         const date = this.extractDate(trimmed);
 
@@ -87,8 +97,13 @@ export class MessageParserService {
           return null;
         }
 
+        let description = pattern.descGroup > 0 ? (match[pattern.descGroup] || '').trim() : '';
         description = this.removeDateTokens(description).trim();
         description = this.removeBankAccountTokens(description, bankExtract.account).trim();
+
+        if (!description && pattern.defaultDescription) {
+          description = pattern.defaultDescription;
+        }
 
         if (!description) continue;
 
@@ -101,12 +116,42 @@ export class MessageParserService {
           category,
           date: date.toISOString(),
           bankAccount: bankExtract.account || undefined,
-          confidence: 0.85,
+          confidence: pattern.confidence,
         };
       }
     }
 
     return null;
+  }
+
+  private normalizeAmount(raw: string): number {
+    const cleaned = raw.replace(/[R$\s]/g, '');
+    const hasDot = cleaned.includes('.');
+    const hasComma = cleaned.includes(',');
+
+    let normalized: string;
+
+    if (hasDot && hasComma) {
+      // Last separator is the decimal mark; the other is thousands
+      normalized = cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')
+        ? cleaned.replace(/\./g, '').replace(',', '.')  // BR: 1.500,00
+        : cleaned.replace(/,/g, '');                     // US: 1,500.00
+    } else if (hasComma) {
+      const parts = cleaned.split(',');
+      // 3-digit tail or multiple separators → thousands; otherwise decimal
+      normalized = parts.length > 2 || parts[parts.length - 1].length === 3
+        ? cleaned.replace(/,/g, '')
+        : cleaned.replace(',', '.');
+    } else if (hasDot) {
+      const parts = cleaned.split('.');
+      normalized = parts.length > 2 || parts[parts.length - 1].length === 3
+        ? cleaned.replace(/\./g, '')
+        : cleaned;
+    } else {
+      normalized = cleaned;
+    }
+
+    return parseFloat(normalized);
   }
 
   private extractDate(message: string): Date {
