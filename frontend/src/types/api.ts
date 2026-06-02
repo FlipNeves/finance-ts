@@ -240,3 +240,43 @@ export interface ParsedChatTransaction {
   bankAccount?: string;
   confidence: number;
 }
+
+export interface ImportPreviewRow {
+  tempId: string;
+  date: string;
+  description: string;
+  originalDescription: string;
+  amount: number;
+  type: TransactionType;
+  category: string;
+  bankAccount: string | null;
+  fingerprint: string;
+  isDuplicate: boolean;
+  isTransfer: boolean;
+  include: boolean;
+}
+
+export interface ImportPreviewSummary {
+  total: number;
+  duplicates: number;
+  transfers: number;
+  totalIncome: number;
+  totalExpense: number;
+  net: number;
+}
+
+export interface ImportPreviewResponse {
+  rows: ImportPreviewRow[];
+  summary: ImportPreviewSummary;
+}
+
+export interface ImportPreviewDTO {
+  csv: string;
+  bankAccount?: string;
+}
+
+export interface ImportCommitResponse {
+  inserted: number;
+  importBatchId: string;
+  skippedDuplicates: number;
+}

@@ -1,0 +1,179 @@
+.si-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.si-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.si-step-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.si-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.si-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.si-field .si-file-input {
+  display: none;
+}
+
+.si-file-name {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  word-break: break-all;
+}
+
+.si-textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.si-full-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.si-error {
+  margin: 0;
+  color: var(--danger, #d9534f);
+  font-size: 0.85rem;
+}
+
+/* Summary */
+.si-summary {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.si-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+}
+
+.si-summary-item strong {
+  font-size: 0.95rem;
+}
+
+.si-up {
+  color: var(--success, #2e7d32);
+}
+
+.si-down {
+  color: var(--danger, #d9534f);
+}
+
+/* Review table */
+.si-table-wrap {
+  max-height: 50vh;
+  overflow: auto;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+}
+
+.si-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.si-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface, #fff);
+}
+
+.si-cell-check {
+  width: 44px;
+  text-align: center;
+}
+
+.si-input-sm {
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  height: auto;
+}
+
+.si-input-amount {
+  width: 96px;
+  text-align: right;
+}
+
+.si-row-off {
+  opacity: 0.45;
+}
+
+.si-row-dup td {
+  background: rgba(217, 83, 79, 0.06);
+}
+
+.si-badges {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.si-badge {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.si-badge-dup {
+  background: rgba(217, 83, 79, 0.15);
+  color: var(--danger, #d9534f);
+}
+
+.si-badge-transfer {
+  background: rgba(120, 120, 120, 0.15);
+  color: var(--text-muted, #666);
+}
+
+.si-amount-income input {
+  color: var(--success, #2e7d32);
+}
+
+.si-amount-expense input {
+  color: var(--danger, #d9534f);
+}
+
+.si-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.si-actions .btn {
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .si-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

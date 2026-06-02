@@ -12,12 +12,16 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { StatementImportService } from './statement-import.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(
+    private readonly transactionsService: TransactionsService,
+    private readonly statementImportService: StatementImportService,
+  ) {}
 
   private getFamilyId(req: any): string | null {
     const familyId = req.user.familyId;
@@ -51,6 +55,37 @@ export class TransactionsController {
   async getBankAccounts(@Req() req: any) {
     const familyId = this.getFamilyId(req);
     return this.transactionsService.getBankAccounts(familyId, req.user._id);
+  }
+
+  @Post('import/preview')
+  async importPreview(@Body() body: any, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.statementImportService.preview(
+      body?.csv,
+      req.user._id,
+      familyId,
+      body?.bankAccount,
+    );
+  }
+
+  @Post('import/commit')
+  async importCommit(@Body() body: any, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.statementImportService.commit(
+      body?.rows,
+      req.user._id,
+      familyId,
+    );
+  }
+
+  @Delete('import/:batchId')
+  async importUndo(@Param('batchId') batchId: string, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.statementImportService.undoBatch(
+      batchId,
+      req.user._id,
+      familyId,
+    );
   }
 
   @Get(':id')

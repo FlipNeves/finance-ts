@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
+import { StatementImportService } from './statement-import.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 describe('TransactionsController', () => {
@@ -16,6 +17,12 @@ describe('TransactionsController', () => {
     getCategories: jest.fn(),
   };
 
+  const mockStatementImportService = {
+    preview: jest.fn(),
+    commit: jest.fn(),
+    undoBatch: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TransactionsController],
@@ -23,6 +30,10 @@ describe('TransactionsController', () => {
         {
           provide: TransactionsService,
           useValue: mockTransactionsService,
+        },
+        {
+          provide: StatementImportService,
+          useValue: mockStatementImportService,
         },
       ],
     })

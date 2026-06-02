@@ -24,6 +24,9 @@
   animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-overflow-scrolling: touch;
 }
+.modal-content.modal-wide {
+  max-width: min(1180px, 96vw);
+}
 .modal-header {
   display: flex;
   justify-content: space-between;

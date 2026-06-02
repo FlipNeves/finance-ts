@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMessageModal } from '../../contexts/MessageModalContext';
 import TransactionModal from './TransactionModal';
+import ImportStatementModal from './import/ImportStatementModal';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
 import { useDeleteTransaction, useTransactionsQuery } from './hooks/useTransactions';
 import type { Transaction, TransactionType, TypeFilter } from '../../types/api';
@@ -44,6 +45,7 @@ export default function TransactionsPage() {
   const deleteMutation = useDeleteTransaction();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [modalType, setModalType] = useState<TransactionType>('expense');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -91,6 +93,9 @@ export default function TransactionsPage() {
           <p className="page-subtitle">{t('transactions.subtitle')}</p>
         </div>
         <div className="tx-actions">
+          <button className="btn btn-outline" onClick={() => setIsImportOpen(true)}>
+            ↑ {t('transactions.import.button')}
+          </button>
           <button className="btn btn-outline tx-income-btn" onClick={() => openModal('income')}>
             + {t('transactions.addIncome')}
           </button>
@@ -245,6 +250,20 @@ export default function TransactionsPage() {
         onSuccess={() => transactionsQuery.refetch()}
         type={modalType}
         editTransaction={selectedTransaction}
+      />
+
+      <ImportStatementModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onSuccess={(range) => {
+          // Move the filter to cover the imported period so the new rows are visible.
+          if (range) {
+            setStartDate(range.start.slice(0, 10));
+            setEndDate(range.end.slice(0, 10));
+          } else {
+            transactionsQuery.refetch();
+          }
+        }}
       />
     </div>
   );

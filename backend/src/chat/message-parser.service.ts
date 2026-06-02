@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CategorizationService } from '../transactions/categorization.service';
 
 export interface ParsedTransaction {
   type: 'income' | 'expense';
@@ -21,6 +22,8 @@ interface RegexPattern {
 
 @Injectable()
 export class MessageParserService {
+  constructor(private readonly categorizationService: CategorizationService) {}
+
   private readonly patterns: RegexPattern[] = [
     // PT-BR: Expense (verb + preposition) — highest confidence
     { regex: /(?:gastei|paguei|comprei|torrei|desembolsei|transferi|enviei|mandei)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)*)\s+(?:em|de|no|na|com|pro|pra|para)\s+(.+)/i, type: 'expense', amountGroup: 1, descGroup: 2, confidence: 0.95 },
@@ -107,7 +110,7 @@ export class MessageParserService {
 
         if (!description) continue;
 
-        const category = this.matchCategory(description, pattern.type, userCategories);
+        const category = this.categorizationService.categorize(description, pattern.type, userCategories);
 
         return {
           type: pattern.type,
@@ -183,40 +186,6 @@ export class MessageParserService {
       .replace(/\bdia\s+\d{1,2}\b/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
-  }
-
-  private matchCategory(description: string, type: 'income' | 'expense', userCategories: string[]): string {
-    const lower = description.toLowerCase();
-
-    const categoryKeywords: Record<string, string[]> = {
-      'Food': ['mercado', 'supermercado', 'almoço', 'jantar', 'café', 'lanche', 'restaurante', 'comida', 'padaria', 'açougue', 'feira', 'grocery', 'groceries', 'food', 'lunch', 'dinner', 'breakfast', 'restaurant', 'snack', 'ifood', 'uber eats'],
-      'Housing': ['aluguel', 'condomínio', 'condominio', 'rent', 'mortgage', 'iptu'],
-      'Transportation': ['uber', 'ônibus', 'onibus', 'metrô', 'metro', 'gasolina', 'combustível', 'combustivel', 'estacionamento', 'gas', 'fuel', 'bus', 'taxi', 'parking', '99'],
-      'Utilities': ['luz', 'água', 'agua', 'internet', 'telefone', 'celular', 'gás', 'electricity', 'water', 'phone', 'gas bill'],
-      'Medical': ['médico', 'medico', 'farmácia', 'farmacia', 'hospital', 'dentista', 'saúde', 'saude', 'doctor', 'pharmacy', 'medicine', 'health'],
-      'Entertainment': ['cinema', 'netflix', 'spotify', 'jogo', 'game', 'lazer', 'bar', 'festa', 'movie', 'entertainment', 'show', 'streaming'],
-      'Personal': ['roupa', 'calçado', 'calcado', 'perfume', 'cabelo', 'clothing', 'clothes', 'shoes', 'personal'],
-      'Savings': ['poupança', 'poupanca', 'investimento', 'savings', 'investment'],
-      'Insurance': ['seguro', 'insurance'],
-      'Salary': ['salário', 'salario', 'salary', 'wages', 'pagamento', 'payment'],
-      'Other': [],
-    };
-
-    for (const cat of userCategories) {
-      if (lower.includes(cat.toLowerCase())) {
-        return cat;
-      }
-    }
-
-    for (const [category, keywords] of Object.entries(categoryKeywords)) {
-      for (const kw of keywords) {
-        if (lower.includes(kw)) {
-          return category;
-        }
-      }
-    }
-
-    return type === 'income' ? 'Salary' : 'Other';
   }
 
   private extractBankAccount(message: string, bankAccounts: string[]): { account: string | null, needsLlm: boolean } {

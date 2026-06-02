@@ -3,6 +3,8 @@ import { transactionsApi } from '../../../lib/api';
 import type {
   CreateTransactionDTO,
   TransactionsFilter,
+  ImportPreviewDTO,
+  ImportPreviewRow,
 } from '../../../types/api';
 
 export const transactionsKey = (filter: TransactionsFilter = {}) =>
@@ -43,6 +45,20 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => transactionsApi.remove(id),
+    onSuccess: () => invalidateAfterMutation(queryClient),
+  });
+}
+
+export function useImportPreview() {
+  return useMutation({
+    mutationFn: (payload: ImportPreviewDTO) => transactionsApi.importPreview(payload),
+  });
+}
+
+export function useImportCommit() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: ImportPreviewRow[]) => transactionsApi.importCommit(rows),
     onSuccess: () => invalidateAfterMutation(queryClient),
   });
 }

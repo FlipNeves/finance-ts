@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
+import { CategorizationService } from './categorization.service';
+import { StatementParserService } from './statement-parser.service';
+import { StatementImportService } from './statement-import.service';
 import { Transaction, TransactionSchema } from '../schemas/transaction.schema';
 import { Family, FamilySchema } from '../schemas/family.schema';
 import { Budget, BudgetSchema } from '../schemas/budget.schema';
@@ -22,7 +25,12 @@ import {
     ]),
   ],
   controllers: [TransactionsController],
-  providers: [TransactionsService],
-  exports: [TransactionsService],
+  providers: [
+    TransactionsService,
+    CategorizationService,
+    StatementParserService,
+    StatementImportService,
+  ],
+  exports: [TransactionsService, CategorizationService],
 })
 export class TransactionsModule {}
