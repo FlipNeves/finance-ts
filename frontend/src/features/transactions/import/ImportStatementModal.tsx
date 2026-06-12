@@ -107,12 +107,20 @@ export default function ImportStatementModal({
       : undefined;
     commitMutation.mutate(rows, {
       onSuccess: (data) => {
+        const fmtDay = (iso: string) =>
+          new Date(iso).toLocaleDateString(undefined, { timeZone: 'UTC' });
         showMessage(
           t('transactions.import.successTitle'),
-          t('transactions.import.successBody', {
-            inserted: data.inserted,
-            skipped: data.skippedDuplicates,
-          }),
+          range
+            ? t('transactions.import.successBodyPeriod', {
+                inserted: data.inserted,
+                start: fmtDay(range.start),
+                end: fmtDay(range.end),
+              })
+            : t('transactions.import.successBody', {
+                inserted: data.inserted,
+                skipped: data.skippedDuplicates,
+              }),
         );
         onSuccess(range);
         onClose();

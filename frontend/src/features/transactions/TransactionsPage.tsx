@@ -1,20 +1,25 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useMessageModal } from '../../contexts/MessageModalContext';
 import TransactionModal from './TransactionModal';
 import ImportStatementModal from './import/ImportStatementModal';
 import { useCategoryTranslation } from '../../hooks/useCategoryTranslation';
 import { useDeleteTransaction, useTransactionsQuery } from './hooks/useTransactions';
+import { transactionsApi } from '../../lib/api';
 import type { Transaction, TransactionType, TypeFilter } from '../../types/api';
 import './TransactionsPage.css';
 
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
 function defaultStart() {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-01`;
 }
 function defaultEnd() {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(lastDay)}`;
 }
 
 export default function TransactionsPage() {
@@ -27,16 +32,12 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const filter = useMemo(() => {
-    const start = startDate ? new Date(startDate).toISOString() : undefined;
-    let end: string | undefined;
-    if (endDate) {
-      const endDay = new Date(endDate);
-      endDay.setHours(23, 59, 59, 999);
-      end = endDay.toISOString();
-    }
+    // Stored dates are pinned to UTC midnight, so the day window must be
+    // computed in UTC too — mixing local setHours with UTC parsing used to
+    // cut the boundary at 02:59Z and hide every transaction of the end day.
     return {
-      startDate: start,
-      endDate: end,
+      startDate: startDate ? `${startDate}T00:00:00.000Z` : undefined,
+      endDate: endDate ? `${endDate}T23:59:59.999Z` : undefined,
       type: typeFilter === 'all' ? undefined : (typeFilter as TransactionType),
     };
   }, [startDate, endDate, typeFilter]);
@@ -50,6 +51,30 @@ export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const transactions = transactionsQuery.data ?? [];
+
+  // When the filtered period is empty, look outside it: data imported from a
+  // bank statement often lands in past months, invisible to the default
+  // current-month filter — which reads as "the import saved nothing".
+  const listEmpty = !transactionsQuery.isLoading && transactions.length === 0;
+  const dataSpanQuery = useQuery({
+    queryKey: ['transactions', 'span', typeFilter],
+    queryFn: () =>
+      transactionsApi.list({
+        type: typeFilter === 'all' ? undefined : (typeFilter as TransactionType),
+      }),
+    enabled: listEmpty,
+  });
+  const dataSpan = useMemo(() => {
+    const all = dataSpanQuery.data ?? [];
+    if (all.length === 0) return null;
+    const dates = all.map((tr) => tr.date.slice(0, 10)).sort();
+    return { count: all.length, start: dates[0], end: dates[dates.length - 1] };
+  }, [dataSpanQuery.data]);
+
+  const formatDay = (isoDay: string) =>
+    new Date(`${isoDay}T00:00:00Z`).toLocaleDateString(i18n.language, {
+      timeZone: 'UTC',
+    });
 
   const openModal = (type: TransactionType) => {
     setModalType(type);
@@ -172,6 +197,27 @@ export default function TransactionsPage() {
                 <tr>
                   <td colSpan={7} className="tx-empty">
                     {t('transactions.noTransactions')}
+                    {dataSpan && (
+                      <div className="tx-empty-cta">
+                        <p>
+                          {t('transactions.dataOutsideFilter', {
+                            count: dataSpan.count,
+                            start: formatDay(dataSpan.start),
+                            end: formatDay(dataSpan.end),
+                          })}
+                        </p>
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={() => {
+                            setStartDate(dataSpan.start);
+                            setEndDate(dataSpan.end);
+                          }}
+                        >
+                          {t('transactions.showAllPeriod')}
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ) : (
