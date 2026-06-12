@@ -118,17 +118,38 @@ export class TransactionsService {
       .exec();
   }
 
-  async findOne(id: string): Promise<Transaction> {
-    const transaction = await this.transactionModel.findById(id).exec();
+  private buildScope(familyId: string | null, userId: string): any {
+    if (familyId) return { familyId };
+    return { userId, familyId: null };
+  }
+
+  async findOne(
+    id: string,
+    familyId: string | null,
+    userId: string,
+  ): Promise<Transaction> {
+    const transaction = await this.transactionModel
+      .findOne({ _id: id, ...this.buildScope(familyId, userId) })
+      .exec();
     if (!transaction) {
       throw new NotFoundException('Transaction not found');
     }
     return transaction;
   }
 
-  async update(id: string, updateTransactionDto: any): Promise<Transaction> {
+  async update(
+    id: string,
+    updateTransactionDto: any,
+    familyId: string | null,
+    userId: string,
+  ): Promise<Transaction> {
+    const { userId: _u, familyId: _f, ...safeUpdate } = updateTransactionDto;
     const transaction = await this.transactionModel
-      .findByIdAndUpdate(id, updateTransactionDto, { new: true })
+      .findOneAndUpdate(
+        { _id: id, ...this.buildScope(familyId, userId) },
+        safeUpdate,
+        { new: true },
+      )
       .exec();
     if (!transaction) {
       throw new NotFoundException('Transaction not found');
@@ -143,8 +164,14 @@ export class TransactionsService {
     return transaction;
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.transactionModel.findByIdAndDelete(id).exec();
+  async remove(
+    id: string,
+    familyId: string | null,
+    userId: string,
+  ): Promise<void> {
+    const result = await this.transactionModel
+      .findOneAndDelete({ _id: id, ...this.buildScope(familyId, userId) })
+      .exec();
     if (!result) {
       throw new NotFoundException('Transaction not found');
     }

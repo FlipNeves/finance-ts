@@ -77,25 +77,63 @@ describe('TransactionsController', () => {
 
   describe('findAll', () => {
     it('should return all transactions', async () => {
-      const req = { user: { familyId: 'familyId' } };
+      const req = { user: { _id: 'userId', familyId: 'familyId' } };
       mockTransactionsService.findAll.mockResolvedValue([]);
 
       const result = await controller.findAll(req, {});
 
       expect(result).toEqual([]);
-      expect(service.findAll).toHaveBeenCalledWith('familyId', {});
+      expect(service.findAll).toHaveBeenCalledWith('familyId', 'userId', {});
     });
   });
 
   describe('getCategories', () => {
     it('should return categories', async () => {
-      const req = { user: { familyId: 'familyId' } };
+      const req = { user: { _id: 'userId', familyId: 'familyId' } };
       mockTransactionsService.getCategories.mockResolvedValue(['Food']);
 
       const result = await controller.getCategories(req);
 
       expect(result).toEqual(['Food']);
-      expect(service.getCategories).toHaveBeenCalledWith('familyId');
+      expect(service.getCategories).toHaveBeenCalledWith('familyId', 'userId');
+    });
+  });
+
+  describe('findOne', () => {
+    it('should scope lookup to the requesting user', async () => {
+      const req = { user: { _id: 'userId', familyId: null } };
+      mockTransactionsService.findOne.mockResolvedValue({ _id: 'id' });
+
+      await controller.findOne('id', req);
+
+      expect(service.findOne).toHaveBeenCalledWith('id', null, 'userId');
+    });
+  });
+
+  describe('update', () => {
+    it('should scope update to the requesting user', async () => {
+      const req = { user: { _id: 'userId', familyId: 'familyId' } };
+      mockTransactionsService.update.mockResolvedValue({ _id: 'id' });
+
+      await controller.update('id', { amount: 10 }, req);
+
+      expect(service.update).toHaveBeenCalledWith(
+        'id',
+        { amount: 10 },
+        'familyId',
+        'userId',
+      );
+    });
+  });
+
+  describe('remove', () => {
+    it('should scope removal to the requesting user', async () => {
+      const req = { user: { _id: 'userId', familyId: null } };
+      mockTransactionsService.remove.mockResolvedValue(undefined);
+
+      await controller.remove('id', req);
+
+      expect(service.remove).toHaveBeenCalledWith('id', null, 'userId');
     });
   });
 });

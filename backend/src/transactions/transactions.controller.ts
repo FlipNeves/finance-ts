@@ -89,17 +89,29 @@ export class TransactionsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.transactionsService.findOne(id);
+  async findOne(@Param('id') id: string, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.transactionsService.findOne(id, familyId, req.user._id);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateTransactionDto: any) {
-    return this.transactionsService.update(id, updateTransactionDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateTransactionDto: any,
+    @Req() req: any,
+  ) {
+    const familyId = this.getFamilyId(req);
+    return this.transactionsService.update(
+      id,
+      updateTransactionDto,
+      familyId,
+      req.user._id,
+    );
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.transactionsService.remove(id);
+  async remove(@Param('id') id: string, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.transactionsService.remove(id, familyId, req.user._id);
   }
 }
