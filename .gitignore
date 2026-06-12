@@ -2,7 +2,7 @@
 .DS_Store
 Thumbs.db
 
-# IDEs
+# IDEs and editors
 .idea/
 .vscode/
 *.swp
@@ -13,13 +13,22 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .npm
+
+# Environment
 .env
+.env.*
+!.env.example
 
 # Build outputs
 dist/
 build/
 out/
+
+# Caches
+.cache
+*.tsbuildinfo
 
 # Conductor temporary files
 .gemini/
