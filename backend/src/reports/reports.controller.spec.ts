@@ -37,7 +37,7 @@ describe('ReportsController', () => {
   describe('getSummary', () => {
     it('should return summary for a date range', async () => {
       const mockSummary = { totalIncome: 100, totalExpense: 50, balance: 50 };
-      const req = { user: { familyId: 'familyId' } };
+      const req = { user: { _id: 'userId', familyId: 'familyId' } };
       mockReportsService.getFamilySummary.mockResolvedValue(mockSummary);
 
       const result = await controller.getSummary(
@@ -49,6 +49,7 @@ describe('ReportsController', () => {
       expect(result).toEqual(mockSummary);
       expect(service.getFamilySummary).toHaveBeenCalledWith(
         'familyId',
+        'userId',
         expect.any(Date),
         expect.any(Date),
       );
@@ -58,20 +59,23 @@ describe('ReportsController', () => {
   describe('getSpendingByCategory', () => {
     it('should return spending by category', async () => {
       const mockSpending = [{ category: 'Food', amount: 100 }];
-      const req = { user: { familyId: 'familyId' } };
+      const req = { user: { _id: 'userId', familyId: 'familyId' } };
       mockReportsService.getSpendingByCategory.mockResolvedValue(mockSpending);
 
       const result = await controller.getSpendingByCategory(
         req,
         '2024-01-01',
         '2024-01-31',
+        undefined,
       );
 
       expect(result).toEqual(mockSpending);
       expect(service.getSpendingByCategory).toHaveBeenCalledWith(
         'familyId',
+        'userId',
         expect.any(Date),
         expect.any(Date),
+        undefined,
       );
     });
   });

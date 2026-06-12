@@ -2,30 +2,52 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ReportsService } from './reports.service';
 import { Transaction } from '../schemas/transaction.schema';
-import { Model } from 'mongoose';
+import { Budget } from '../schemas/budget.schema';
 
 describe('ReportsService', () => {
   let service: ReportsService;
-  let transactionModel: Model<Transaction>;
+
+  const mockUserId = '507f1f77bcf86cd799439012';
+
+  const mockTransactionModel = {
+    aggregate: jest.fn(),
+    find: jest.fn(),
+  };
+
+  const mockBudgetModel = {
+    findOne: jest.fn(),
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
+    // Defaults: no biggest expense, no budget configured
+    mockTransactionModel.find.mockReturnValue({
+      sort: jest.fn().mockReturnValue({
+        limit: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }),
+    });
+    mockBudgetModel.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
+    });
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReportsService,
         {
           provide: getModelToken(Transaction.name),
-          useValue: {
-            aggregate: jest.fn(),
-            exec: jest.fn(),
-          },
+          useValue: mockTransactionModel,
+        },
+        {
+          provide: getModelToken(Budget.name),
+          useValue: mockBudgetModel,
         },
       ],
     }).compile();
 
     service = module.get<ReportsService>(ReportsService);
-    transactionModel = module.get<Model<Transaction>>(
-      getModelToken(Transaction.name),
-    );
   });
 
   it('should be defined', () => {
@@ -35,18 +57,19 @@ describe('ReportsService', () => {
   describe('getFamilySummary', () => {
     it('should return total income and expense', async () => {
       const mockResult = [
-        { _id: 'income', total: 1000 },
-        { _id: 'expense', total: 400 },
+        { _id: { type: 'income', isFixed: false }, total: 1000 },
+        { _id: { type: 'expense', isFixed: false }, total: 400 },
       ];
 
-      jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
+      mockTransactionModel.aggregate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockResult),
-      } as any);
+      });
 
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
       const result = await service.getFamilySummary(
         '507f1f77bcf86cd799439011',
+        mockUserId,
         startDate,
         endDate,
       );
@@ -57,16 +80,28 @@ describe('ReportsService', () => {
     });
 
     it('should return zeros if no transactions found', async () => {
-      jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
+      mockTransactionModel.aggregate.mockReturnValue({
         exec: jest.fn().mockResolvedValue([]),
-      } as any);
+      });
 
       const result = await service.getFamilySummary(
         '507f1f77bcf86cd799439011',
+        mockUserId,
         new Date(),
         new Date(),
       );
-      expect(result).toEqual({ totalIncome: 0, totalExpense: 0, balance: 0 });
+
+      expect(result).toEqual({
+        totalIncome: 0,
+        totalExpense: 0,
+        balance: 0,
+        fixedExpense: 0,
+        variableExpense: 0,
+        biggestExpense: null,
+        previousMonthIncome: 0,
+        previousMonthExpense: 0,
+        budgetLimit: 0,
+      });
     });
   });
 
@@ -77,14 +112,15 @@ describe('ReportsService', () => {
         { category: 'Health', amount: 100 },
       ];
 
-      jest.spyOn(transactionModel, 'aggregate').mockReturnValue({
+      mockTransactionModel.aggregate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockResult),
-      } as any);
+      });
 
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
       const result = await service.getSpendingByCategory(
         '507f1f77bcf86cd799439011',
+        mockUserId,
         startDate,
         endDate,
       );

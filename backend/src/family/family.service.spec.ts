@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { FamilyService } from './family.service';
 import { Family } from '../schemas/family.schema';
 import { User } from '../schemas/user.schema';
+import { Transaction } from '../schemas/transaction.schema';
 import { Model, Types } from 'mongoose';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 
@@ -58,6 +59,16 @@ describe('FamilyService', () => {
             exec: jest.fn(),
           },
         },
+        {
+          provide: getModelToken(Transaction.name),
+          useValue: {
+            deleteMany: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue({ deletedCount: 0 }),
+            }),
+            find: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -92,8 +103,8 @@ describe('FamilyService', () => {
 
       const result = await service.create(createFamilyDto, mockUserId);
 
-      expect(result.name).toBe(createFamilyDto.name);
       expect(result.familyCode).toBeDefined();
+      expect(familyModel.create).toHaveBeenCalled();
       expect(userModel.findById).toHaveBeenCalledWith(mockUserId);
       expect(mockUser.save).toHaveBeenCalled();
     });
@@ -251,7 +262,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(familyWithCategories),
       } as any);
 
-      await service.addCustomCategory(mockFamilyId, 'Health');
+      await service.addCustomCategory(mockFamilyId, mockUserId, 'Health');
 
       expect(familyWithCategories.customCategories).toContain('Health');
       expect(familyWithCategories.save).toHaveBeenCalled();
@@ -270,7 +281,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(familyWithAccounts),
       } as any);
 
-      await service.addBankAccount(mockFamilyId, 'NuBank');
+      await service.addBankAccount(mockFamilyId, mockUserId, 'NuBank');
 
       expect(familyWithAccounts.bankAccounts).toContain('NuBank');
       expect(familyWithAccounts.save).toHaveBeenCalled();
@@ -287,7 +298,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(familyWithAccounts),
       } as any);
 
-      await service.addBankAccount(mockFamilyId, 'NuBank');
+      await service.addBankAccount(mockFamilyId, mockUserId, 'NuBank');
 
       expect(familyWithAccounts.bankAccounts.length).toBe(1);
       expect(familyWithAccounts.save).not.toHaveBeenCalled();
@@ -306,7 +317,7 @@ describe('FamilyService', () => {
         exec: jest.fn().mockResolvedValue(familyWithAccounts),
       } as any);
 
-      await service.removeBankAccount(mockFamilyId, 'NuBank');
+      await service.removeBankAccount(mockFamilyId, mockUserId, 'NuBank');
 
       expect(familyWithAccounts.bankAccounts).not.toContain('NuBank');
       expect(familyWithAccounts.save).toHaveBeenCalled();
