@@ -8,6 +8,8 @@ import type {
   ImportPreviewResponse,
   ImportPreviewRow,
   ImportCommitResponse,
+  QuickAddDTO,
+  QuickAddResponse,
 } from '../../types/api';
 
 export const transactionsApi = {
@@ -22,6 +24,10 @@ export const transactionsApi = {
   create: (payload: CreateTransactionDTO) =>
     apiClient
       .post<CreateTransactionResponse>('/transactions', payload)
+      .then((r) => r.data),
+  quick: (payload: QuickAddDTO) =>
+    apiClient
+      .post<QuickAddResponse>('/transactions/quick', payload)
       .then((r) => r.data),
   update: (id: string, payload: CreateTransactionDTO) =>
     apiClient

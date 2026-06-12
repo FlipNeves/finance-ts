@@ -50,6 +50,24 @@ export interface CreateTransactionResponse {
   transaction?: Transaction;
 }
 
+export interface QuickAddDTO {
+  text: string;
+  date?: string;
+}
+
+export interface QuickAddParsed {
+  description: string;
+  amount: number;
+  type: TransactionType;
+  category: string;
+}
+
+export interface QuickAddResponse {
+  transaction: Transaction;
+  alert?: string;
+  parsed: QuickAddParsed;
+}
+
 export interface BiggestExpense {
   description: string;
   amount: number;

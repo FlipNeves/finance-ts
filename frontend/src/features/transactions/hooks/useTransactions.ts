@@ -5,6 +5,7 @@ import type {
   TransactionsFilter,
   ImportPreviewDTO,
   ImportPreviewRow,
+  QuickAddDTO,
 } from '../../../types/api';
 
 export const transactionsKey = (filter: TransactionsFilter = {}) =>
@@ -28,6 +29,14 @@ export function useCreateTransaction() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateTransactionDTO) => transactionsApi.create(payload),
+    onSuccess: () => invalidateAfterMutation(queryClient),
+  });
+}
+
+export function useQuickAddTransaction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: QuickAddDTO) => transactionsApi.quick(payload),
     onSuccess: () => invalidateAfterMutation(queryClient),
   });
 }

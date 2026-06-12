@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
@@ -6,6 +10,7 @@ import { Family } from '../schemas/family.schema';
 import { Budget } from '../schemas/budget.schema';
 import { User } from '../schemas/user.schema';
 import { GoalContribution } from '../schemas/goal-contribution.schema';
+import { CategorizationService } from './categorization.service';
 
 @Injectable()
 export class TransactionsService {
@@ -30,7 +35,84 @@ export class TransactionsService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(GoalContribution.name)
     private contributionModel: Model<GoalContribution>,
+    private readonly categorizationService: CategorizationService,
   ) {}
+
+  /**
+   * One-line entry: parses "15 padaria" / "padaria 15,50" / "+2000 salário"
+   * into a transaction, inferring the category from the description.
+   */
+  async quickCreate(
+    text: string,
+    dateStr: string | undefined,
+    userId: string,
+    familyId: string | null,
+  ): Promise<any> {
+    let input = (text || '').trim();
+    let type: 'income' | 'expense' = 'expense';
+    if (input.startsWith('+')) {
+      type = 'income';
+      input = input.slice(1).trim();
+    }
+
+    // First numeric token wins: supports "1.234,56", "15,50", "15.50", "15".
+    const amountMatch = input.match(
+      /\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?/,
+    );
+    if (!amountMatch) {
+      throw new BadRequestException(
+        'Could not find an amount in the text. Try e.g. "15 padaria".',
+      );
+    }
+    const raw = amountMatch[0];
+    const normalized = raw.includes(',')
+      ? raw.replace(/\./g, '').replace(',', '.')
+      : raw;
+    const amount = Math.round(parseFloat(normalized) * 100) / 100;
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException('Amount must be greater than zero.');
+    }
+
+    const description = input
+      .replace(amountMatch[0], ' ')
+      .replace(/\bR\$\s*/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!description) {
+      throw new BadRequestException(
+        'Describe the transaction along with the amount, e.g. "15 padaria".',
+      );
+    }
+
+    const categories = await this.getCategories(familyId, userId);
+    const category = this.categorizationService.categorize(
+      description,
+      type,
+      categories,
+    );
+
+    // Pin to UTC midnight of today's calendar date, matching how the manual
+    // entry modal and the statement importer store date-only values.
+    const now = new Date();
+    const date = dateStr
+      ? new Date(dateStr)
+      : new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
+    const { transaction, alert } = await this.create(
+      {
+        description,
+        amount,
+        type,
+        category,
+        date,
+        isFixed: false,
+      },
+      userId,
+      familyId,
+    );
+
+    return { transaction, alert, parsed: { description, amount, type, category } };
+  }
 
   async create(
     createTransactionDto: any,
@@ -64,13 +146,17 @@ export class TransactionsService {
           const start = new Date(y, m - 1, 1);
           const end = new Date(y, m, 0, 23, 59, 59);
           
+          // Aggregations bypass mongoose casting — owner ids must be ObjectIds.
           const matchQ: any = {
             category: transaction.category,
             type: 'expense',
-            date: { $gte: start, $lte: end }
+            date: { $gte: start, $lte: end },
           };
-          if (familyId) matchQ.familyId = familyId;
-          else { matchQ.userId = userId; matchQ.familyId = null; }
+          if (familyId) matchQ.familyId = new Types.ObjectId(familyId);
+          else {
+            matchQ.userId = new Types.ObjectId(String(userId));
+            matchQ.familyId = null;
+          }
           
           const totalCatResult = await this.transactionModel.aggregate([
             { $match: matchQ },

@@ -1,18 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { TransactionsService } from './transactions.service';
+import { CategorizationService } from './categorization.service';
 import { Transaction } from '../schemas/transaction.schema';
 import { Family } from '../schemas/family.schema';
 import { Budget } from '../schemas/budget.schema';
 import { User } from '../schemas/user.schema';
 import { GoalContribution } from '../schemas/goal-contribution.schema';
 import { Model } from 'mongoose';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('TransactionsService', () => {
   let service: TransactionsService;
   let transactionModel: Model<Transaction>;
   let familyModel: Model<Family>;
+  let budgetModel: Model<Budget>;
   let contributionModel: Model<GoalContribution>;
 
   const mockTransaction = {
@@ -36,6 +38,7 @@ describe('TransactionsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        CategorizationService,
         {
           provide: getModelToken(Transaction.name),
           useValue: {
@@ -88,6 +91,7 @@ describe('TransactionsService', () => {
       getModelToken(Transaction.name),
     );
     familyModel = module.get<Model<Family>>(getModelToken(Family.name));
+    budgetModel = module.get<Model<Budget>>(getModelToken(Budget.name));
     contributionModel = module.get<Model<GoalContribution>>(
       getModelToken(GoalContribution.name),
     );
@@ -269,6 +273,66 @@ describe('TransactionsService', () => {
       await expect(
         service.remove(mockTransaction._id, null, 'otherUser'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('quickCreate', () => {
+    beforeEach(() => {
+      jest.spyOn(familyModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockFamily),
+      } as any);
+      jest.spyOn(budgetModel, 'findOne').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      } as any);
+      jest
+        .spyOn(transactionModel, 'create')
+        .mockImplementation(async (data: any) => data);
+    });
+
+    it('parses "15 padaria" into an expense categorized as Food', async () => {
+      const result = await service.quickCreate('15 padaria', undefined, 'userId', 'familyId');
+
+      expect(result.parsed).toMatchObject({
+        amount: 15,
+        description: 'padaria',
+        type: 'expense',
+        category: 'Food',
+      });
+      expect(transactionModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 15, type: 'expense', isFixed: false }),
+      );
+    });
+
+    it('parses "+2000 salário" into an income categorized as Salary', async () => {
+      const result = await service.quickCreate('+2000 salário', undefined, 'userId', 'familyId');
+
+      expect(result.parsed).toMatchObject({
+        amount: 2000,
+        type: 'income',
+        category: 'Salary',
+      });
+    });
+
+    it('parses pt-BR formatted amounts like "1.234,56 aluguel"', async () => {
+      const result = await service.quickCreate('1.234,56 aluguel', undefined, 'userId', 'familyId');
+
+      expect(result.parsed).toMatchObject({
+        amount: 1234.56,
+        description: 'aluguel',
+        category: 'Housing',
+      });
+    });
+
+    it('rejects text without an amount', async () => {
+      await expect(
+        service.quickCreate('padaria', undefined, 'userId', 'familyId'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects text without a description', async () => {
+      await expect(
+        service.quickCreate('R$ 15', undefined, 'userId', 'familyId'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

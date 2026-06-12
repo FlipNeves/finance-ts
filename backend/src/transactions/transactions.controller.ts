@@ -14,6 +14,9 @@ import {
 import { TransactionsService } from './transactions.service';
 import { StatementImportService } from './statement-import.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { QuickTransactionDto } from './dto/quick-transaction.dto';
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)
@@ -30,10 +33,24 @@ export class TransactionsController {
   }
 
   @Post()
-  async create(@Body() createTransactionDto: any, @Req() req: any) {
+  async create(
+    @Body() createTransactionDto: CreateTransactionDto,
+    @Req() req: any,
+  ) {
     const familyId = this.getFamilyId(req);
     return this.transactionsService.create(
       createTransactionDto,
+      req.user._id,
+      familyId,
+    );
+  }
+
+  @Post('quick')
+  async quickCreate(@Body() body: QuickTransactionDto, @Req() req: any) {
+    const familyId = this.getFamilyId(req);
+    return this.transactionsService.quickCreate(
+      body.text,
+      body.date,
       req.user._id,
       familyId,
     );
@@ -97,7 +114,7 @@ export class TransactionsController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateTransactionDto: any,
+    @Body() updateTransactionDto: UpdateTransactionDto,
     @Req() req: any,
   ) {
     const familyId = this.getFamilyId(req);

@@ -56,7 +56,7 @@ describe('TransactionsController', () => {
         amount: 10,
         type: 'expense',
         category: 'Food',
-        date: new Date(),
+        date: new Date().toISOString(),
       };
       const req = { user: { _id: 'userId', familyId: 'familyId' } };
       mockTransactionsService.create.mockResolvedValue({
