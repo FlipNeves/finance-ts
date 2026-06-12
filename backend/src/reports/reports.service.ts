@@ -11,6 +11,13 @@ export class ReportsService {
     @InjectModel(Budget.name) private budgetModel: Model<Budget>,
   ) {}
 
+  // Aggregation pipelines bypass mongoose casting, so owner ids must be real
+  // ObjectIds here — a string familyId silently matches nothing.
+  private ownerMatch(familyId: string | null, userId: string): any {
+    if (familyId) return { familyId: new Types.ObjectId(familyId) };
+    return { userId: new Types.ObjectId(String(userId)), familyId: null };
+  }
+
   async getFamilySummary(
     familyId: string | null,
     userId: string,
@@ -20,12 +27,7 @@ export class ReportsService {
     const matchQuery: any = {
       date: { $gte: startDate, $lte: endDate },
     };
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
 
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },
@@ -84,9 +86,11 @@ export class ReportsService {
     // Budget global limit
     const m = startDate.getMonth() + 1;
     const y = startDate.getFullYear();
-    const budgetQuery: any = { month: m, year: y };
-    if (familyId) budgetQuery.familyId = familyId;
-    else { budgetQuery.userId = userId; budgetQuery.familyId = null; }
+    const budgetQuery: any = {
+      month: m,
+      year: y,
+      ...this.ownerMatch(familyId, userId),
+    };
 
     const budget = await this.budgetModel.findOne(budgetQuery).exec();
     if (budget) {
@@ -108,12 +112,7 @@ export class ReportsService {
       type: 'expense'
     };
     
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
 
     const results = await this.transactionModel
       .aggregate([
@@ -154,12 +153,7 @@ export class ReportsService {
     const matchQuery: any = {
       date: { $gte: startDate, $lte: endDate },
     };
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
 
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },
@@ -216,12 +210,7 @@ export class ReportsService {
       type: 'expense',
     };
 
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
 
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },
@@ -267,12 +256,7 @@ export class ReportsService {
       matchQuery.type = 'expense';
     }
 
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
 
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },
@@ -307,12 +291,7 @@ export class ReportsService {
       date: { $gte: startDate, $lte: endDate },
     };
 
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
 
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },
@@ -355,7 +334,7 @@ export class ReportsService {
     }
 
     const matchQuery: any = {
-      familyId: familyId,
+      familyId: new Types.ObjectId(familyId),
       date: { $gte: startDate, $lte: endDate },
     };
 
@@ -433,13 +412,11 @@ export class ReportsService {
     const currEnd = new Date(Date.UTC(refYear, refMonth + 1, 1));
     const lastDayCurrentMonth = new Date(Date.UTC(refYear, refMonth + 1, 0)).getUTCDate();
 
-    const baseQuery: any = { isFixed: true, type: 'expense' };
-    if (familyId) {
-      baseQuery.familyId = familyId;
-    } else {
-      baseQuery.userId = userId;
-      baseQuery.familyId = null;
-    }
+    const baseQuery: any = {
+      isFixed: true,
+      type: 'expense',
+      ...this.ownerMatch(familyId, userId),
+    };
 
     const [prevFixed, currFixed] = await Promise.all([
       this.transactionModel.find({ ...baseQuery, date: { $gte: prevStart, $lt: prevEnd } }).exec(),
@@ -498,13 +475,10 @@ export class ReportsService {
     const prevEnd = new Date(Date.UTC(refYear, refMonth, 1));
     const lastDayCurrentMonth = new Date(Date.UTC(refYear, refMonth + 1, 0)).getUTCDate();
 
-    const baseQuery: any = { type: 'income' };
-    if (familyId) {
-      baseQuery.familyId = familyId;
-    } else {
-      baseQuery.userId = userId;
-      baseQuery.familyId = null;
-    }
+    const baseQuery: any = {
+      type: 'income',
+      ...this.ownerMatch(familyId, userId),
+    };
 
     const [prevIncome, currIncome] = await Promise.all([
       this.transactionModel.find({ ...baseQuery, date: { $gte: prevStart, $lt: prevEnd } }).exec(),
@@ -560,12 +534,7 @@ export class ReportsService {
 
   async getTotalAccumulated(familyId: string | null, userId: string): Promise<any> {
     const matchQuery: any = {};
-    if (familyId) {
-      matchQuery.familyId = familyId;
-    } else {
-      matchQuery.userId = userId;
-      matchQuery.familyId = null;
-    }
+    Object.assign(matchQuery, this.ownerMatch(familyId, userId));
     
     const results = await this.transactionModel.aggregate([
       { $match: matchQuery },

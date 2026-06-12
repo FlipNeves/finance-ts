@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, SchemaTypes, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class GoalContribution extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'Goal', required: true })
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Goal', required: true })
   goalId: Types.ObjectId;
 
   @Prop({ required: true })
@@ -15,13 +15,13 @@ export class GoalContribution extends Document {
   @Prop({ type: String, default: null })
   note: string | null;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Family', default: null })
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Family', default: null })
   familyId: Types.ObjectId | null;
 
-  @Prop({ type: Types.ObjectId, ref: 'Transaction', default: null })
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Transaction', default: null })
   transactionId: Types.ObjectId | null;
 }
 

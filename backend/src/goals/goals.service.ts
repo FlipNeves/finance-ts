@@ -276,10 +276,11 @@ export class GoalsService {
     );
     const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
+    // Aggregations bypass mongoose casting — owner ids must be ObjectIds.
     const match: any = { date: { $gte: start, $lte: end } };
-    if (familyId) match.familyId = familyId;
+    if (familyId) match.familyId = new Types.ObjectId(familyId);
     else {
-      match.userId = userId;
+      match.userId = new Types.ObjectId(String(userId));
       match.familyId = null;
     }
 

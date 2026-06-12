@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, SchemaTypes, Types } from 'mongoose';
 
 const SENSITIVE_USER_FIELDS = [
   'passwordHash',
@@ -33,7 +33,7 @@ export class User extends Document {
   @Prop({ type: [String], default: [] })
   bankAccounts: string[];
 
-  @Prop({ type: Types.ObjectId, ref: 'Family', default: null })
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Family', default: null })
   familyId: Types.ObjectId | null;
 
   @Prop({ default: 'en-US' })
