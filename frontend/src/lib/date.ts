@@ -14,9 +14,11 @@ export function getMonthRange(reference: Date, now: Date = new Date()): MonthRan
   const year = reference.getFullYear();
   const month = reference.getMonth();
 
-  const start = new Date(year, month, 1);
-  const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
-  const daysInMonth = end.getDate();
+  // UTC boundaries: transactions are stored as date-only values pinned to
+  // UTC midnight, so local-time boundaries would clip the first/last day.
+  const start = new Date(Date.UTC(year, month, 1));
+  const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+  const daysInMonth = end.getUTCDate();
   const isCurrentMonth = now.getMonth() === month && now.getFullYear() === year;
   const daysPassed = isCurrentMonth ? now.getDate() : daysInMonth;
 

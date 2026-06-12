@@ -249,14 +249,19 @@ export class StatementParserService {
     return negative ? -Math.abs(value) : value;
   }
 
-  /** Parses DD/MM/YYYY, DD/MM/YY, YYYY-MM-DD and DD/MM (current year). */
+  /**
+   * Parses DD/MM/YYYY, DD/MM/YY, YYYY-MM-DD and DD/MM (current year).
+   * Dates are pinned to UTC midnight — the same convention the manual entry
+   * modal uses — so date-range filters behave identically for imported and
+   * hand-entered transactions regardless of server timezone.
+   */
   parseDate(raw: string): Date | null {
     if (!raw) return null;
     const s = raw.trim();
 
     let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); // ISO
     if (m) {
-      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
       return isNaN(d.getTime()) ? null : d;
     }
 
@@ -264,13 +269,15 @@ export class StatementParserService {
     if (m) {
       let year = Number(m[3]);
       if (year < 100) year += 2000;
-      const d = new Date(year, Number(m[2]) - 1, Number(m[1]));
+      const d = new Date(Date.UTC(year, Number(m[2]) - 1, Number(m[1])));
       return isNaN(d.getTime()) ? null : d;
     }
 
     m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})$/); // DD/MM
     if (m) {
-      const d = new Date(new Date().getFullYear(), Number(m[2]) - 1, Number(m[1]));
+      const d = new Date(
+        Date.UTC(new Date().getFullYear(), Number(m[2]) - 1, Number(m[1])),
+      );
       return isNaN(d.getTime()) ? null : d;
     }
 

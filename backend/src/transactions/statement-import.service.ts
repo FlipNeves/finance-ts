@@ -77,11 +77,12 @@ export class StatementImportService {
     const userCategories = await this.getCategories(userId, familyId);
 
     // Date window covered by the statement, to scope duplicate lookups.
+    // UTC boundaries to match the UTC-midnight convention of stored dates.
     const dates = parsed.map((r) => r.date.getTime());
     const start = new Date(Math.min(...dates));
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
     const end = new Date(Math.max(...dates));
-    end.setHours(23, 59, 59, 999);
+    end.setUTCHours(23, 59, 59, 999);
 
     const existing = await this.transactionModel
       .find({ ...this.ownerQuery(userId, familyId), date: { $gte: start, $lte: end } })
