@@ -26,6 +26,27 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
       }),
   });
 
+  const prevRange = useMonthRange(
+    useMemo(
+      () => new Date(reference.getFullYear(), reference.getMonth() - 1, 1),
+      [reference],
+    ),
+  );
+  const spendingPrev = useQuery({
+    queryKey: [
+      'reports',
+      'spending-by-category',
+      { startISO: prevRange.startISO, endISO: prevRange.endISO },
+      typeFilter,
+    ],
+    queryFn: () =>
+      reportsApi.spendingByCategory({
+        startDate: prevRange.startISO,
+        endDate: prevRange.endISO,
+        type: typeFilter,
+      }),
+  });
+
   const transactions = useQuery({
     queryKey: ['transactions', { ...rangeKey, type: typeFilter }],
     queryFn: () =>
@@ -122,6 +143,7 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
       isLoading,
       summary,
       spending,
+      spendingPrev,
       transactions,
       evolution,
       topSpending,
@@ -137,6 +159,7 @@ export function useDashboardData(reference: Date, typeFilter: TypeFilter) {
       isLoading,
       summary,
       spending,
+      spendingPrev,
       transactions,
       evolution,
       topSpending,

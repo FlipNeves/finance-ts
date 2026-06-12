@@ -24,9 +24,18 @@ interface Props {
   upcomingFixed: UpcomingFixed[];
   incomeSummary: IncomeSummary;
   summary: Summary | undefined;
+  onLaunchFixed?: (items: UpcomingFixed[]) => void;
+  launchingFixed?: boolean;
 }
 
-export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summary }: Props) {
+export function DailySpendingChart({
+  daily,
+  upcomingFixed,
+  incomeSummary,
+  summary,
+  onLaunchFixed,
+  launchingFixed,
+}: Props) {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
   const { valuesHidden } = usePrivacy();
@@ -326,7 +335,7 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
               amount: maskMoney(upcomingFixedTotal),
             })}
           </summary>
-          <ul className="upcoming-fixed-list">
+          <ul className={`upcoming-fixed-list${onLaunchFixed ? ' has-launch' : ''}`}>
             {upcomingFixed.map((f, i) => (
               <li key={i}>
                 <span className="uf-day">{t('dashboard.upcomingFixedDay', { day: f.day })}</span>
@@ -335,9 +344,33 @@ export function DailySpendingChart({ daily, upcomingFixed, incomeSummary, summar
                 <span className="uf-amount">
                   <Money value={Number(f.amount)} />
                 </span>
+                {onLaunchFixed && (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm uf-launch"
+                    disabled={launchingFixed}
+                    onClick={() => onLaunchFixed([f])}
+                  >
+                    {t('dashboard.launchFixed')}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
+          {onLaunchFixed && upcomingFixed.length > 1 && (
+            <div className="uf-launch-all">
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={launchingFixed}
+                onClick={() => onLaunchFixed(upcomingFixed)}
+              >
+                {launchingFixed
+                  ? t('common.loading')
+                  : t('dashboard.launchAllFixed', { count: upcomingFixed.length })}
+              </button>
+            </div>
+          )}
         </details>
       )}
     </div>

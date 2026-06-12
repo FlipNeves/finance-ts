@@ -281,6 +281,28 @@
 .uf-amount.income { color: var(--primary); }
 .uf-amount.muted { color: var(--text-secondary); }
 .upcoming-fixed-list li.row-missed .uf-desc { color: var(--text-secondary); }
+.upcoming-fixed-list.has-launch li { grid-template-columns: 64px 1fr auto auto auto; align-items: center; }
+.uf-launch { white-space: nowrap; }
+.uf-launch-all { display: flex; justify-content: flex-end; padding-top: 10px; }
+
+/* Quick add bar */
+.quick-add { margin: 20px 0 8px; }
+.quick-add-row { display: flex; gap: 8px; }
+.quick-add-input { flex: 1; padding: 10px 14px; font-family: "Outfit", system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg-card); border: 1px solid var(--border); outline: none; transition: border-color 0.15s; }
+.quick-add-input:focus { border-color: var(--primary); }
+.quick-add-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+.quick-add-feedback { margin: 6px 2px 0; font-family: "Outfit", system-ui, sans-serif; font-size: 12px; color: var(--text-secondary); }
+.quick-add-feedback.is-error { color: var(--danger); }
+.quick-add-alert { color: var(--warning); }
+.quick-add-hint { display: block; margin: 6px 2px 0; font-family: "Outfit", system-ui, sans-serif; font-size: 11px; letter-spacing: 0.02em; color: var(--text-secondary); opacity: 0.8; }
+
+/* Month-over-month strip */
+.mom-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: var(--hair); font-family: "Outfit", system-ui, sans-serif; }
+.mom-title { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); }
+.mom-chip { padding: 2px 8px; font-size: 11px; border: 1px solid var(--border); color: var(--text-secondary); }
+.mom-chip.is-up { border-color: var(--danger); color: var(--danger); }
+.mom-chip.is-down { border-color: var(--primary); color: var(--primary); }
+
 .row-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--border); color: var(--text-secondary); }
 .row-tag.warning { border-color: var(--warning); color: var(--warning); }
 .badge-warning { color: var(--warning); }

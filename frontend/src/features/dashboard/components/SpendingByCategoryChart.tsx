@@ -15,13 +15,26 @@ import type { SpendingByCategory } from '../../../types/api';
 
 interface Props {
   spending: SpendingByCategory[];
+  prevSpending?: SpendingByCategory[];
   colors: string[];
 }
 
-export function SpendingByCategoryChart({ spending, colors }: Props) {
+export function SpendingByCategoryChart({ spending, prevSpending = [], colors }: Props) {
   const { t } = useTranslation();
   const { translateCategory } = useCategoryTranslation();
   const { valuesHidden } = usePrivacy();
+
+  const prevByCategory = new Map(prevSpending.map((p) => [p.category, p.amount]));
+  const movers = spending
+    .map((s) => {
+      const prev = prevByCategory.get(s.category) ?? 0;
+      if (prev <= 0) return null;
+      const delta = ((s.amount - prev) / prev) * 100;
+      return { category: s.category, delta };
+    })
+    .filter((m): m is { category: string; delta: number } => m !== null && Math.abs(m.delta) >= 1)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 4);
 
   return (
     <div className="card chart-card">
@@ -76,6 +89,21 @@ export function SpendingByCategoryChart({ spending, colors }: Props) {
           <div className="chart-empty">{t('dashboard.noData')}</div>
         )}
       </div>
+      {movers.length > 0 && (
+        <div className="mom-strip">
+          <span className="mom-title">{t('dashboard.momTitle')}</span>
+          {movers.map((m) => (
+            <span
+              key={m.category}
+              className={`mom-chip ${m.delta > 0 ? 'is-up' : 'is-down'}`}
+            >
+              {translateCategory(m.category)}{' '}
+              {m.delta > 0 ? '+' : ''}
+              {m.delta.toFixed(0)}%
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

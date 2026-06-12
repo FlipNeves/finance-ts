@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -9,8 +10,10 @@ import BudgetModal from '../budget/BudgetModal';
 import AccountBalanceCard from '../../components/AccountBalanceCard';
 import InsightsPanel from './components/InsightsPanel';
 import MemberSpendingCard from './components/MemberSpendingCard';
-import type { TypeFilter } from '../../types/api';
+import type { TypeFilter, UpcomingFixed } from '../../types/api';
+import { transactionsApi } from '../../lib/api';
 import { useDashboardData, useDashboardInvalidation } from './hooks/useDashboardData';
+import { QuickAddBar } from './components/QuickAddBar';
 import { buildDailyProjection } from './lib/dailyProjection';
 import { generateInsights } from './lib/insights';
 import { DashboardHeader } from './components/DashboardHeader';
@@ -41,6 +44,24 @@ export default function DashboardPage() {
 
   const data = useDashboardData(currentMonth, typeFilter);
   const invalidateDashboard = useDashboardInvalidation();
+
+  const launchFixedMutation = useMutation({
+    mutationFn: async (items: UpcomingFixed[]) => {
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      for (const f of items) {
+        await transactionsApi.create({
+          description: f.description,
+          amount: f.amount,
+          type: 'expense',
+          category: f.category,
+          date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(f.day)}`,
+          isFixed: true,
+        });
+      }
+    },
+    onSuccess: invalidateDashboard,
+  });
 
   const colors = theme === 'light' ? LIGHT_COLORS : DARK_COLORS;
 
@@ -130,6 +151,8 @@ export default function DashboardPage() {
         onOpenBudget={() => setIsBudgetOpen(true)}
       />
 
+      <QuickAddBar onSuccess={invalidateDashboard} />
+
       {summary && (
         <SummaryGrid
           summary={summary}
@@ -149,6 +172,8 @@ export default function DashboardPage() {
           upcomingFixed={upcomingFixed}
           incomeSummary={incomeSummary}
           summary={summary}
+          onLaunchFixed={(items) => launchFixedMutation.mutate(items)}
+          launchingFixed={launchFixedMutation.isPending}
         />
       </div>
 
@@ -168,7 +193,11 @@ export default function DashboardPage() {
       />
 
       <div className="charts-grid">
-        <SpendingByCategoryChart spending={spending} colors={colors} />
+        <SpendingByCategoryChart
+          spending={spending}
+          prevSpending={data.spendingPrev.data ?? []}
+          colors={colors}
+        />
         <TopSpendingList topSpending={topSpending} />
         {accountsReport.length > 0 && (
           <div className="card chart-card">
