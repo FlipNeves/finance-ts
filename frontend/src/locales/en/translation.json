@@ -102,6 +102,8 @@
     "step2": "Step 2: Amount",
     "step3": "Step 3: Account & Date",
     "noTransactions": "No transactions found.",
+    "dataOutsideFilter": "There are {{count}} transactions outside the filtered period, between {{start}} and {{end}}.",
+    "showAllPeriod": "Show full period",
     "noCategoriesYet": "No categories yet — create one →",
     "noAccountsYet": "No accounts yet — create one →",
     "categoryError": "Error creating category.",
@@ -147,6 +149,7 @@
       "commitError": "Error importing transactions.",
       "successTitle": "Import complete",
       "successBody": "{{inserted}} transaction(s) imported. {{skipped}} duplicate(s) skipped.",
+      "successBodyPeriod": "{{inserted}} transaction(s) imported covering {{start}} to {{end}}. The list now shows that period.",
       "back": "Back"
     }
   },
@@ -231,6 +234,9 @@
     "dailyTargetLabel": "Target/day: R$ {{amount}}",
     "upcomingFixedSummary": "{{count}} scheduled fixed bills until end of month · R$ {{amount}}",
     "upcomingFixedDay": "Day {{day}}",
+    "launchFixed": "Add",
+    "launchAllFixed": "Add all ({{count}})",
+    "momTitle": "vs previous month",
     "spentLabel": "Expenses",
     "incomeLabel": "Income",
     "balanceLabel": "Balance",
@@ -345,6 +351,14 @@
     "Income": "Income",
     "Receita": "Income",
     "Aporte": "Goal contribution"
+  },
+  "quickAdd": {
+    "label": "Quick add",
+    "placeholder": "Quick add: e.g. \"15 bakery\" or \"+2000 salary\"",
+    "submit": "Add",
+    "added": "Added",
+    "error": "Couldn't parse it. Type amount and description, e.g. \"15 bakery\".",
+    "hint": "Amount + description, then Enter. Use \"+\" for income — the category is inferred automatically."
   },
   "chat": {
     "title": "Smart Assistant",

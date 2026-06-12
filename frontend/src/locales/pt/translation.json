@@ -102,6 +102,8 @@
     "step2": "Etapa 2: Valor",
     "step3": "Etapa 3: Conta e Data",
     "noTransactions": "Nenhuma transação encontrada.",
+    "dataOutsideFilter": "Existem {{count}} transações fora do período filtrado, entre {{start}} e {{end}}.",
+    "showAllPeriod": "Mostrar período completo",
     "noCategoriesYet": "Nenhuma categoria ainda — crie uma →",
     "noAccountsYet": "Nenhuma conta ainda — crie uma →",
     "categoryError": "Erro ao criar categoria.",
@@ -147,6 +149,7 @@
       "commitError": "Erro ao importar as transações.",
       "successTitle": "Importação concluída",
       "successBody": "{{inserted}} transação(ões) importada(s). {{skipped}} duplicata(s) ignorada(s).",
+      "successBodyPeriod": "{{inserted}} transação(ões) importada(s) no período de {{start}} a {{end}}. A lista foi ajustada para mostrar esse período.",
       "back": "Voltar"
     }
   },
@@ -231,6 +234,9 @@
     "dailyTargetLabel": "Meta/dia: R$ {{amount}}",
     "upcomingFixedSummary": "{{count}} contas fixas previstas até o fim do mês · R$ {{amount}}",
     "upcomingFixedDay": "Dia {{day}}",
+    "launchFixed": "Lançar",
+    "launchAllFixed": "Lançar todas ({{count}})",
+    "momTitle": "vs mês anterior",
     "spentLabel": "Despesa",
     "incomeLabel": "Receita",
     "balanceLabel": "Saldo",
@@ -344,6 +350,14 @@
     "Contas": "Contas",
     "Income": "Receita",
     "Aporte": "Aporte"
+  },
+  "quickAdd": {
+    "label": "Lançamento rápido",
+    "placeholder": "Lançamento rápido: ex. \"15 padaria\" ou \"+2000 salário\"",
+    "submit": "Lançar",
+    "added": "Lançado",
+    "error": "Não entendi. Digite valor e descrição, ex. \"15 padaria\".",
+    "hint": "Valor + descrição e Enter. Use \"+\" para receitas — a categoria é inferida automaticamente."
   },
   "chat": {
     "title": "Assistente Inteligente",
