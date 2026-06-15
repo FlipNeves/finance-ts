@@ -5,6 +5,8 @@ import { TransactionsService } from './transactions.service';
 import { CategorizationService } from './categorization.service';
 import { StatementParserService } from './statement-parser.service';
 import { StatementImportService } from './statement-import.service';
+import { PdfTextExtractorService } from './pdf-text-extractor.service';
+import { ItauStatementParserService } from './itau-statement-parser.service';
 import { Transaction, TransactionSchema } from '../schemas/transaction.schema';
 import { Family, FamilySchema } from '../schemas/family.schema';
 import { Budget, BudgetSchema } from '../schemas/budget.schema';
@@ -30,6 +32,8 @@ import {
     CategorizationService,
     StatementParserService,
     StatementImportService,
+    PdfTextExtractorService,
+    ItauStatementParserService,
   ],
   exports: [TransactionsService, CategorizationService],
 })

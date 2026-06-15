@@ -9,8 +9,11 @@ import {
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { TransactionsService } from './transactions.service';
 import { StatementImportService } from './statement-import.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -79,6 +82,32 @@ export class TransactionsController {
     const familyId = this.getFamilyId(req);
     return this.statementImportService.preview(
       body?.csv,
+      req.user._id,
+      familyId,
+      body?.bankAccount,
+    );
+  }
+
+  @Post('import/preview-pdf')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      // In-memory (file.buffer), never touches disk.
+      limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+      fileFilter: (_req, file, cb) => {
+        const ok = file.mimetype === 'application/pdf';
+        cb(ok ? null : new BadRequestException('Only PDF files are accepted'), ok);
+      },
+    }),
+  )
+  async importPreviewPdf(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    if (!file) throw new BadRequestException('No PDF file uploaded');
+    const familyId = this.getFamilyId(req);
+    return this.statementImportService.previewPdf(
+      file.buffer,
       req.user._id,
       familyId,
       body?.bankAccount,

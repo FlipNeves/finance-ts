@@ -4,8 +4,10 @@ import { Model, Types } from 'mongoose';
 import { Transaction } from '../schemas/transaction.schema';
 import { Family } from '../schemas/family.schema';
 import { User } from '../schemas/user.schema';
-import { StatementParserService } from './statement-parser.service';
+import { StatementParserService, ParsedStatementRow } from './statement-parser.service';
 import { CategorizationService } from './categorization.service';
+import { PdfTextExtractorService } from './pdf-text-extractor.service';
+import { ItauStatementParserService } from './itau-statement-parser.service';
 
 export interface ImportPreviewRow {
   tempId: string;
@@ -42,6 +44,8 @@ export class StatementImportService {
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly parser: StatementParserService,
     private readonly categorization: CategorizationService,
+    private readonly pdfExtractor: PdfTextExtractorService,
+    private readonly itauParser: ItauStatementParserService,
   ) {}
 
   private ownerQuery(userId: string, familyId: string | null) {
@@ -68,8 +72,36 @@ export class StatementImportService {
     if (!csv || !csv.trim()) {
       throw new BadRequestException('Empty statement content');
     }
+    return this.previewRows(
+      this.parser.parse(csv),
+      userId,
+      familyId,
+      defaultBankAccount,
+    );
+  }
 
-    const parsed = this.parser.parse(csv);
+  /** Extracts and parses an Itaú PDF, then shares the CSV preview flow. */
+  async previewPdf(
+    buffer: Buffer,
+    userId: string,
+    familyId: string | null,
+    defaultBankAccount?: string,
+  ): Promise<ImportPreviewResult> {
+    const items = await this.pdfExtractor.extract(buffer);
+    return this.previewRows(
+      this.itauParser.parse(items),
+      userId,
+      familyId,
+      defaultBankAccount,
+    );
+  }
+
+  private async previewRows(
+    parsed: ParsedStatementRow[],
+    userId: string,
+    familyId: string | null,
+    defaultBankAccount?: string,
+  ): Promise<ImportPreviewResult> {
     if (parsed.length === 0) {
       throw new BadRequestException('No transactions could be read from the statement');
     }
