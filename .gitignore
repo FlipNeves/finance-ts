@@ -32,3 +32,7 @@ out/
 
 # Conductor temporary files
 .gemini/
+
+# Local bank statements used for parser calibration — sensitive (CPF, account)
+*.pdf
+itau_extrato_*
