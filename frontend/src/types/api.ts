@@ -293,6 +293,16 @@ export interface ImportPreviewDTO {
   bankAccount?: string;
 }
 
+export interface ImportPreviewPdfDTO {
+  file: File;
+  bankAccount?: string;
+}
+
+/** CSV text or a binary PDF; lets the modal route to the right endpoint. */
+export type ImportSource =
+  | { kind: 'csv'; csv: string }
+  | { kind: 'pdf'; file: File };
+
 export interface ImportCommitResponse {
   inserted: number;
   importBatchId: string;

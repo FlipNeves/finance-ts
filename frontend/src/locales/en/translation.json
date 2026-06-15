@@ -115,9 +115,10 @@
     "import": {
       "button": "Import statement",
       "title": "Import bank statement",
-      "uploadTitle": "Upload your CSV statement",
-      "uploadHint": "Select a CSV file exported from your bank (in Excel, use Save as → CSV) or paste its content below.",
-      "chooseFile": "Choose CSV file",
+      "uploadTitle": "Upload your statement (CSV or PDF)",
+      "uploadHint": "Select a CSV file exported from your bank (in Excel, use Save as → CSV), a PDF statement (Itaú), or paste its content below.",
+      "chooseFile": "Choose file",
+      "pdfSelected": "PDF selected — click Analyze to read the transactions.",
       "orPaste": "or paste the statement content",
       "pastePlaceholder": "Date;Description;Amount\n06/01/2026;Supermarket;-150.00\n06/05/2026;Salary;3000.00",
       "defaultAccount": "Bank account (applied to rows)",

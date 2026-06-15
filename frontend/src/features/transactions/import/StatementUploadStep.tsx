@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ImportSource } from '../../../types/api';
 
 type StatementUploadStepProps = {
   bankAccounts: string[];
   loading: boolean;
   error?: string | null;
-  onAnalyze: (csv: string, bankAccount: string) => void;
+  onAnalyze: (source: ImportSource, bankAccount: string) => void;
 };
 
 export default function StatementUploadStep({
@@ -18,6 +19,7 @@ export default function StatementUploadStep({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [csv, setCsv] = useState('');
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
   const [bankAccount, setBankAccount] = useState('');
 
@@ -25,6 +27,17 @@ export default function StatementUploadStep({
     const file = e.target.files?.[0];
     if (!file) return;
     setFileName(file.name);
+
+    const isPdf =
+      file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    if (isPdf) {
+      // PDFs are binary — keep the File and let the backend extract the text.
+      setPdfFile(file);
+      setCsv('');
+      return;
+    }
+
+    setPdfFile(null);
     const reader = new FileReader();
     reader.onload = () => {
       const buf = reader.result as ArrayBuffer;
@@ -39,7 +52,12 @@ export default function StatementUploadStep({
     reader.readAsArrayBuffer(file);
   };
 
-  const canAnalyze = csv.trim().length > 0 && !loading;
+  const handleAnalyze = () => {
+    if (pdfFile) onAnalyze({ kind: 'pdf', file: pdfFile }, bankAccount);
+    else onAnalyze({ kind: 'csv', csv }, bankAccount);
+  };
+
+  const canAnalyze = (pdfFile !== null || csv.trim().length > 0) && !loading;
 
   return (
     <div className="si-step">
@@ -50,7 +68,7 @@ export default function StatementUploadStep({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv,text/csv"
+          accept=".csv,text/csv,.pdf,application/pdf"
           className="si-file-input"
           onChange={handleFile}
         />
@@ -64,6 +82,10 @@ export default function StatementUploadStep({
         {fileName && <span className="si-file-name">{fileName}</span>}
       </div>
 
+      {pdfFile && (
+        <p className="si-hint">{t('transactions.import.pdfSelected')}</p>
+      )}
+
       <div className="si-field">
         <label className="form-label">{t('transactions.import.orPaste')}</label>
         <textarea
@@ -72,6 +94,8 @@ export default function StatementUploadStep({
           value={csv}
           onChange={(e) => {
             setCsv(e.target.value);
+            // Typing/pasting CSV supersedes a chosen PDF.
+            if (pdfFile) setPdfFile(null);
             if (fileName) setFileName('');
           }}
           placeholder={t('transactions.import.pastePlaceholder')}
@@ -102,7 +126,7 @@ export default function StatementUploadStep({
         type="button"
         className="btn btn-primary si-full-btn"
         disabled={!canAnalyze}
-        onClick={() => onAnalyze(csv, bankAccount)}
+        onClick={handleAnalyze}
       >
         {loading ? t('transactions.import.analyzing') : t('transactions.import.analyze')}
       </button>

@@ -115,9 +115,10 @@
     "import": {
       "button": "Importar extrato",
       "title": "Importar extrato bancário",
-      "uploadTitle": "Envie o extrato em CSV",
-      "uploadHint": "Selecione um arquivo CSV exportado do seu banco (no Excel, use Salvar como → CSV) ou cole o conteúdo abaixo.",
-      "chooseFile": "Escolher arquivo CSV",
+      "uploadTitle": "Envie o extrato (CSV ou PDF)",
+      "uploadHint": "Selecione um arquivo CSV exportado do seu banco (no Excel, use Salvar como → CSV), um extrato em PDF (Itaú) ou cole o conteúdo abaixo.",
+      "chooseFile": "Escolher arquivo",
+      "pdfSelected": "PDF selecionado — clique em Analisar para ler as transações.",
       "orPaste": "ou cole o conteúdo do extrato",
       "pastePlaceholder": "Data;Descrição;Valor\n01/06/2026;Supermercado;-150,00\n05/06/2026;Salário;3000,00",
       "defaultAccount": "Conta bancária (aplicada às linhas)",

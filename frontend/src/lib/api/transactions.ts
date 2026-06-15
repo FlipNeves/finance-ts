@@ -5,6 +5,7 @@ import type {
   CreateTransactionResponse,
   TransactionsFilter,
   ImportPreviewDTO,
+  ImportPreviewPdfDTO,
   ImportPreviewResponse,
   ImportPreviewRow,
   ImportCommitResponse,
@@ -39,6 +40,15 @@ export const transactionsApi = {
     apiClient
       .post<ImportPreviewResponse>('/transactions/import/preview', payload)
       .then((r) => r.data),
+  importPreviewPdf: ({ file, bankAccount }: ImportPreviewPdfDTO) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (bankAccount) form.append('bankAccount', bankAccount);
+    // Let the browser/axios set the multipart boundary in Content-Type.
+    return apiClient
+      .post<ImportPreviewResponse>('/transactions/import/preview-pdf', form)
+      .then((r) => r.data);
+  },
   importCommit: (rows: ImportPreviewRow[]) =>
     apiClient
       .post<ImportCommitResponse>('/transactions/import/commit', { rows })

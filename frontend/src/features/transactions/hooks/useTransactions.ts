@@ -4,6 +4,7 @@ import type {
   CreateTransactionDTO,
   TransactionsFilter,
   ImportPreviewDTO,
+  ImportPreviewPdfDTO,
   ImportPreviewRow,
   QuickAddDTO,
 } from '../../../types/api';
@@ -61,6 +62,13 @@ export function useDeleteTransaction() {
 export function useImportPreview() {
   return useMutation({
     mutationFn: (payload: ImportPreviewDTO) => transactionsApi.importPreview(payload),
+  });
+}
+
+export function useImportPreviewPdf() {
+  return useMutation({
+    mutationFn: (payload: ImportPreviewPdfDTO) =>
+      transactionsApi.importPreviewPdf(payload),
   });
 }
 

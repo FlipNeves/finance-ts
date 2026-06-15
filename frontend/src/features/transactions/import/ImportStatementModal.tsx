@@ -5,8 +5,12 @@ import { useCategories } from '../../../hooks/useCategories';
 import { useBankAccounts } from '../../../hooks/useBankAccounts';
 import { useCategoryTranslation } from '../../../hooks/useCategoryTranslation';
 import { useMessageModal } from '../../../contexts/MessageModalContext';
-import { useImportPreview, useImportCommit } from '../hooks/useTransactions';
-import type { ImportPreviewRow } from '../../../types/api';
+import {
+  useImportPreview,
+  useImportPreviewPdf,
+  useImportCommit,
+} from '../hooks/useTransactions';
+import type { ImportPreviewRow, ImportSource } from '../../../types/api';
 import StatementUploadStep from './StatementUploadStep';
 import StatementReviewTable from './StatementReviewTable';
 import StatementImportSummary from './StatementImportSummary';
@@ -35,6 +39,7 @@ export default function ImportStatementModal({
   const bankAccounts = useBankAccounts().data ?? [];
 
   const previewMutation = useImportPreview();
+  const previewPdfMutation = useImportPreviewPdf();
   const commitMutation = useImportCommit();
 
   const [step, setStep] = useState<'upload' | 'review'>('upload');
@@ -50,22 +55,26 @@ export default function ImportStatementModal({
   }, [isOpen]);
 
   // Server returns the parsed rows; from here on they are editable client state.
-  const handleAnalyze = (csv: string, bankAccount: string) => {
+  const handleAnalyze = (source: ImportSource, bankAccount: string) => {
     setError(null);
-    previewMutation.mutate(
-      { csv, bankAccount: bankAccount || undefined },
-      {
-        onSuccess: (data) => {
-          if (!data.rows || data.rows.length === 0) {
-            setError(t('transactions.import.noRows'));
-            return;
-          }
-          setRows(data.rows);
-          setStep('review');
-        },
-        onError: () => setError(t('transactions.import.parseError')),
+    const account = bankAccount || undefined;
+    const handlers = {
+      onSuccess: (data: { rows: ImportPreviewRow[] }) => {
+        if (!data.rows || data.rows.length === 0) {
+          setError(t('transactions.import.noRows'));
+          return;
+        }
+        setRows(data.rows);
+        setStep('review');
       },
-    );
+      onError: () => setError(t('transactions.import.parseError')),
+    };
+
+    if (source.kind === 'pdf') {
+      previewPdfMutation.mutate({ file: source.file, bankAccount: account }, handlers);
+    } else {
+      previewMutation.mutate({ csv: source.csv, bankAccount: account }, handlers);
+    }
   };
 
   const updateRow = (tempId: string, patch: Partial<ImportPreviewRow>) => {
@@ -141,7 +150,7 @@ export default function ImportStatementModal({
         {step === 'upload' ? (
           <StatementUploadStep
             bankAccounts={bankAccounts}
-            loading={previewMutation.isPending}
+            loading={previewMutation.isPending || previewPdfMutation.isPending}
             error={error}
             onAnalyze={handleAnalyze}
           />
