@@ -17,6 +17,8 @@ export interface ImportPreviewRow {
   amount: number;
   type: 'income' | 'expense';
   category: string;
+  categoryConfidence: number;
+  categorySource: string;
   bankAccount: string | null;
   fingerprint: string;
   isDuplicate: boolean;
@@ -54,13 +56,62 @@ export class StatementImportService {
       : { userId: new Types.ObjectId(userId), familyId: null };
   }
 
-  private async getCategories(userId: string, familyId: string | null): Promise<string[]> {
+  private async getOwnerLists(
+    userId: string,
+    familyId: string | null,
+  ): Promise<{ categories: string[]; bankAccounts: string[] }> {
     if (familyId) {
       const family = await this.familyModel.findById(familyId).exec();
-      return family?.customCategories || [];
+      return {
+        categories: family?.customCategories || [],
+        bankAccounts: family?.bankAccounts || [],
+      };
     }
     const user = await this.userModel.findById(userId).exec();
-    return user?.customCategories || [];
+    return {
+      categories: user?.customCategories || [],
+      bankAccounts: user?.bankAccounts || [],
+    };
+  }
+
+  private async buildHistoryIndex(
+    userId: string,
+    familyId: string | null,
+  ): Promise<Map<string, string>> {
+    const past = await this.transactionModel
+      .find({ ...this.ownerQuery(userId, familyId) })
+      .select('description category date')
+      .sort({ date: -1 })
+      .limit(3000)
+      .lean()
+      .exec();
+
+    const tally = new Map<string, Map<string, { count: number; last: number }>>();
+    for (const tx of past) {
+      if (!tx.category || tx.category === 'Other') continue;
+      const key = this.categorization.merchantKey(tx.description || '');
+      if (!key) continue;
+      const byCat = tally.get(key) || new Map();
+      const cur = byCat.get(tx.category) || { count: 0, last: 0 };
+      cur.count += 1;
+      cur.last = Math.max(cur.last, new Date(tx.date).getTime() || 0);
+      byCat.set(tx.category, cur);
+      tally.set(key, byCat);
+    }
+
+    const index = new Map<string, string>();
+    for (const [key, byCat] of tally) {
+      let bestCat = '';
+      let best = { count: 0, last: 0 };
+      for (const [cat, stat] of byCat) {
+        if (stat.count > best.count || (stat.count === best.count && stat.last > best.last)) {
+          best = stat;
+          bestCat = cat;
+        }
+      }
+      if (bestCat) index.set(key, bestCat);
+    }
+    return index;
   }
 
   async preview(
@@ -106,7 +157,11 @@ export class StatementImportService {
       throw new BadRequestException('No transactions could be read from the statement');
     }
 
-    const userCategories = await this.getCategories(userId, familyId);
+    const [{ categories: userCategories, bankAccounts: ownAccounts }, historyIndex] =
+      await Promise.all([
+        this.getOwnerLists(userId, familyId),
+        this.buildHistoryIndex(userId, familyId),
+      ]);
 
     // Date window covered by the statement, to scope duplicate lookups.
     // UTC boundaries to match the UTC-midnight convention of stored dates.
@@ -120,28 +175,26 @@ export class StatementImportService {
       .find({ ...this.ownerQuery(userId, familyId), date: { $gte: start, $lte: end } })
       .exec();
 
-    // Existing fingerprints (recomputed when older transactions predate imports).
-    const existingFingerprints = new Set<string>();
+    const existingCounts = new Map<string, number>();
     for (const tx of existing) {
       const fp =
         tx.importFingerprint ||
         this.parser.fingerprint(new Date(tx.date), tx.amount, tx.description);
-      existingFingerprints.add(fp);
+      existingCounts.set(fp, (existingCounts.get(fp) || 0) + 1);
     }
 
-    const seenInBatch = new Set<string>();
     const account = defaultBankAccount?.trim() || null;
 
     const rows: ImportPreviewRow[] = parsed.map((r, idx) => {
-      const isTransfer = this.categorization.isTransfer(r.description);
-      const category = isTransfer
-        ? 'Savings'
-        : this.categorization.categorize(r.description, r.type, userCategories);
+      const result = this.categorization.categorizeDetailed(r.description, r.type, {
+        userCategories,
+        historyIndex,
+        ownAccounts,
+      });
 
-      const duplicateOfExisting = existingFingerprints.has(r.fingerprint);
-      const duplicateInBatch = seenInBatch.has(r.fingerprint);
-      seenInBatch.add(r.fingerprint);
-      const isDuplicate = duplicateOfExisting || duplicateInBatch;
+      const remaining = existingCounts.get(r.fingerprint) || 0;
+      const isDuplicate = remaining > 0;
+      if (isDuplicate) existingCounts.set(r.fingerprint, remaining - 1);
 
       return {
         tempId: `${idx}-${r.fingerprint}`,
@@ -150,14 +203,14 @@ export class StatementImportService {
         originalDescription: r.description,
         amount: r.amount,
         type: r.type,
-        category,
+        category: result.category,
+        categoryConfidence: result.confidence,
+        categorySource: result.source,
         bankAccount: account,
         fingerprint: r.fingerprint,
         isDuplicate,
-        isTransfer,
-        // Everything is imported by default; isDuplicate/isTransfer are kept as
-        // informational flags only (non-blocking). User can deselect manually.
-        include: true,
+        isTransfer: result.isTransfer,
+        include: !isDuplicate,
       };
     });
 
