@@ -24,7 +24,13 @@ export class TransactionsService {
     'Savings',
     'Entertainment',
     'Personal',
+    'Shopping',
+    'Education',
+    'Fees',
     'Salary',
+    'InvestmentIncome',
+    'Income',
+    'Transfer',
     'Other',
   ];
 

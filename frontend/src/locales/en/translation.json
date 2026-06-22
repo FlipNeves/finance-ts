@@ -151,6 +151,13 @@
       "successTitle": "Import complete",
       "successBody": "{{inserted}} transaction(s) imported. {{skipped}} duplicate(s) skipped.",
       "successBodyPeriod": "{{inserted}} transaction(s) imported covering {{start}} to {{end}}. The list now shows that period.",
+      "source": {
+        "history": "History",
+        "merchant": "Keyword",
+        "structural": "Rule",
+        "default": "Default"
+      },
+      "sourceHint": "Suggested by: {{source}} ({{pct}}% confidence)",
       "back": "Back"
     }
   },
@@ -351,6 +358,20 @@
     "Contas": "Utilities",
     "Income": "Income",
     "Receita": "Income",
+    "Personal": "Personal",
+    "Pessoal": "Personal",
+    "Savings": "Savings",
+    "Poupança": "Savings",
+    "Insurance": "Insurance",
+    "Seguros": "Insurance",
+    "Shopping": "Shopping",
+    "Compras": "Shopping",
+    "Fees": "Fees",
+    "Tarifas": "Fees",
+    "InvestmentIncome": "Investment income",
+    "Rendimentos": "Investment income",
+    "Transfer": "Transfer",
+    "Transferência": "Transfer",
     "Aporte": "Goal contribution"
   },
   "quickAdd": {

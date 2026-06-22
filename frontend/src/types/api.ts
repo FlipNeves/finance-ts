@@ -267,6 +267,8 @@ export interface ImportPreviewRow {
   amount: number;
   type: TransactionType;
   category: string;
+  categoryConfidence: number;
+  categorySource: string;
   bankAccount: string | null;
   fingerprint: string;
   isDuplicate: boolean;

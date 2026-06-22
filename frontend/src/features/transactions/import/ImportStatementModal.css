@@ -154,6 +154,43 @@
   color: var(--text-muted, #666);
 }
 
+.si-cat-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.65rem;
+  color: var(--text-muted, #666);
+}
+
+.si-cat-meta .si-src-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted, #999);
+  flex: none;
+}
+
+.si-cat-meta .si-src-pct {
+  opacity: 0.7;
+}
+
+.si-cat-meta.si-src-history .si-src-dot {
+  background: var(--success, #2e7d32);
+}
+
+.si-cat-meta.si-src-structural .si-src-dot {
+  background: var(--accent, #2f6fed);
+}
+
+.si-cat-meta.si-src-merchant .si-src-dot {
+  background: #d39e00;
+}
+
+.si-cat-meta.si-src-default .si-src-dot {
+  background: var(--text-muted, #999);
+}
+
 .si-amount-income input {
   color: var(--success, #2e7d32);
 }

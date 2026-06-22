@@ -151,6 +151,13 @@
       "successTitle": "Importação concluída",
       "successBody": "{{inserted}} transação(ões) importada(s). {{skipped}} duplicata(s) ignorada(s).",
       "successBodyPeriod": "{{inserted}} transação(ões) importada(s) no período de {{start}} a {{end}}. A lista foi ajustada para mostrar esse período.",
+      "source": {
+        "history": "Histórico",
+        "merchant": "Palavra-chave",
+        "structural": "Regra",
+        "default": "Padrão"
+      },
+      "sourceHint": "Sugerido por: {{source}} ({{pct}}% de confiança)",
       "back": "Voltar"
     }
   },
@@ -350,6 +357,21 @@
     "Utilities": "Contas",
     "Contas": "Contas",
     "Income": "Receita",
+    "Receita": "Receita",
+    "Personal": "Pessoal",
+    "Pessoal": "Pessoal",
+    "Savings": "Poupança",
+    "Poupança": "Poupança",
+    "Insurance": "Seguros",
+    "Seguros": "Seguros",
+    "Shopping": "Compras",
+    "Compras": "Compras",
+    "Fees": "Tarifas",
+    "Tarifas": "Tarifas",
+    "InvestmentIncome": "Rendimentos",
+    "Rendimentos": "Rendimentos",
+    "Transfer": "Transferência",
+    "Transferência": "Transferência",
     "Aporte": "Aporte"
   },
   "quickAdd": {

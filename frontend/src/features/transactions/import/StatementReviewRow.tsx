@@ -76,6 +76,21 @@ export default function StatementReviewRow({
             </option>
           ))}
         </select>
+        {(() => {
+          const source = row.categorySource || 'default';
+          const pct = Math.round((row.categoryConfidence ?? 0) * 100);
+          const label = t(`transactions.import.source.${source}`);
+          return (
+            <div
+              className={`si-cat-meta si-src-${source}`}
+              title={t('transactions.import.sourceHint', { source: label, pct })}
+            >
+              <span className="si-src-dot" aria-hidden="true" />
+              <span className="si-src-label">{label}</span>
+              <span className="si-src-pct">{pct}%</span>
+            </div>
+          );
+        })()}
       </td>
       <td>
         <select
